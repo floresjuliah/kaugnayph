@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,14 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KaugnayPH – Barangay 761</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
 </head>
 <body>
 
 <!-- ── NAVBAR ── -->
 <nav>
   <a class="nav-brand" href="#">
-    <img src="images/kaugnayPH.png" alt="KaugnayPH Logo" />
+    <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo" />
     KAUGNAYPH
   </a>
   <ul class="nav-links">
@@ -186,7 +187,7 @@
   <div class="footer-main">
     <div>
       <a class="footer-brand" href="#">
-        <img src="images/kaugnayPH.png" alt="KaugnayPH Logo" />
+        <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo" />
         KAUGNAYPH
       </a>
     </div>

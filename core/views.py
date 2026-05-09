@@ -1,7 +1,18 @@
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .models import Users, Announcements
+from .models import Users, Announcements, SmsOutbox
+from django.shortcuts import render
+from django.utils import timezone
+
+def landing_page(request):
+    return render(request, 'landing.html')
+
+def login_page(request):
+    return render(request, 'login.html')
+
+def register_page(request):
+    return render(request, 'register.html')
 
 
 def get_users(request):
@@ -26,13 +37,22 @@ def create_announcement(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        send_sms_value = int(data.get("send_sms", 0))
+
         announcement = Announcements.objects.create(
             title=data.get("title"),
             content=data.get("content"),
-            send_sms=data.get("send_sms", 0),
+            send_sms=send_sms_value,
             category_id=1,          # temporary default
             posted_by_id=1          # temporary default
         )
+
+        if send_sms_value == 1:
+            send_sms(
+                recipient_number="09123456789",
+                message=f"New announcement: {announcement.title}",
+                sent_by=announcement.posted_by_id
+            )
 
         return JsonResponse({
             "message": "Announcement created successfully",
@@ -70,3 +90,37 @@ def delete_announcement(request, announcement_id):
             return JsonResponse({"error": "Announcement not found"}, status=404)
 
     return JsonResponse({"error": "DELETE request required"}, status=400)
+
+@csrf_exempt
+def send_sms(recipient_number, message, sent_by):
+    sms = SmsOutbox.objects.create(
+        recipient_number=recipient_number,
+        message=message,
+        sent_by_id=sent_by,
+        sent_at=timezone.now()
+    )
+
+    return sms
+
+@csrf_exempt
+def create_sms_log(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        sms = send_sms(
+            data.get("recipient_number"),
+            data.get("message"),
+            data.get("sent_by")
+        )
+
+        return JsonResponse({
+            "message": "SMS log created successfully",
+            "outbox_id": sms.outboxid,
+        })
+
+    return JsonResponse({"error": "POST request required"}, status=400)
+
+@csrf_exempt
+def get_sms_logs(request):
+    data = list(SmsOutbox.objects.all().values())
+    return JsonResponse(data, safe=False)
