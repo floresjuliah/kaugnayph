@@ -1,0 +1,15 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <nav><!-- navbar here --></nav>
+  
+  {% block content %}{% endblock %}  ← each page slots in here
+  
+  <footer><!-- footer here --></footer>
+</body>
+</html>
