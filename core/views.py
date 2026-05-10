@@ -1,9 +1,11 @@
 import json
+import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import Users, Announcements, SmsOutbox
 from django.shortcuts import render
 from django.utils import timezone
+from django.conf import settings
 
 def landing_page(request):
     return render(request, 'landing.html')
@@ -38,25 +40,28 @@ def create_announcement(request):
         data = json.loads(request.body)
 
         send_sms_value = int(data.get("send_sms", 0))
+        gateway_response = None
 
         announcement = Announcements.objects.create(
             title=data.get("title"),
             content=data.get("content"),
             send_sms=send_sms_value,
-            category_id=1,          # temporary default
-            posted_by_id=1          # temporary default
+            category_id=1,
+            posted_by_id=1
         )
 
         if send_sms_value == 1:
-            send_sms(
-                recipient_number="09123456789",
+            gateway_response = send_sms(
+                recipient_number="09175585424",
                 message=f"New announcement: {announcement.title}",
-                sent_by=announcement.posted_by_id
+                sent_by=1
             )
 
         return JsonResponse({
             "message": "Announcement created successfully",
-            "announcement_id": announcement.announcement_id
+            "announcement_id": announcement.announcement_id,
+            "send_sms_value": send_sms_value,
+            "gateway_response": gateway_response
         })
 
     return JsonResponse({"error": "POST request required"}, status=400)
@@ -91,8 +96,22 @@ def delete_announcement(request, announcement_id):
 
     return JsonResponse({"error": "DELETE request required"}, status=400)
 
-@csrf_exempt
+
 def send_sms(recipient_number, message, sent_by):
+
+    url = settings.SMS_URL
+
+    params = {
+        "USERNAME": settings.SMS_USERNAME,
+        "PASSWORD": settings.SMS_PASSWORD,
+        "smsnum": recipient_number,
+        "Memo": message,
+        "method": "2",
+        "smsprovider": settings.SMS_PROVIDER
+    }
+
+    response = requests.get(url, params=params)
+
     sms = SmsOutbox.objects.create(
         recipient_number=recipient_number,
         message=message,
@@ -100,7 +119,7 @@ def send_sms(recipient_number, message, sent_by):
         sent_at=timezone.now()
     )
 
-    return sms
+    return response.text
 
 @csrf_exempt
 def create_sms_log(request):
