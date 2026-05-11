@@ -143,3 +143,6 @@ def create_sms_log(request):
 def get_sms_logs(request):
     data = list(SmsOutbox.objects.all().values())
     return JsonResponse(data, safe=False)
+
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')

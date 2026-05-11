@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+
+        <div class="logo">
+            Kaugnay<span>PH</span>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Residents</a>
+            <a href="#">Announcements</a>
+            <a href="#">Requests</a>
+            <a href="#">Cases</a>
+            <a href="#">Inquiries</a>
+            <a href="#">Audit Logs</a>
+            <a href="#">SMS Outbox</a>
+            <a href="#">Admins</a>
+        </nav>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <h1>Overview Dashboard</h1>
+
+            <div class="top-actions">
+                <button>Manage Resident</button>
+                <button>Post Announcement</button>
+                <button>Manage Admin</button>
+
+                <div class="profile">
+                    <p>Admin</p>
+                </div>
+
+                <div class="avatar"></div>
+            </div>
+
+        </header>
+
+        <!-- CONTENT -->
+        <section class="dashboard-content">
+
+            <div class="dashboard-card">
+                <h2>Dashboard Content Area</h2>
+                <p>
+                    Charts, analytics, tables, and dashboard cards
+                    will be added here later.
+                </p>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}
