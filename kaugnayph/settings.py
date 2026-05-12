@@ -28,7 +28,11 @@ SECRET_KEY = 'django-insecure-ud(77ore(xk)a9(7c0f+83(0mtxo-%2n)k5izwbiot3kt+ysb)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "barangaythesis.swiftlink.pro",
+    "127.0.0.1",
+    "localhost",
+]
 
 
 # Application definition
