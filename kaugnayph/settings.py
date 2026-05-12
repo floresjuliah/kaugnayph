@@ -79,9 +79,9 @@ WSGI_APPLICATION = 'kaugnayph.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'barangay_system',
-        'USER': 'kaugnay_user',
-        'PASSWORD': 'kaugnay123',
+        'NAME': 'barangay_db',
+        'USER': 'barangay_user',
+        'PASSWORD': 'b@ranG@y!@#',
         'HOST': 'localhost',
         'PORT': '3306',
     }
