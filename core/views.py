@@ -2,7 +2,7 @@ import json
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .models import Users, Announcements, SmsOutbox
+from .models import Users, Announcements, SMSOutbox
 from django.shortcuts import render
 from django.utils import timezone
 from django.conf import settings
@@ -112,7 +112,7 @@ def send_sms(recipient_number, message, sent_by):
 
     response = requests.get(url, params=params)
 
-    sms = SmsOutbox.objects.create(
+    sms = SMSOutbox.objects.create(
         recipient_number=recipient_number,
         message=message,
         sent_by_id=sent_by,
@@ -141,7 +141,7 @@ def create_sms_log(request):
 
 @csrf_exempt
 def get_sms_logs(request):
-    data = list(SmsOutbox.objects.all().values())
+    data = list(SMSOutbox.objects.all().values())
     return JsonResponse(data, safe=False)
 
 def admin_dashboard(request):
