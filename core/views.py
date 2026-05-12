@@ -52,7 +52,7 @@ def create_announcement(request):
 
         if send_sms_value == 1:
             gateway_response = send_sms(
-                recipient_number="09175585424",
+                recipient_number="09950323069",
                 message=f"New announcement: {announcement.title}",
                 sent_by=1
             )
