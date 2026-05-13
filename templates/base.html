@@ -1,14 +1,100 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KaugnayPH – Barangay 761</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-  <nav><!-- navbar here --></nav>
-  
-  {% block content %}{% endblock %}  ← each page slots in here
-  
-  <footer><!-- footer here --></footer>
+
+<body class="landing-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav>
+
+    <a class="nav-brand" href="#">
+      <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo" />
+      KAUGNAYPH
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#" class="active">Home</a></li>
+      <li><a href="{% url 'aboutus' %}">About Us</a></li>
+      <li class="nav-dropdown">
+        <a href="#">Services ▾</a>
+        <ul class="dropdown-menu">
+          <li><a href="{% url 'filecomplaint' %}">File a Complaint</a></li>
+          <li><a href="{% url 'tracksub' %}">Track Submissions</a></li>
+          <li><a href="{% url 'documents' %}">Documents/Requirements</a></li>
+        </ul>
+      </li>
+      <li><a href="{% url 'faqs' %}">FAQs</a></li>
+    </ul>
+
+    <div class="nav-icon" aria-label="Account">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </div>
+
+  </nav>
+
+  <!-- ── PAGE CONTENT ── -->
+  {% block content %}
+  {% endblock %}
+
+  <!-- ── FOOTER ── -->
+  <footer>
+
+    <div class="footer-main">
+
+      <div>
+        <a class="footer-brand" href="#">
+          <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo" />
+          KAUGNAYPH
+        </a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="{% url 'faqs' %}">FAQs</a></li>
+          <li><a href="{% url 'aboutus' %}">About Us</a></li>
+          <li><a href="{% url 'contactus' %}">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="{% url 'filecomplaint' %}">File a Complaint</a></li>
+          <li><a href="{% url 'tracksub' %}">Track Submissions</a></li>
+          <li><a href="{% url 'documents' %}">Documents/Requirements</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-hours">
+        <h4>Office Hours</h4>
+        <p>
+          8:00 AM – 5:00 PM<br>
+          Monday to Friday
+        </p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 KaugnayPH. All Rights Reserved.</span>
+      <a href="#">Privacy Policy</a>
+      <span class="visitors">510,367 Visitors</span>
+    </div>
+
+  </footer>
+
 </body>
 </html>

@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from core.views import landing_page, login_page, register_page, get_users, get_announcements, get_announcement_detail, create_announcement, update_announcement, delete_announcement, create_sms_log, get_sms_logs, admin_dashboard
+from core import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', get_users),
@@ -25,7 +27,13 @@ urlpatterns = [
     path('announcements/create/', create_announcement),
     path('announcements/<int:announcement_id>/update/', update_announcement),
     path('announcements/<int:announcement_id>/delete/', delete_announcement),
-    path('', landing_page),
+    path('', views.landing_page, name='landing'),
+    path('filecomplaint/', views.filecomplaint, name='filecomplaint'),
+    path('aboutus/', views.aboutus, name='aboutus'),
+    path('tracksub/', views.tracksub, name='tracksub'),
+    path('documents/', views.documents, name='documents'),
+    path('faqs/', views.faqs, name='faqs'),
+    path('contactus/', views.contactus, name='contactus'),
     path('login/', login_page),
     path('register/', register_page),
     path('sms/create/', create_sms_log),

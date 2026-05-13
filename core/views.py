@@ -34,6 +34,24 @@ def get_announcement_detail(request, announcement_id):
     except Announcements.DoesNotExist:
         return JsonResponse({"error": "Announcement not found"}, status=404)
 
+def filecomplaint(request):
+    return render(request, 'filecomplaint.html')
+
+def aboutus(request):
+    return render(request, 'aboutus.html')
+
+def tracksub(request):
+    return render(request, 'tracksub.html')
+
+def documents(request):
+    return render(request, 'documents.html')
+
+def faqs(request):
+    return render(request, 'faqs.html')
+
+def contactus(request):
+    return render(request, 'contactus.html')
+
 @csrf_exempt
 def create_announcement(request):
     if request.method == "POST":
