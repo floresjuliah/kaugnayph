@@ -70,7 +70,7 @@ def create_announcement(request):
 
         if send_sms_value == 1:
             gateway_response = send_sms(
-                recipient_number="09950323069",
+                recipient_number="09175585424",
                 message=f"New announcement: {announcement.title}",
                 sent_by=1
             )
@@ -134,10 +134,13 @@ def send_sms(recipient_number, message, sent_by):
         recipient_number=recipient_number,
         message=message,
         sent_by_id=sent_by,
-        sent_at=timezone.now()
+        sent_at=timezone.now(),
+        status="Sent",
+        gateway_response=response.text
     )
 
-    return response.text
+    return sms
+
 
 @csrf_exempt
 def create_sms_log(request):
@@ -153,6 +156,8 @@ def create_sms_log(request):
         return JsonResponse({
             "message": "SMS log created successfully",
             "outbox_id": sms.outboxid,
+            "status": sms.status,
+            "gateway_response": sms.gateway_response,
         })
 
     return JsonResponse({"error": "POST request required"}, status=400)

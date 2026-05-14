@@ -261,10 +261,30 @@ class SMSSubscriptions(models.Model):
 
 class SMSOutbox(models.Model):
     outboxid = models.AutoField(db_column='OutboxID', primary_key=True)
+
     recipient_number = models.CharField(max_length=20, blank=True, null=True)
     message = models.TextField(blank=True, null=True)
-    sent_by = models.ForeignKey(Users, models.CASCADE, db_column='sent_by', blank=True, null=True)
+
+    sent_by = models.ForeignKey(
+        Users,
+        models.CASCADE,
+        db_column='sent_by',
+        blank=True,
+        null=True
+    )
+
     sent_at = models.DateTimeField(blank=True, null=True)
+
+    status = models.CharField(max_length=20, blank=True, null=True)
+
+    error_message = models.TextField(blank=True, null=True)
+    gateway_response = models.TextField(blank=True, null=True)
+
+    module_id = models.IntegerField(blank=True, null=True)
+    related_record_id = models.IntegerField(blank=True, null=True)
+    user_id = models.IntegerField(blank=True, null=True)
+
+    created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'SMS_Outbox'
