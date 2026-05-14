@@ -1,67 +1,42 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 
-{% block content %}
+{% block admin_title %}
+Overview Dashboard
+{% endblock %}
 
-<div class="admin-layout">
+{% block admin_content %}
 
-    <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
+<div class="stats-grid">
 
-        <div class="logo">
-            Kaugnay<span>PH</span>
-        </div>
+    <div class="admin-card">
+        <p>Total Residents</p>
+        <h2>--</h2>
+    </div>
 
-        <nav class="sidebar-menu">
-            <a href="#" class="active">Dashboard</a>
-            <a href="#">Residents</a>
-            <a href="#">Announcements</a>
-            <a href="#">Requests</a>
-            <a href="#">Cases</a>
-            <a href="#">Inquiries</a>
-            <a href="#">Audit Logs</a>
-            <a href="#">SMS Outbox</a>
-            <a href="#">Admins</a>
-        </nav>
+    <div class="admin-card">
+        <p>Total Requests</p>
+        <h2>--</h2>
+    </div>
 
-    </aside>
+    <div class="admin-card">
+        <p>Pending Cases</p>
+        <h2>--</h2>
+    </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="admin-main">
+    <div class="admin-card">
+        <p>New Inquiries</p>
+        <h2>--</h2>
+    </div>
 
-        <!-- TOPBAR -->
-        <header class="topbar">
+</div>
 
-            <h1>Overview Dashboard</h1>
+<div class="admin-card">
+    <h3>Dashboard Content Area</h3>
 
-            <div class="top-actions">
-                <button>Manage Resident</button>
-                <button>Post Announcement</button>
-                <button>Manage Admin</button>
-
-                <div class="profile">
-                    <p>Admin</p>
-                </div>
-
-                <div class="avatar"></div>
-            </div>
-
-        </header>
-
-        <!-- CONTENT -->
-        <section class="dashboard-content">
-
-            <div class="dashboard-card">
-                <h2>Dashboard Content Area</h2>
-                <p>
-                    Charts, analytics, tables, and dashboard cards
-                    will be added here later.
-                </p>
-            </div>
-
-        </section>
-
-    </main>
-
+    <p>
+        Charts, analytics, tables, and dashboard cards
+        will be added here later.
+    </p>
 </div>
 
 {% endblock %}
