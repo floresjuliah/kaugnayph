@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls import path, include
 from core.views import landing_page, login_page, register_page, get_users, get_announcements, get_announcement_detail, create_announcement, update_announcement, delete_announcement, create_sms_log, get_sms_logs, admin_dashboard
 from core import views
 
@@ -39,4 +40,9 @@ urlpatterns = [
     path('sms/create/', create_sms_log),
     path('sms/', get_sms_logs),
     path('admin-dashboard/', admin_dashboard),
+]
+ 
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('core.urls')),  
 ]

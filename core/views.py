@@ -3,9 +3,19 @@ import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import Users, Announcements, SMSOutbox
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.conf import settings
+from django.contrib import messages
+from django.utils import timezone
+from .models import Users, UserTypes, Settings
+from .auth_utils import (
+    hash_password, check_password, generate_otp,
+    verify_otp, send_sms, set_user_session, get_current_user
+)
+from .decorators import login_required, admin_required, resident_required
+import random
+
 
 def landing_page(request):
     return render(request, 'landing.html')
@@ -169,3 +179,158 @@ def get_sms_logs(request):
 
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
+
+#New - Auth - Tam
+# ── LOGIN ────────────────────────────────────────────
+def login_view(request):
+    if request.session.get('user_id'):
+        return _redirect_by_type(request)
+    if request.method == "POST":
+        username = request.POST.get("username","").strip()
+        password = request.POST.get("password","").strip()
+        try:
+            user = Users.objects.select_related(
+                "user_type","role","position"
+            ).get(username=username, is_active=True)
+        except Users.DoesNotExist:
+            messages.error(request, "Invalid credentials.")
+            return render(request, "core/login.html")
+        if not check_password(password, user.password):
+            messages.error(request, "Invalid credentials.")
+            return render(request, "core/login.html")
+        if user.user_type.type_name == "Admin":
+            request.session["pending_user_id"] = user.userid
+            otp = generate_otp(user, purpose="login")
+            send_sms(user.contactno,
+                f"KaugnayPH OTP: {otp.code}. Valid 5 mins. Do not share.")
+            return redirect("otp_verify")
+        if user.user_type.type_name == "Resident":
+            if not user.is_verified:
+                messages.warning(request, "Account pending verification.")
+                return render(request, "core/login.html")
+            set_user_session(request, user)
+            return redirect("resident_dashboard")
+    return render(request, "core/login.html")
+ 
+# ── OTP VERIFY ───────────────────────────────────────
+def otp_verify_view(request):
+    pending_id = request.session.get("pending_user_id")
+    if not pending_id:
+        return redirect("login")
+    if request.method == "POST":
+        code = request.POST.get("otp_code","").strip()
+        try:
+            user = Users.objects.select_related(
+                "user_type","role","position"
+            ).get(userid=pending_id)
+        except Users.DoesNotExist:
+            return redirect("login")
+        if verify_otp(user, code, purpose="login"):
+            del request.session["pending_user_id"]
+            set_user_session(request, user)
+            if user.is_first_login:
+                return redirect("admin_first_login")
+            return redirect("admin_dashboard")
+        else:
+            messages.error(request, "Invalid or expired OTP.")
+    return render(request, "core/otp_verify.html")
+ 
+def resend_otp_view(request):
+    pending_id = request.session.get("pending_user_id")
+    if not pending_id: return redirect("login")
+    try:
+        user = Users.objects.get(userid=pending_id)
+        otp = generate_otp(user, purpose="login")
+        send_sms(user.contactno,
+            f"KaugnayPH new OTP: {otp.code}. Valid 5 mins.")
+        messages.success(request, "New OTP sent.")
+    except Users.DoesNotExist:
+        return redirect("login")
+    return redirect("otp_verify")
+ 
+# ── FIRST LOGIN ──────────────────────────────────────
+@login_required
+def admin_first_login_view(request):
+    user = get_current_user(request)
+    if not user.is_first_login:
+        return redirect("admin_dashboard")
+    if request.method == "POST":
+        new_pass = request.POST.get("new_password","")
+        confirm  = request.POST.get("confirm_password","")
+        if len(new_pass) < 8:
+            messages.error(request, "Min. 8 characters.")
+        elif new_pass != confirm:
+            messages.error(request, "Passwords do not match.")
+        else:
+            user.password = hash_password(new_pass)
+            user.is_first_login = False
+            user.is_password_changed = True
+            user.save()
+            messages.success(request, "Password updated!")
+            return redirect("admin_dashboard")
+    return render(request, "core/admin_first_login.html", {"user": user})
+ 
+# ── RESIDENT REGISTER ────────────────────────────────
+def resident_register_view(request):
+    if request.method == "POST":
+        lastname   = request.POST.get("lastname","").strip()
+        firstname  = request.POST.get("firstname","").strip()
+        contact_no = request.POST.get("contact_no","").strip()
+        address    = request.POST.get("address","").strip()
+        password   = request.POST.get("password","").strip()
+        receive_sms = request.POST.get("receive_sms") == "on"
+        if Users.objects.filter(contactno=contact_no).exists():
+            messages.error(request, "Mobile number already registered.")
+            return render(request, "core/register.html")
+        if len(password) < 8:
+            messages.error(request, "Min. 8 characters.")
+            return render(request, "core/register.html")
+        try:
+            resident_type = UserTypes.objects.get(type_name="Resident")
+        except UserTypes.DoesNotExist:
+            messages.error(request, "System error: seed the database first.")
+            return render(request, "core/register.html")
+        new_user = Users.objects.create(
+            username=contact_no,
+            password=hash_password(password),
+            firstname=firstname, lastname=lastname,
+            contactno=contact_no,
+            user_type=resident_type,
+            is_verified=False, is_active=True,
+            is_first_login=False, is_password_changed=True,
+        )
+        Settings.objects.create(
+            user=new_user, receive_sms=receive_sms,
+            notifications_enabled=True, dark_mode=False,
+            updated_at=timezone.now(),
+        )
+        messages.success(request, "Account created! Awaiting barangay verification.")
+        return redirect("login")
+    return render(request, "core/register.html")
+ 
+# ── DASHBOARDS ───────────────────────────────────────
+@login_required
+@admin_required
+def admin_dashboard_view(request):
+    user = get_current_user(request)
+    return render(request, "core/admin_dashboard.html", {"user": user})
+ 
+@login_required
+@resident_required
+def resident_dashboard_view(request):
+    user = get_current_user(request)
+    return render(request, "core/resident_dashboard.html", {"user": user})
+ 
+def pending_verification_view(request):
+    return render(request, "core/pending_verification.html")
+ 
+# ── LOGOUT ───────────────────────────────────────────
+def logout_view(request):
+    request.session.flush()
+    return redirect("login")
+ 
+# ── HELPER ───────────────────────────────────────────
+def _redirect_by_type(request):
+    user_type = request.session.get("user_type")
+    if user_type == "Admin": return redirect("admin_dashboard")
+    return redirect("resident_dashboard")

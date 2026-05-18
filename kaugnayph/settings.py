@@ -138,3 +138,7 @@ SMS_PROVIDER = os.getenv("SMS_PROVIDER")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Session settings
+SESSION_COOKIE_AGE = 3600             # 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+LOGIN_URL = '/login/'
