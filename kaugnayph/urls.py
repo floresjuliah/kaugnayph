@@ -35,7 +35,7 @@ urlpatterns = [
     path('documents/', views.documents, name='documents'),
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
-    path('login/', login_page),
+    path('login/', views.login_view, name='login'),
     path('register/', register_page),
     path('sms/create/', create_sms_log),
     path('sms/', get_sms_logs),

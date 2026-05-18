@@ -1,0 +1,15 @@
+{% if messages %}{% for msg in messages %}<p>{{ msg }}</p>{% endfor %}{% endif %}
+<form method="POST">
+  {% csrf_token %}
+  <input type="text" name="lastname"   placeholder="Last Name"   required>
+  <input type="text" name="firstname"  placeholder="First Name"  required>
+  <input type="text" name="contact_no" placeholder="09XXXXXXXXX" required>
+  <input type="text" name="address"    placeholder="Address"     required>
+  <input type="password" name="password" placeholder="Password (min 8 chars)" required>
+  <label>
+    <input type="checkbox" name="receive_sms">
+    Receive SMS notifications from KaugnayPH
+  </label>
+  <button type="submit">Create Account</button>
+</form>
+<a href="{% url 'login' %}">Back to Login</a>

@@ -268,7 +268,7 @@ def admin_first_login_view(request):
             user.save()
             messages.success(request, "Password updated!")
             return redirect("admin_dashboard")
-    return render(request, "core/admin_first_login.html", {"user": user})
+    return render(request, "templates/core/admin_first_login.html", {"user": user})
  
 # ── RESIDENT REGISTER ────────────────────────────────
 def resident_register_view(request):
