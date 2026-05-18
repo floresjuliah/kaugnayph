@@ -40,9 +40,7 @@ urlpatterns = [
     path('sms/create/', create_sms_log),
     path('sms/', get_sms_logs),
     path('admin-dashboard/', admin_dashboard),
-]
- 
-urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('core.urls')),  
 ]
+
+
