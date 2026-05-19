@@ -13,7 +13,7 @@ from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, set_user_session, get_current_user
 )
-from .decorators import login_required, admin_required, resident_required
+from .decorators import login_required, admin_login_required, admin_required, resident_required
 import random
 
 
@@ -181,48 +181,102 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
 #New - Auth - Tam
-# ── LOGIN ────────────────────────────────────────────
+# =========================================================
+# AUTHENTICATION SYSTEM
+# =========================================================
+
 def login_view(request):
-    if request.session.get('user_id'):
+
+    # Already logged in
+    if request.session.get("user_id"):
         return _redirect_by_type(request)
+
     if request.method == "POST":
-        username = request.POST.get("username","").strip()
-        password = request.POST.get("password","").strip()
+
+        contact_no = request.POST.get("contact_no", "").strip()
+        password = request.POST.get("password", "").strip()
+
         try:
             user = Users.objects.select_related(
-                "user_type","role","position"
-            ).get(username=username, is_active=True)
+                "user_type",
+                "role",
+                "position"
+            ).get(
+                contactno=contact_no,
+                is_active=True
+            )
+
         except Users.DoesNotExist:
             messages.error(request, "Invalid credentials.")
-            return render(request, "auth/login.html")   
+            return render(request, "auth/login.html")
+
+        # PASSWORD CHECK
         if not check_password(password, user.password):
             messages.error(request, "Invalid credentials.")
             return render(request, "auth/login.html")
-        if user.user_type.type_name == "Admin":
-            request.session["pending_user_id"] = user.userid
-            otp = generate_otp(user, purpose="login")
-            send_sms(user.contactno,
-                f"KaugnayPH OTP: {otp.code}. Valid 5 mins. Do not share.")
-            return redirect("otp_verify")
-        if user.user_type.type_name == "Resident":
-            if not user.is_verified:
-                messages.warning(request, "Account pending verification.")
-                return render(request, "auth/login.html")
-            set_user_session(request, user)
-            return redirect("resident_dashboard")
-    return render(request, "auth/login.html")
- 
 
- # ── ADMIN LOGIN ─────────────────────────────────────
+        # =================================================
+        # ADMIN FLOW
+        # =================================================
+        if user.user_type.type_name == "Admin":
+
+            # TEMP SESSION
+            request.session["pending_user_id"] = user.userid
+
+            # FIRST LOGIN?
+            if user.is_first_login:
+                return redirect("admin_first_login")
+
+            # NORMAL ADMIN LOGIN
+            otp = generate_otp(user, purpose="login")
+
+            send_sms(
+                user.contactno,
+                f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+            )
+
+            return redirect("otp_verify")
+
+        # =================================================
+        # RESIDENT FLOW
+        # =================================================
+        if user.user_type.type_name == "Resident":
+
+            if not user.is_verified:
+                messages.warning(
+                    request,
+                    "Your account is pending verification."
+                )
+                return render(request, "auth/login.html")
+
+            set_user_session(request, user)
+
+            return redirect("resident_dashboard")
+
+    return render(request, "auth/login.html")
+
+
+# =========================================================
+# ADMIN LOGIN PAGE
+# =========================================================
+
 def admin_login_view(request):
 
+    # Already logged in
     if request.session.get('user_id'):
         return redirect('admin_dashboard')
 
     if request.method == "POST":
 
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "").strip()
+        username = request.POST.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.POST.get(
+            "password",
+            ""
+        ).strip()
 
         try:
             user = Users.objects.select_related(
@@ -235,109 +289,370 @@ def admin_login_view(request):
             )
 
         except Users.DoesNotExist:
-            messages.error(request, "Invalid credentials.")
-            return render(request, "auth/admin_login.html")
+
+            messages.error(
+                request,
+                "Invalid credentials."
+            )
+
+            return render(
+                request,
+                "auth/admin_login.html"
+            )
 
         # ADMIN ONLY
         if user.user_type.type_name != "Admin":
-            messages.error(request, "Admin access only.")
-            return render(request, "auth/admin_login.html")
 
-        if not check_password(password, user.password):
-            messages.error(request, "Invalid credentials.")
-            return render(request, "auth/admin_login.html")
+            messages.error(
+                request,
+                "Admin access only."
+            )
 
-        # OTP FLOW
-        request.session["pending_user_id"] = user.userid
+            return render(
+                request,
+                "auth/admin_login.html"
+            )
 
-        otp = generate_otp(user, purpose="login")
+        # PASSWORD CHECK
+        if not check_password(
+            password,
+            user.password
+        ):
 
-        print("OTP CODE:", otp.code)
+            messages.error(
+                request,
+                "Invalid credentials."
+            )
 
-        return redirect("otp_verify")
+            return render(
+                request,
+                "auth/admin_login.html"
+            )
 
-    return render(request, "auth/admin_login.html")
+        # TEMP SESSION
+        request.session[
+            "pending_user_id"
+        ] = user.userid
 
-# ── OTP VERIFY ───────────────────────────────────────
+        # FIRST LOGIN FLOW
+        if user.is_first_login:
+
+            return redirect(
+                "admin_first_login"
+            )
+
+        # NORMAL LOGIN FLOW
+        otp = generate_otp(
+            user,
+            purpose="login"
+        )
+
+        send_sms(
+            user.contactno,
+            f"KaugnayPH OTP: {otp.code}"
+        )
+
+        return redirect(
+            "otp_verify"
+        )
+
+    return render(
+        request,
+        "auth/admin_login.html"
+    )
+
+
+# =========================================================
+# FIRST LOGIN
+# =========================================================
+
+def admin_first_login_view(request):
+
+    pending_id = request.session.get(
+        "pending_user_id"
+    )
+
+    if not pending_id:
+        return redirect("admin_login")
+
+    try:
+        user = Users.objects.get(
+            userid=pending_id
+        )
+
+    except Users.DoesNotExist:
+        return redirect("admin_login")
+
+    # Already changed
+    if not user.is_first_login:
+        return redirect("admin_login")
+
+    if request.method == "POST":
+
+        new_password = request.POST.get(
+            "new_password",
+            ""
+        ).strip()
+
+        confirm_password = request.POST.get(
+            "confirm_password",
+            ""
+        ).strip()
+
+        # VALIDATION
+        if len(new_password) < 8:
+
+            messages.error(
+                request,
+                "Password must be at least 8 characters."
+            )
+
+            return render(
+                request,
+                "auth/admin_first_login.html"
+            )
+
+        if new_password != confirm_password:
+
+            messages.error(
+                request,
+                "Passwords do not match."
+            )
+
+            return render(
+                request,
+                "auth/admin_first_login.html"
+            )
+
+        # SAVE NEW PASSWORD
+        user.password = hash_password(
+            new_password
+        )
+
+        user.is_first_login = False
+        user.is_password_changed = True
+
+        user.save()
+
+        # SEND OTP AFTER PASSWORD CHANGE
+        otp = generate_otp(
+            user,
+            purpose="login"
+        )
+
+        send_sms(
+            user.contactno,
+            f"KaugnayPH OTP: {otp.code}"
+        )
+
+        messages.success(
+            request,
+            "Password changed successfully."
+        )
+
+        return redirect(
+            "otp_verify"
+        )
+
+    return render(
+        request,
+        "auth/admin_first_login.html"
+    )
+
+
+# =========================================================
+# OTP VERIFY
+# =========================================================
+
 def otp_verify_view(request):
-    pending_id = request.session.get("pending_user_id")
+
+    pending_id = request.session.get(
+        "pending_user_id"
+    )
+
+    if not pending_id:
+        return redirect("admin_login")
+
+    try:
+        user = Users.objects.select_related(
+            "user_type",
+            "role",
+            "position"
+        ).get(
+            userid=pending_id
+        )
+
+    except Users.DoesNotExist:
+        return redirect("admin_login")
+
+    if request.method == "POST":
+
+        code = request.POST.get(
+            "otp_code",
+            ""
+        ).strip()
+
+        if verify_otp(
+            user,
+            code,
+            purpose="login"
+        ):
+
+            # REMOVE TEMP SESSION
+            del request.session[
+                "pending_user_id"
+            ]
+
+            # CREATE REAL SESSION
+            set_user_session(
+                request,
+                user
+            )
+
+            return redirect(
+                "admin_dashboard"
+            )
+
+        else:
+
+            messages.error(
+                request,
+                "Invalid or expired OTP."
+            )
+
+    return render(
+        request,
+        "auth/otp_verify.html"
+    )
+
+
+# =========================================================
+# RESEND OTP
+# =========================================================
+
+def resend_otp_view(request):
+
+    pending_id = request.session.get(
+        "pending_user_id"
+    )
+
     if not pending_id:
         return redirect("login")
-    if request.method == "POST":
-        code = request.POST.get("otp_code","").strip()
-        try:
-            user = Users.objects.select_related(
-                "user_type","role","position"
-            ).get(userid=pending_id)
-        except Users.DoesNotExist:
-            return redirect("login")
-        if verify_otp(user, code, purpose="login"):
-            del request.session["pending_user_id"]
-            set_user_session(request, user)
-            if user.is_first_login:
-                return redirect("admin_first_login")
-            return redirect("admin_dashboard")
-        else:
-            messages.error(request, "Invalid or expired OTP.")
-    return render(request, "auth/otp_verify.html")
- 
-def resend_otp_view(request):
-    pending_id = request.session.get("pending_user_id")
-    if not pending_id: return redirect("login")
+
     try:
-        user = Users.objects.get(userid=pending_id)
-        otp = generate_otp(user, purpose="login")
-        send_sms(user.contactno,
-            f"KaugnayPH new OTP: {otp.code}. Valid 5 mins.")
-        messages.success(request, "New OTP sent.")
+        user = Users.objects.get(
+            userid=pending_id
+        )
+
     except Users.DoesNotExist:
         return redirect("login")
+
+    otp = generate_otp(
+        user,
+        purpose="login"
+    )
+
+    send_sms(
+        user.contactno,
+        f"KaugnayPH NEW OTP: {otp.code}"
+    )
+
+    messages.success(
+        request,
+        "New OTP sent."
+    )
+
     return redirect("otp_verify")
- 
-# ── FIRST LOGIN ──────────────────────────────────────
-@login_required
-def admin_first_login_view(request):
-    user = get_current_user(request)
-    if not user.is_first_login:
-        return redirect("admin_dashboard")
-    if request.method == "POST":
-        new_pass = request.POST.get("new_password","")
-        confirm  = request.POST.get("confirm_password","")
-        if len(new_pass) < 8:
-            messages.error(request, "Min. 8 characters.")
-        elif new_pass != confirm:
-            messages.error(request, "Passwords do not match.")
-        else:
-            user.password = hash_password(new_pass)
-            user.is_first_login = False
-            user.is_password_changed = True
-            user.save()
-            messages.success(request, "Password updated!")
-            return redirect("admin_dashboard")
-    return render(request, "auth/admin_first_login.html")
- 
-# ── RESIDENT REGISTER ────────────────────────────────
+
+
+# =========================================================
+# REGISTER
+# =========================================================
+
 def resident_register_view(request):
+
     if request.method == "POST":
-        lastname   = request.POST.get("lastname","").strip()
-        firstname  = request.POST.get("firstname","").strip()
-        contact_no = request.POST.get("contact_no","").strip()
-        address    = request.POST.get("address","").strip()
-        password   = request.POST.get("password","").strip()
-        receive_sms = request.POST.get("receive_sms") == "on"
-        if Users.objects.filter(contactno=contact_no).exists():
-            messages.error(request, "Mobile number already registered.")
-            return render(request, "auth/register.html")
+
+        lastname = request.POST.get(
+            "lastname",
+            ""
+        ).strip()
+
+        firstname = request.POST.get(
+            "firstname",
+            ""
+        ).strip()
+
+        contact_no = request.POST.get(
+            "contact_no",
+            ""
+        ).strip()
+
+        address = request.POST.get(
+            "address",
+            ""
+        ).strip()
+
+        password = request.POST.get(
+            "password",
+            ""
+        ).strip()
+
+        receive_sms = (
+            request.POST.get("receive_sms")
+            == "on"
+        )
+
+        # DUPLICATE NUMBER
+        if Users.objects.filter(
+            contactno=contact_no
+        ).exists():
+
+            messages.error(
+                request,
+                "Mobile number already exists."
+            )
+
+            return render(
+                request,
+                "auth/register.html"
+            )
+
+        # PASSWORD VALIDATION
         if len(password) < 8:
-            messages.error(request, "Min. 8 characters.")
-            return render(request, "auth/register.html")
+
+            messages.error(
+                request,
+                "Password must be at least 8 characters."
+            )
+
+            return render(
+                request,
+                "auth/register.html"
+            )
+
         try:
-            resident_type = UserTypes.objects.get(type_name="Resident")
+            resident_type = UserTypes.objects.get(
+                type_name="Resident"
+            )
+
         except UserTypes.DoesNotExist:
-            messages.error(request, "System error: seed the database first.")
-            return render(request, "auth/register.html")
+
+            messages.error(
+                request,
+                "Resident user type missing."
+            )
+
+            return render(
+                request,
+                "auth/register.html"
+            )
+
+        # CREATE USER
         new_user = Users.objects.create(
+
             username=contact_no,
+
             password=hash_password(password),
 
             firstname=firstname,
@@ -348,22 +663,41 @@ def resident_register_view(request):
             user_type=resident_type,
 
             is_verified=False,
+
             is_active=True,
 
             is_first_login=False,
-            is_password_changed=True,
+
+            is_password_changed=True
         )
+
+        # SETTINGS
         Settings.objects.create(
-            user=new_user, receive_sms=receive_sms,
-            notifications_enabled=True, dark_mode=False,
-            updated_at=timezone.now(),
+            user=new_user,
+            receive_sms=receive_sms,
+            notifications_enabled=True,
+            dark_mode=False,
+            updated_at=timezone.now()
         )
-        messages.success(request, "Account created! Awaiting barangay verification.")
+
+        messages.success(
+            request,
+            "Account created successfully."
+        )
+
         return redirect("login")
-    return render(request, "auth/register.html")
- 
-# ── DASHBOARDS ───────────────────────────────────────
-@login_required
+
+    return render(
+        request,
+        "auth/register.html"
+    )
+
+
+# =========================================================
+# DASHBOARDS
+# =========================================================
+
+@admin_login_required
 @admin_required
 def admin_dashboard_view(request):
 
@@ -372,22 +706,60 @@ def admin_dashboard_view(request):
     return render(
         request,
         "adminpanel/dashboard.html",
-        {"user": user}
+        {
+            "user": user
+        }
     )
- 
+
+
 @login_required
 @resident_required
 def resident_dashboard_view(request):
+
     user = get_current_user(request)
-    return render(request, "resident/dashboard.html")
- 
+
+    return render(
+        request,
+        "resident/dashboard.html",
+        {
+            "user": user
+        }
+    )
+
+
 def pending_verification_view(request):
-    return render(request, "resident/dashboard.html")
- 
-# ── LOGOUT ───────────────────────────────────────────
+
+    return render(
+        request,
+        "resident/pending_verification.html"
+    )
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
 def logout_view(request):
+
     request.session.flush()
+
     return redirect("login")
+
+
+# =========================================================
+# REDIRECT HELPER
+# =========================================================
+
+def _redirect_by_type(request):
+
+    user_type = request.session.get(
+        "user_type"
+    )
+
+    if user_type == "Admin":
+        return redirect("admin_dashboard")
+
+    return redirect("resident_dashboard")
  
 # ── HELPER ───────────────────────────────────────────
 def _redirect_by_type(request):

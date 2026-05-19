@@ -1,37 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Login</title>
+    <meta charset="UTF-8">
+    <title>Admin Login – KaugnayPH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; margin-bottom: 0.25rem; color: #1a1a2e; }
+        .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; color: #333; }
+        input { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; margin-bottom: 1rem; }
+        input:focus { outline: none; border-color: #4f46e5; }
+        button { width: 100%; padding: 0.75rem; background: #4f46e5; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #4338ca; }
+        .messages { margin-bottom: 1rem; }
+        .messages li { list-style: none; background: #fee2e2; color: #b91c1c; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 0.4rem; }
+        .badge { display: inline-block; background: #e0e7ff; color: #4f46e5; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px; margin-bottom: 1rem; }
+    </style>
 </head>
 <body>
+<div class="card">
+    <h2>KaugnayPH</h2>
+    <p class="subtitle">Barangay Administration Portal</p>
+    <span class="badge">Admin Access Only</span>
 
-<h1>Admin Login</h1>
+    {% if messages %}
+    <ul class="messages">
+        {% for msg in messages %}<li>{{ msg }}</li>{% endfor %}
+    </ul>
+    {% endif %}
 
-<form method="POST">
+    <form method="POST">
+        {% csrf_token %}
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
 
-    {% csrf_token %}
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter password" required>
 
-    <label>Username</label>
-    <input type="text" name="username">
-
-    <br><br>
-
-    <label>Password</label>
-    <input type="password" name="password">
-
-    <br><br>
-
-    <button type="submit">
-        Login
-    </button>
-
-</form>
-
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
+        <button type="submit">Login</button>
+    </form>
+</div>
 </body>
 </html>
