@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>KaugnayPH – Sign In</title>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="register-page">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <p class="welcome-text">Welcome to</p>
+
+    <div class="logo-circle">
+      <img src="{% static 'images/kaugnayPH.png' %}" alt="placeholder" />
+    </div>
+
+    <p class="brand-name">KAUGNAYPH</p>
+
+    <p class="brand-desc">
+      A Web-Based Barangay Communication and Resident
+      Concern Management System with SMS Notification
+    </p>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'landing' %}">Home</a></li>
+      <li><span>|</span></li>
+      <li><a href="{% url 'aboutus' %}">About Us</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="form-card">
+
+      <h1>Welcome Back!</h1>
+      <p class="subtitle">We're glad to see you back!</p>
+
+      {% if messages %}
+        <div style="color:red;">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="contact_no">Mobile Number</label>
+          <p class="hint">e.g. 09952638048</p>
+          <input type="tel" id="contact_no" name="contact_no" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <div class="pw-wrapper">
+            <input type="password" id="password" name="password" required />
+            <button type="button" class="pw-toggle" onclick="togglePassword()">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-create">
+          Sign In
+        </button>
+
+      </form>
+
+      <p class="signin-link">
+        Don't have an Account?
+        <a href="{% url 'register' %}">Sign Up</a>
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+  </script>
+
+</body>
+</html>

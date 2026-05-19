@@ -9,13 +9,13 @@
   <title>KaugnayPH – Create Account</title>
 
   <!-- CONNECT CSS -->
-  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
   <!-- POPPINS FONT -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body class="register-page">
 
   <!-- LEFT PANEL -->
   <div class="left-panel">
@@ -32,11 +32,11 @@
       Concern Management System with SMS Notification
     </p>
 
-    <nav class="nav-links">
-      <a href="#">Home</a>
-      <span>|</span>
-      <a href="#">About Us</a>
-    </nav>
+    <ul class="nav-links">
+      <li><a href="{% url 'landing' %}">Home</a></li>
+      <li><span>|</span></li>
+      <li><a href="{% url 'aboutus' %}">About Us</a></li>
+    </ul>
   </div>
 
  <!-- RIGHT PANEL -->
