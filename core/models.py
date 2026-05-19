@@ -43,27 +43,78 @@ class Positions(models.Model):
 
 
 class Users(models.Model):
-    userid = models.AutoField(db_column='UserID', primary_key=True)
-    username = models.CharField(db_column='Username', max_length=50, unique=True)
-    password = models.CharField(db_column='Password', max_length=255)
 
-    firstname = models.CharField(db_column='Firstname', max_length=100, blank=True, null=True)
-    lastname = models.CharField(db_column='Lastname', max_length=100, blank=True, null=True)
-    middlename = models.CharField(db_column='Middlename', max_length=100, blank=True, null=True)
+    userid = models.AutoField(
+        db_column='UserID',
+        primary_key=True
+    )
 
-    contactno = models.CharField(db_column='ContactNo', max_length=20, unique=True, blank=True, null=True)
-    sex = models.CharField(db_column='Sex', max_length=10, blank=True, null=True)
+    username = models.CharField(
+        db_column='Username',
+        max_length=50,
+        unique=True
+    )
 
-    user_type = models.ForeignKey(UserTypes, models.CASCADE, db_column='user_type_id')
-    role = models.ForeignKey(Roles, models.CASCADE, db_column='role_id', blank=True, null=True)
-    position = models.ForeignKey(Positions, models.CASCADE, db_column='position_id', blank=True, null=True)
+    password = models.CharField(
+        db_column='Password',
+        max_length=255
+    )
 
-    is_verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_first_login = models.BooleanField(default=True)
-    is_password_changed = models.BooleanField(default=False)
+    firstname = models.CharField(
+        db_column='Firstname',
+        max_length=100
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    lastname = models.CharField(
+        db_column='Lastname',
+        max_length=100
+    )
+
+    contactno = models.CharField(
+        db_column='ContactNo',
+        max_length=20,
+        unique=True
+    )
+
+    user_type = models.ForeignKey(
+        'UserTypes',
+        db_column='user_type_id',
+        on_delete=models.CASCADE
+    )
+
+    role = models.ForeignKey(
+        'Roles',
+        db_column='role_id',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    position = models.ForeignKey(
+        'Positions',
+        db_column='position_id',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    is_verified = models.BooleanField(
+        db_column='is_verified',
+        default=False
+    )
+
+    is_active = models.BooleanField(
+        db_column='is_active',
+        default=True
+    )
+
+    is_first_login = models.BooleanField(
+        db_column='is_first_login',
+        default=True
+    )
+
+    is_password_changed = models.BooleanField(
+        db_column='is_password_changed',
+        default=False
+    )
 
     class Meta:
         db_table = 'Users'

@@ -17,10 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
-from core.views import landing_page, login_page, register_page, get_users, get_announcements, get_announcement_detail, create_announcement, update_announcement, delete_announcement, create_sms_log, get_sms_logs, admin_dashboard
+from core.views import get_users, get_announcements, get_announcement_detail, create_announcement, update_announcement, delete_announcement, create_sms_log, get_sms_logs, admin_dashboard
 from core import views
 
 urlpatterns = [
+    path('django-admin/', admin.site.urls),
     path('admin/', admin.site.urls),
     path('users/', get_users),
     path('announcements/', get_announcements),
@@ -35,12 +36,15 @@ urlpatterns = [
     path('documents/', views.documents, name='documents'),
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
-    path('login/', views.login_view, name='login'),
     path('register/', views.resident_register_view, name='register'),
     path('sms/create/', create_sms_log),
     path('sms/', get_sms_logs),
     path('admin-dashboard/', admin_dashboard),
     path('', include('core.urls')),  
+    path('', include('core.public.urls')),
+    path('auth/', include('core.auths.urls')),
+    path('resident/', include('core.resident.urls')),
+    path('adminpanel/', include('core.adminpanel.urls')),
 ]
 
 

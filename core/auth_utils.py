@@ -1,8 +1,9 @@
+from django.http import HttpResponseForbidden
 import bcrypt, random, string, requests
 from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
-from .models import OTP, Users, SMSOutbox
+from .models import OTP, Users, SMSOutbox, RolePermissions
 
 # PASSWORD HASHING 
 def hash_password(plain):
@@ -86,3 +87,11 @@ def get_current_user(request):
         ).get(userid=uid, is_active=True)
     except Users.DoesNotExist:
         return None
+
+# ── PERMISSION CHECK ───────────────────────────────
+def has_permission(user, permission_name):
+
+    return RolePermissions.objects.filter(
+        role=user.role,
+        permission__name=permission_name
+    ).exists()

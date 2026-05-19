@@ -194,10 +194,10 @@ def login_view(request):
             ).get(username=username, is_active=True)
         except Users.DoesNotExist:
             messages.error(request, "Invalid credentials.")
-            return render(request, "core/login.html")
+            return render(request, "auth/login.html")
         if not check_password(password, user.password):
             messages.error(request, "Invalid credentials.")
-            return render(request, "core/login.html")
+            return render(request, "auth/login.html")
         if user.user_type.type_name == "Admin":
             request.session["pending_user_id"] = user.userid
             otp = generate_otp(user, purpose="login")
@@ -207,10 +207,10 @@ def login_view(request):
         if user.user_type.type_name == "Resident":
             if not user.is_verified:
                 messages.warning(request, "Account pending verification.")
-                return render(request, "core/login.html")
+                return render(request, "auth/login.html")
             set_user_session(request, user)
             return redirect("resident_dashboard")
-    return render(request, "core/login.html")
+    return render(request, "auth/login.html")
  
 # ── OTP VERIFY ───────────────────────────────────────
 def otp_verify_view(request):
@@ -281,23 +281,31 @@ def resident_register_view(request):
         receive_sms = request.POST.get("receive_sms") == "on"
         if Users.objects.filter(contactno=contact_no).exists():
             messages.error(request, "Mobile number already registered.")
-            return render(request, "core/register.html")
+            return render(request, "auth/register.html")
         if len(password) < 8:
             messages.error(request, "Min. 8 characters.")
-            return render(request, "core/register.html")
+            return render(request, "auth/register.html")
         try:
             resident_type = UserTypes.objects.get(type_name="Resident")
         except UserTypes.DoesNotExist:
             messages.error(request, "System error: seed the database first.")
-            return render(request, "core/register.html")
+            return render(request, "auth/register.html")
         new_user = Users.objects.create(
             username=contact_no,
             password=hash_password(password),
-            firstname=firstname, lastname=lastname,
+
+            firstname=firstname,
+            lastname=lastname,
+
             contactno=contact_no,
+
             user_type=resident_type,
-            is_verified=False, is_active=True,
-            is_first_login=False, is_password_changed=True,
+
+            is_verified=False,
+            is_active=True,
+
+            is_first_login=False,
+            is_password_changed=True,
         )
         Settings.objects.create(
             user=new_user, receive_sms=receive_sms,
@@ -306,23 +314,23 @@ def resident_register_view(request):
         )
         messages.success(request, "Account created! Awaiting barangay verification.")
         return redirect("login")
-    return render(request, "core/register.html")
+    return render(request, "auth/register.html")
  
 # ── DASHBOARDS ───────────────────────────────────────
 @login_required
 @admin_required
 def admin_dashboard_view(request):
     user = get_current_user(request)
-    return render(request, "core/admin_dashboard.html", {"user": user})
+    return render(request, "adminpanel/dashboard.html")
  
 @login_required
 @resident_required
 def resident_dashboard_view(request):
     user = get_current_user(request)
-    return render(request, "core/resident_dashboard.html", {"user": user})
+    return render(request, "resident/dashboard.html")
  
 def pending_verification_view(request):
-    return render(request, "core/pending_verification.html")
+    return render(request, "resident/dashboard.html")
  
 # ── LOGOUT ───────────────────────────────────────────
 def logout_view(request):
