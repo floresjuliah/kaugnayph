@@ -125,7 +125,7 @@ def delete_announcement(request, announcement_id):
     return JsonResponse({"error": "DELETE request required"}, status=400)
 
 
-def send_sms(recipient_number, message, sent_by):
+##def send_sms(recipient_number, message, sent_by):
 
     url = settings.SMS_URL
 
@@ -149,7 +149,7 @@ def send_sms(recipient_number, message, sent_by):
         gateway_response=response.text
     )
 
-    return sms
+#    return sms ##
 
 
 @csrf_exempt
@@ -194,10 +194,10 @@ def login_view(request):
             ).get(username=username, is_active=True)
         except Users.DoesNotExist:
             messages.error(request, "Invalid credentials.")
-            return render(request, "login.html")    
+            return render(request, "auth/login.html")   
         if not check_password(password, user.password):
             messages.error(request, "Invalid credentials.")
-            return render(request, "login.html")
+            return render(request, "auth/login.html")
         if user.user_type.type_name == "Admin":
             request.session["pending_user_id"] = user.userid
             otp = generate_otp(user, purpose="login")
@@ -207,10 +207,10 @@ def login_view(request):
         if user.user_type.type_name == "Resident":
             if not user.is_verified:
                 messages.warning(request, "Account pending verification.")
-                return render(request, "login.html")
+                return render(request, "auth/login.html")
             set_user_session(request, user)
             return redirect("resident_dashboard")
-    return render(request, "login.html")
+    return render(request, "auth/login.html")
  
 # ── OTP VERIFY ───────────────────────────────────────
 def otp_verify_view(request):
@@ -233,7 +233,7 @@ def otp_verify_view(request):
             return redirect("admin_dashboard")
         else:
             messages.error(request, "Invalid or expired OTP.")
-    return render(request, "core/otp_verify.html")
+    return render(request, "auth/otp_verify.html")
  
 def resend_otp_view(request):
     pending_id = request.session.get("pending_user_id")
@@ -268,7 +268,7 @@ def admin_first_login_view(request):
             user.save()
             messages.success(request, "Password updated!")
             return redirect("admin_dashboard")
-    return render(request, "templates/core/admin_first_login.html", {"user": user})
+    return render(request, "auth/admin_first_login.html")
  
 # ── RESIDENT REGISTER ────────────────────────────────
 def resident_register_view(request):
@@ -281,15 +281,15 @@ def resident_register_view(request):
         receive_sms = request.POST.get("receive_sms") == "on"
         if Users.objects.filter(contactno=contact_no).exists():
             messages.error(request, "Mobile number already registered.")
-            return render(request, "register.html")
+            return render(request, "auth/register.html")
         if len(password) < 8:
             messages.error(request, "Min. 8 characters.")
-            return render(request, "register.html")
+            return render(request, "auth/register.html")
         try:
             resident_type = UserTypes.objects.get(type_name="Resident")
         except UserTypes.DoesNotExist:
             messages.error(request, "System error: seed the database first.")
-            return render(request, "register.html")
+            return render(request, "auth/register.html")
         new_user = Users.objects.create(
             username=contact_no,
             password=hash_password(password),
@@ -314,7 +314,7 @@ def resident_register_view(request):
         )
         messages.success(request, "Account created! Awaiting barangay verification.")
         return redirect("login")
-    return render(request, "register.html")
+    return render(request, "auth/register.html")
  
 # ── DASHBOARDS ───────────────────────────────────────
 @login_required
