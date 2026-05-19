@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set New Password – KaugnayPH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+        h2 { color: #1a1a2e; margin-bottom: 0.25rem; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; color: #333; }
+        input { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; margin-bottom: 1rem; }
+        input:focus { outline: none; border-color: #4f46e5; }
+        button { width: 100%; padding: 0.75rem; background: #4f46e5; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #4338ca; }
+        .messages { margin-bottom: 1rem; }
+        .messages li { list-style: none; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 0.4rem; }
+        .messages li.error { background: #fee2e2; color: #b91c1c; }
+        .messages li.success { background: #dcfce7; color: #15803d; }
+        .rules { font-size: 0.8rem; color: #999; margin-top: -0.5rem; margin-bottom: 1rem; }
+        .strength { height: 4px; border-radius: 2px; margin-top: -0.75rem; margin-bottom: 1rem; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>Set Your Password</h2>
+    <p class="subtitle">This is your first login. Please set a new secure password.</p>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for msg in messages %}
+        <li class="{{ msg.tags }}">{{ msg }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="POST" id="firstLoginForm">
+        {% csrf_token %}
+
+        <label for="new_password">New Password</label>
+        <input type="password" id="new_password" name="new_password"
+               placeholder="Minimum 8 characters" required>
+        <div class="strength" id="strengthBar"></div>
+        <p class="rules">Use at least 8 characters with a mix of letters and numbers.</p>
+
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+               placeholder="Re-enter your password" required>
+
+        <button type="submit">Set Password & Continue</button>
+    </form>
+</div>
+
+<script>
+    const bar = document.getElementById('strengthBar');
+    document.getElementById('new_password').addEventListener('input', function () {
+        const v = this.value;
+        let score = 0;
+        if (v.length >= 8) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+        bar.style.width = (score * 25) + '%';
+        bar.style.background = colors[score - 1] || '#e5e7eb';
+    });
+</script>
+</body>
+</html>

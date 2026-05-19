@@ -15,18 +15,29 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from core.views import landing_page, login_page, register_page, get_users, get_announcements, get_announcement_detail, create_announcement, update_announcement, delete_announcement, create_sms_log, get_sms_logs, admin_dashboard
+from django.urls import path, include
+from core.views import (
+    get_users, get_announcements, get_announcement_detail,
+    create_announcement, update_announcement, delete_announcement,
+    create_sms_log, get_sms_logs
+)
 from core import views
+from core.views import admin_login_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
+
+    # API
     path('users/', get_users),
     path('announcements/', get_announcements),
     path('announcements/<int:announcement_id>/', get_announcement_detail),
     path('announcements/create/', create_announcement),
     path('announcements/<int:announcement_id>/update/', update_announcement),
     path('announcements/<int:announcement_id>/delete/', delete_announcement),
+    path('sms/create/', create_sms_log),
+    path('sms/', get_sms_logs),
+
+    # Public pages
     path('', views.landing_page, name='landing'),
     path('filecomplaint/', views.filecomplaint, name='filecomplaint'),
     path('aboutus/', views.aboutus, name='aboutus'),
@@ -34,9 +45,16 @@ urlpatterns = [
     path('documents/', views.documents, name='documents'),
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
-    path('login/', login_page),
-    path('register/', register_page),
-    path('sms/create/', create_sms_log),
-    path('sms/', get_sms_logs),
-    path('admin-dashboard/', admin_dashboard),
+
+    # CUSTOM ADMIN LOGIN
+    path('admin-login/', views.admin_login_view, name='admin_login'),
+
+    # App includes
+    path('', include('core.urls')),
+    path('', include('core.public.urls')),
+    path('auth/', include('core.auths.urls')),
+    path('resident/', include('core.resident.urls')),
+    path('adminpanel/', include('core.adminpanel.urls')),
 ]
+
+

@@ -43,27 +43,78 @@ class Positions(models.Model):
 
 
 class Users(models.Model):
-    userid = models.AutoField(db_column='UserID', primary_key=True)
-    username = models.CharField(db_column='Username', max_length=50, unique=True)
-    password = models.CharField(db_column='Password', max_length=255)
 
-    firstname = models.CharField(db_column='Firstname', max_length=100, blank=True, null=True)
-    lastname = models.CharField(db_column='Lastname', max_length=100, blank=True, null=True)
-    middlename = models.CharField(db_column='Middlename', max_length=100, blank=True, null=True)
+    userid = models.AutoField(
+        db_column='UserID',
+        primary_key=True
+    )
 
-    contactno = models.CharField(db_column='ContactNo', max_length=20, unique=True, blank=True, null=True)
-    sex = models.CharField(db_column='Sex', max_length=10, blank=True, null=True)
+    username = models.CharField(
+        db_column='Username',
+        max_length=50,
+        unique=True
+    )
 
-    user_type = models.ForeignKey(UserTypes, models.CASCADE, db_column='user_type_id')
-    role = models.ForeignKey(Roles, models.CASCADE, db_column='role_id', blank=True, null=True)
-    position = models.ForeignKey(Positions, models.CASCADE, db_column='position_id', blank=True, null=True)
+    password = models.CharField(
+        db_column='Password',
+        max_length=255
+    )
 
-    is_verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_first_login = models.BooleanField(default=True)
-    is_password_changed = models.BooleanField(default=False)
+    firstname = models.CharField(
+        db_column='Firstname',
+        max_length=100
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    lastname = models.CharField(
+        db_column='Lastname',
+        max_length=100
+    )
+
+    contactno = models.CharField(
+        db_column='ContactNo',
+        max_length=20,
+        unique=True
+    )
+
+    user_type = models.ForeignKey(
+        'UserTypes',
+        db_column='user_type_id',
+        on_delete=models.CASCADE
+    )
+
+    role = models.ForeignKey(
+        'Roles',
+        db_column='role_id',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    position = models.ForeignKey(
+        'Positions',
+        db_column='position_id',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    is_verified = models.BooleanField(
+        db_column='is_verified',
+        default=False
+    )
+
+    is_active = models.BooleanField(
+        db_column='is_active',
+        default=True
+    )
+
+    is_first_login = models.BooleanField(
+        db_column='is_first_login',
+        default=True
+    )
+
+    is_password_changed = models.BooleanField(
+        db_column='is_password_changed',
+        default=False
+    )
 
     class Meta:
         db_table = 'Users'
@@ -109,6 +160,8 @@ class ResidentVerification(models.Model):
     toid = models.ForeignKey(TypeOfID, models.CASCADE, db_column='ToID', blank=True, null=True)
     id_image = models.BinaryField(blank=True, null=True)
     selfie_image = models.BinaryField(blank=True, null=True)
+    id_image_path = models.CharField(max_length=255, blank=True, null=True)
+    selfie_image_path = models.CharField(max_length=255, blank=True, null=True)
     reviewed_by = models.ForeignKey(
         Users,
         models.CASCADE,
@@ -168,6 +221,29 @@ class DocumentRequests(models.Model):
         db_table = 'DocumentRequests'
 
 
+class DocumentRequestFieldValues(models.Model):
+    drfvid = models.AutoField(db_column='DRFVID', primary_key=True)
+
+    document_request = models.ForeignKey(
+        DocumentRequests,
+        models.CASCADE,
+        db_column='document_request_id'
+    )
+
+    document_field = models.ForeignKey(
+        DocumentFields,
+        models.CASCADE,
+        db_column='document_field_id'
+    )
+
+    field_value = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'DocumentRequestFieldValues'
+
+
 class ComplaintType(models.Model):
     ctid = models.AutoField(db_column='CTID', primary_key=True)
     type = models.CharField(db_column='Type', max_length=100, blank=True, null=True)
@@ -184,6 +260,7 @@ class Complaints(models.Model):
     title = models.CharField(db_column='Title', max_length=255, blank=True, null=True)
     description = models.TextField(db_column='Description', blank=True, null=True)
     file = models.BinaryField(db_column='File', blank=True, null=True)
+    file_path = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     dateadded = models.DateTimeField(db_column='DateAdded', auto_now_add=True)
     datefinish = models.DateTimeField(db_column='DateFinish', blank=True, null=True)
@@ -289,6 +366,13 @@ class SMSOutbox(models.Model):
     class Meta:
         db_table = 'SMS_Outbox'
 
+class SMSModules(models.Model):
+    smsmoduleid = models.AutoField(db_column='SMSModuleID', primary_key=True)
+    module_name = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'SMSModules'
+
 
 class AnnouncementCategories(models.Model):
     acid = models.AutoField(db_column='ACid', primary_key=True)
@@ -304,6 +388,7 @@ class Announcements(models.Model):
     content = models.TextField(blank=True, null=True)
     category = models.ForeignKey(AnnouncementCategories, models.CASCADE, db_column='category_id', blank=True, null=True)
     file = models.BinaryField(db_column='File', blank=True, null=True)
+    file_path = models.CharField(max_length=255, blank=True, null=True)
     posted_by = models.ForeignKey(Users, models.CASCADE, db_column='posted_by', blank=True, null=True)
     send_sms = models.BooleanField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
@@ -364,6 +449,9 @@ class SLATracking(models.Model):
     record_id = models.IntegerField(blank=True, null=True)
     priority_level = models.CharField(max_length=20, blank=True, null=True)
     sla_deadline = models.DateTimeField(blank=True, null=True)
+    first_response_at = models.DateTimeField(blank=True, null=True)
+    resolved_at = models.DateTimeField(blank=True, null=True)
+    resolution_time_minutes = models.IntegerField(blank=True, null=True)
     sla_status = models.CharField(max_length=20, blank=True, null=True)
     response_time_minutes = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
