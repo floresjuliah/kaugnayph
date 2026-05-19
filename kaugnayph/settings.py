@@ -25,6 +25,10 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://barangaythesis.swiftlink.pro",
+]
+
 
 # APPLICATIONS
 

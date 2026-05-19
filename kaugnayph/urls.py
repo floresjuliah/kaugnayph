@@ -36,7 +36,7 @@ urlpatterns = [
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
     path('login/', views.login_view, name='login'),
-    path('register/', register_page),
+    path('register/', views.resident_register_view, name='register'),
     path('sms/create/', create_sms_log),
     path('sms/', get_sms_logs),
     path('admin-dashboard/', admin_dashboard),

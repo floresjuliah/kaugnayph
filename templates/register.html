@@ -1,5 +1,5 @@
 <!-- register.html -->
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +9,7 @@
   <title>KaugnayPH – Create Account</title>
 
   <!-- CONNECT CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
 
   <!-- POPPINS FONT -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
     <p class="welcome-text">Welcome to</p>
 
     <div class="logo-circle">
-      <img src="images/kaugnayPH.png" alt="placeholder" />
+      <img src="{% static 'images/kaugnayPH.png' %}" alt="placeholder" />
     </div>
 
     <p class="brand-name">KAUGNAYPH</p>
@@ -45,6 +45,13 @@
 
     <h1>Create your Account</h1>
     <p class="subtitle">Get started by creating your new Account</p>
+    {% if messages %}
+  <div style="color:red;">
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
 
     <form method="POST">
       {% csrf_token %}
