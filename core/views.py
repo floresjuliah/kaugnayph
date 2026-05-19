@@ -194,10 +194,10 @@ def login_view(request):
             ).get(username=username, is_active=True)
         except Users.DoesNotExist:
             messages.error(request, "Invalid credentials.")
-            return render(request, "core/login.html")
+            return render(request, "login.html")    
         if not check_password(password, user.password):
             messages.error(request, "Invalid credentials.")
-            return render(request, "core/login.html")
+            return render(request, "login.html")
         if user.user_type.type_name == "Admin":
             request.session["pending_user_id"] = user.userid
             otp = generate_otp(user, purpose="login")
@@ -207,10 +207,10 @@ def login_view(request):
         if user.user_type.type_name == "Resident":
             if not user.is_verified:
                 messages.warning(request, "Account pending verification.")
-                return render(request, "core/login.html")
+                return render(request, "login.html")
             set_user_session(request, user)
             return redirect("resident_dashboard")
-    return render(request, "core/login.html")
+    return render(request, "login.html")
  
 # ── OTP VERIFY ───────────────────────────────────────
 def otp_verify_view(request):
@@ -281,15 +281,15 @@ def resident_register_view(request):
         receive_sms = request.POST.get("receive_sms") == "on"
         if Users.objects.filter(contactno=contact_no).exists():
             messages.error(request, "Mobile number already registered.")
-            return render(request, "core/register.html")
+            return render(request, "register.html")
         if len(password) < 8:
             messages.error(request, "Min. 8 characters.")
-            return render(request, "core/register.html")
+            return render(request, "register.html")
         try:
             resident_type = UserTypes.objects.get(type_name="Resident")
         except UserTypes.DoesNotExist:
             messages.error(request, "System error: seed the database first.")
-            return render(request, "core/register.html")
+            return render(request, "register.html")
         new_user = Users.objects.create(
             username=contact_no,
             password=hash_password(password),
@@ -306,7 +306,7 @@ def resident_register_view(request):
         )
         messages.success(request, "Account created! Awaiting barangay verification.")
         return redirect("login")
-    return render(request, "core/register.html")
+    return render(request, "register.html")
  
 # ── DASHBOARDS ───────────────────────────────────────
 @login_required

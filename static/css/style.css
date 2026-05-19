@@ -67,23 +67,27 @@ body.register-page {
   font-weight: 700;
   color: var(--navy);
   margin-bottom: 28px;
+  font-style: italic;
+
 }
 
 .logo-circle img {
   width: 200px;
   height: 200px;
   object-fit: contain;
+  margin-bottom: 28px;
 }
 
 .brand-name {
   font-size: 1.9rem;
   font-weight: 700;
   color: var(--navy);
-  margin-bottom: 16px;
+  margin-bottom: 28px;
+  font-family: 'Recoleta', serif;
 }
 
 .brand-desc {
-  font-size: 0.95rem;
+  font-size: 1.9rem;
   color: var(--navy);
   text-align: center;
   line-height: 1.6;
@@ -209,6 +213,7 @@ body.register-page {
 .signin-link {
   text-align: center;
   margin-top: 18px;
+  font-size: 12px;
 }
 
 .signin-link a {
@@ -226,6 +231,69 @@ body.register-page {
     min-height: auto;
   }
 }
+
+/* LOGIN PAGE */
+
+.left-panel {
+  width: 42%;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #fde68a 0%, #fcd34d 55%, #fbbf24 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-text {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 28px;
+  font-style: italic;
+
+}
+
+.logo-circle img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.brand-name {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 16px;
+  font-family: 'Recoleta', serif;
+}
+
+.brand-desc {
+  margin-top: 20px;
+  font-size: 15px;
+  color: var(--navy);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+/* Register nav links (inside left panel) */
+.register-page .nav-links {
+  position: absolute;
+  bottom: 28px;
+  display: flex;
+  gap: 16px;
+  list-style: none;
+}
+
+.register-page .nav-links a {
+  text-decoration: none;
+  color: var(--navy);
+  font-weight: 600;
+}
+
 
 /* LANDING PAGE */
 
@@ -330,6 +398,45 @@ body.landing-page .nav-links .active {
 }
 
 .nav-icon:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.nav-auth {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-login {
+  padding: 7px 18px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+  border: 2px solid var(--navy);
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-login:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.btn-register {
+  padding: 7px 18px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+  border: 2px solid var(--navy);
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-register:hover {
   background: var(--navy);
   color: var(--white);
 }
