@@ -18,7 +18,7 @@ import random
 
 
 def landing_page(request):
-    return render(request, 'landing.html')
+    return render(request, 'public/landing.html')
 
 def login_page(request):
     return render(request, 'login.html')
@@ -693,9 +693,6 @@ def resident_register_view(request):
     )
 
 
-# =========================================================
-# DASHBOARDS
-# =========================================================
 
 @admin_login_required
 @admin_required
@@ -735,20 +732,12 @@ def pending_verification_view(request):
     )
 
 
-# =========================================================
-# LOGOUT
-# =========================================================
-
 def logout_view(request):
 
     request.session.flush()
 
     return redirect("login")
 
-
-# =========================================================
-# REDIRECT HELPER
-# =========================================================
 
 def _redirect_by_type(request):
 
@@ -761,7 +750,6 @@ def _redirect_by_type(request):
 
     return redirect("resident_dashboard")
  
-# ── HELPER ───────────────────────────────────────────
 def _redirect_by_type(request):
     user_type = request.session.get("user_type")
     if user_type == "Admin": return redirect("admin_dashboard")
