@@ -212,6 +212,52 @@ def login_view(request):
             return redirect("resident_dashboard")
     return render(request, "auth/login.html")
  
+
+ # ── ADMIN LOGIN ─────────────────────────────────────
+def admin_login_view(request):
+
+    if request.session.get('user_id'):
+        return redirect('admin_dashboard')
+
+    if request.method == "POST":
+
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+
+        try:
+            user = Users.objects.select_related(
+                "user_type",
+                "role",
+                "position"
+            ).get(
+                username=username,
+                is_active=True
+            )
+
+        except Users.DoesNotExist:
+            messages.error(request, "Invalid credentials.")
+            return render(request, "auth/admin_login.html")
+
+        # ADMIN ONLY
+        if user.user_type.type_name != "Admin":
+            messages.error(request, "Admin access only.")
+            return render(request, "auth/admin_login.html")
+
+        if not check_password(password, user.password):
+            messages.error(request, "Invalid credentials.")
+            return render(request, "auth/admin_login.html")
+
+        # OTP FLOW
+        request.session["pending_user_id"] = user.userid
+
+        otp = generate_otp(user, purpose="login")
+
+        print("OTP CODE:", otp.code)
+
+        return redirect("otp_verify")
+
+    return render(request, "auth/admin_login.html")
+
 # ── OTP VERIFY ───────────────────────────────────────
 def otp_verify_view(request):
     pending_id = request.session.get("pending_user_id")
@@ -320,8 +366,14 @@ def resident_register_view(request):
 @login_required
 @admin_required
 def admin_dashboard_view(request):
+
     user = get_current_user(request)
-    return render(request, "adminpanel/dashboard.html")
+
+    return render(
+        request,
+        "adminpanel/dashboard.html",
+        {"user": user}
+    )
  
 @login_required
 @resident_required
