@@ -297,7 +297,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # ADMIN ONLY
@@ -310,7 +310,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # PASSWORD CHECK
@@ -326,7 +326,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # TEMP SESSION
@@ -358,7 +358,7 @@ def admin_login_view(request):
 
     return render(
         request,
-        "auth/admin_login.html"
+        "auth/login_admin.html"
     )
 
 
@@ -756,5 +756,5 @@ def _redirect_by_type(request):
     return redirect("resident_dashboard")
 
 def admin_register(request):
-    return render(request, 'admin_register.html')
+    return render(request, "auth/admin_register.html")
 

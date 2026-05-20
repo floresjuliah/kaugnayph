@@ -2,18 +2,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>KaugnayPH Admin Login</title>
-    <link rel="stylesheet" href="{% static 'css/admin_auth.css' %}">
+    <title>KaugnayPH Admin Register</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
 <body>
 
 <div class="auth-page">
     <div class="auth-card">
         <h2>KaugnayPH</h2>
-        <p class="subtitle">Admin Login</p>
+        <p class="subtitle">Admin Registration</p>
 
         <form method="POST">
             {% csrf_token %}
+
+            <label>Full Name</label>
+            <input type="text" name="full_name" placeholder="Enter full name" required>
 
             <label>Email</label>
             <input type="email" name="email" placeholder="Enter email" required>
@@ -21,14 +24,14 @@
             <label>Password</label>
             <input type="password" name="password" placeholder="Enter password" required>
 
-            <div class="forgot">
-                <a href="#">Forgot Password?</a>
-            </div>
+            <label>Confirm Password</label>
+            <input type="password" name="confirm_password" placeholder="Confirm password" required>
 
-            <button type="submit">Login to Dashboard</button>
+            <button type="submit">Create Admin Account</button>
         </form>
     </div>
 </div>
 
 </body>
 </html>
+

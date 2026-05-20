@@ -17,6 +17,13 @@ urlpatterns = [
         name='admin_login'
     ),
 
+    # ADMIN REGISTER
+    path(
+    'admin/register/',
+    views.admin_register,
+    name='admin_register'
+    ),
+
     # LOGOUT
     path(
         'logout/',

@@ -46,9 +46,7 @@ urlpatterns = [
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
 
-    # CUSTOM ADMIN LOGIN
-    path('admin-login/', views.admin_login_view, name='admin_login'),
-
+   
     # App includes
     path('', include('core.urls')),
     path('', include('core.public.urls')),
