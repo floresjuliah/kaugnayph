@@ -754,3 +754,7 @@ def _redirect_by_type(request):
     user_type = request.session.get("user_type")
     if user_type == "Admin": return redirect("admin_dashboard")
     return redirect("resident_dashboard")
+
+def admin_register(request):
+    return render(request, 'admin_register.html')
+
