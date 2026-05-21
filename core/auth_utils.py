@@ -47,26 +47,33 @@ def verify_otp(user, code, purpose='login'):
 # ── SMS ─────────────────────────────────────────────
 def send_sms(contact_number, message, sent_by=None):
     success, gateway_response, error_message = False, "", ""
+
     try:
         r = requests.get(settings.SMS_URL, params={
-            'u': settings.SMS_USER,
-            'p': settings.SMS_PASS,
-            'n': contact_number,
-            'm': message,
+            "USERNAME": settings.SMS_USERNAME,
+            "PASSWORD": settings.SMS_PASSWORD,
+            "smsnum": contact_number,
+            "Memo": message,
+            "method": "2",
+            "smsprovider": settings.SMS_PROVIDER,
         }, timeout=10)
+
         success = r.status_code == 200
         gateway_response = r.text
+
     except requests.RequestException as e:
         error_message = str(e)
+
     SMSOutbox.objects.create(
         recipient_number=contact_number,
         message=message,
         sent_by=sent_by,
         sent_at=timezone.now(),
-        status='sent' if success else 'failed',
+        status="sent" if success else "failed",
         error_message=error_message,
         gateway_response=gateway_response,
     )
+
     return success
  
 # ── SESSION HELPERS ──────────────────────────────────
