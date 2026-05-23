@@ -1,20 +1,30 @@
 import json
+import random
 import requests
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .models import Users, Announcements, SMSOutbox
-from django.shortcuts import render, redirect
-from django.utils import timezone
+
 from django.conf import settings
 from django.contrib import messages
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
 from django.utils import timezone
-from .models import Users, UserTypes, Settings
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import (
+    Users,
+    UserTypes,
+    Settings,
+    Announcements,
+    SMSOutbox,
+    SMSSubscriptions,
+    AuditLogs,
+)
+
 from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, set_user_session, get_current_user
 )
+
 from .decorators import login_required, admin_login_required, admin_required, resident_required
-import random
 
 
 def landing_page(request):
@@ -67,23 +77,59 @@ def create_announcement(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        current_user = get_current_user(request) or Users.objects.get(userid=1)
+
+        title = data.get("title", "").strip()
+        content = data.get("content", "").strip()
+
+        if not title:
+            return JsonResponse({
+                "error": "Title is required."
+            }, status=400)
+
+        if not content:
+            return JsonResponse({
+                "error": "Content is required."
+            }, status=400)
+
         send_sms_value = int(data.get("send_sms", 0))
         gateway_response = None
 
         announcement = Announcements.objects.create(
-            title=data.get("title"),
-            content=data.get("content"),
+            title=title,
+            content=content,
             send_sms=send_sms_value,
-            category_id=1,
-            posted_by_id=1
+            category_id=data.get("category_id", 1),
+            posted_by=current_user,
+            created_at=timezone.now()
         )
 
         if send_sms_value == 1:
-            gateway_response = send_sms(
-                contact_number="09175585424",
-                message=f"New announcement: {announcement.title}",
-                 sent_by=Users.objects.get(userid=1)
-            )
+            subscribers = SMSSubscriptions.objects.select_related("user").filter(is_active=True)
+            gateway_response = []
+
+            for sub in subscribers:
+                response = send_sms(
+                    contact_number=sub.user.contactno,
+                    message=f"New announcement: {announcement.title}",
+                    sent_by=current_user
+                )
+
+                gateway_response.append({
+                    "user_id": sub.user.userid,
+                    "contact_number": sub.user.contactno,
+                    "response": response
+                })
+
+            AuditLogs.objects.create(
+                user=current_user,
+                action="Create Announcement",
+                module_name="Announcements",
+                table_name="Announcements",
+                record_id=announcement.announcement_id,
+                new_value=f"Announcement '{announcement.title}' was created.",
+                created_at=timezone.now()
+                )
 
         return JsonResponse({
             "message": "Announcement created successfully",
@@ -98,15 +144,29 @@ def create_announcement(request):
 def update_announcement(request, announcement_id):
     if request.method == "PUT":
         data = json.loads(request.body)
+        current_user = get_current_user(request) or Users.objects.get(userid=1)
 
         try:
             announcement = Announcements.objects.get(announcement_id=announcement_id)
+
             announcement.title = data.get("title", announcement.title)
             announcement.content = data.get("content", announcement.content)
             announcement.send_sms = data.get("send_sms", announcement.send_sms)
+            announcement.category_id = data.get("category_id", announcement.category_id)
             announcement.save()
 
+            AuditLogs.objects.create(
+                user=current_user,
+                action="Update Announcement",
+                module_name="Announcements",
+                table_name="Announcements",
+                record_id=announcement.announcement_id,
+                new_value=f"Announcement '{announcement.title}' was updated.",
+                created_at=timezone.now()
+            )
+
             return JsonResponse({"message": "Announcement updated successfully"})
+
         except Announcements.DoesNotExist:
             return JsonResponse({"error": "Announcement not found"}, status=404)
 
@@ -115,14 +175,42 @@ def update_announcement(request, announcement_id):
 @csrf_exempt
 def delete_announcement(request, announcement_id):
     if request.method == "DELETE":
-        try:
-            announcement = Announcements.objects.get(announcement_id=announcement_id)
-            announcement.delete()
-            return JsonResponse({"message": "Announcement deleted successfully"})
-        except Announcements.DoesNotExist:
-            return JsonResponse({"error": "Announcement not found"}, status=404)
 
-    return JsonResponse({"error": "DELETE request required"}, status=400)
+        current_user = get_current_user(request) or Users.objects.get(userid=1)
+
+        try:
+            announcement = Announcements.objects.get(
+                announcement_id=announcement_id
+            )
+
+            announcement_title = announcement.title
+            announcement_record_id = announcement.announcement_id
+
+            announcement.delete()
+
+            AuditLogs.objects.create(
+                user=current_user,
+                action="Delete Announcement",
+                module_name="Announcements",
+                table_name="Announcements",
+                record_id=announcement_record_id,
+                new_value=f"Announcement '{announcement_title}' was deleted.",
+                created_at=timezone.now()
+            )
+
+            return JsonResponse({
+                "message": "Announcement deleted successfully"
+            })
+
+        except Announcements.DoesNotExist:
+
+            return JsonResponse({
+                "error": "Announcement not found"
+            }, status=404)
+
+    return JsonResponse({
+        "error": "DELETE request required"
+    }, status=400)
 
 
 ##def send_sms(recipient_number, message, sent_by):

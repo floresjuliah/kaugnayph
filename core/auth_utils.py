@@ -58,8 +58,8 @@ def send_sms(contact_number, message, sent_by=None):
             "smsprovider": settings.SMS_PROVIDER,
         }, timeout=10)
 
-        success = r.status_code == 200
         gateway_response = r.text
+        success = r.status_code == 200 and "Failure:1" not in gateway_response
 
     except requests.RequestException as e:
         error_message = str(e)
