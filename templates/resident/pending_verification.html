@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5 text-center">
+  <h3>Account Pending Verification</h3>
+  <p class="text-muted">
+    Your account is currently under review by the barangay admin.<br>
+    You will be notified via SMS once your account has been verified.
+  </p>
+  <a href="{% url 'logout' %}" class="btn btn-outline-secondary mt-3">Logout</a>
+</div>
+{% endblock %}

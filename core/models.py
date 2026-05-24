@@ -477,3 +477,10 @@ class AuditLogs(models.Model):
     class Meta:
         db_table = 'AuditLogs'
 
+STATUS_CHOICES = [
+    ("Pending",  "Pending"),
+    ("Approved", "Approved"),
+    ("Rejected", "Rejected"),
+]
+
+status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")

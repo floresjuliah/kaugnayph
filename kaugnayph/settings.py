@@ -142,7 +142,19 @@ SMS_PROVIDER = os.getenv("SMS_PROVIDER")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Session settings
+# Session Expiration Settings
 SESSION_COOKIE_AGE = 3600             # 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True     # Refresh session on activity
+SESSION_COOKIE_SECURE = not DEBUG     # HTTPS only in production
+SESSION_COOKIE_HTTPONLY = True        # Prevent JS access
+SESSION_COOKIE_SAMESITE = 'Lax'
 LOGIN_URL = '/login/'
+
+# File uploads
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Max upload size: 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024

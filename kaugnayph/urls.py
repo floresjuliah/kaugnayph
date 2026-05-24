@@ -23,6 +23,8 @@ from core.views import (
 )
 from core import views
 from core.views import admin_login_view
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
@@ -53,6 +55,7 @@ urlpatterns = [
     path('auth/', include('core.auths.urls')),
     path('resident/', include('core.resident.urls')),
     path('adminpanel/', include('core.adminpanel.urls')),
+    
 ]
 
-
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,4 +1,5 @@
 from functools import wraps
+from pyexpat.errors import messages
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from .auth_utils import get_current_user
@@ -25,23 +26,18 @@ def admin_login_required(view_func):
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-
         user = get_current_user(request)
 
         if not user:
+            # Clear any stale session
+            request.session.flush()
+            messages.error(request, "Session expired. Please log in again.")
             return redirect('admin_login')
 
         if user.user_type.type_name != 'Admin':
-            return HttpResponseForbidden(
-                'Admin access only.'
-            )
+            return HttpResponseForbidden('Admin access only.')
 
-        return view_func(
-            request,
-            *args,
-            **kwargs
-        )
-
+        return view_func(request, *args, **kwargs)
     return wrapper
 
 
@@ -127,3 +123,16 @@ def permission_required(permission_name):
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+def chairman_required(view_func):
+    """Shortcut: only Barangay Chairman can access."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        user = get_current_user(request)
+        if not user:
+            return redirect('admin_login')
+        if not user.role or user.role.rolename != 'Barangay Chairman':
+            return HttpResponseForbidden('Chairman access only.')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+

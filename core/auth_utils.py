@@ -44,9 +44,18 @@ def verify_otp(user, code, purpose='login'):
     except OTP.DoesNotExist:
         return False
  
-# ── SMS ─────────────────────────────────────────────
+#otp = generate_otp(user, purpose="login")
+#send_sms(
+    user.contactno,
+    f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes.",
+    sent_by=user  # or the requesting user
+# ) 
+
+# SMS 
 def send_sms(contact_number, message, sent_by=None):
-    success, gateway_response, error_message = False, "", ""
+    success = False
+    gateway_response = ""
+    error_message = ""
 
     try:
         r = requests.get(settings.SMS_URL, params={
@@ -59,11 +68,27 @@ def send_sms(contact_number, message, sent_by=None):
         }, timeout=10)
 
         gateway_response = r.text
-        success = r.status_code == 200 and "Failure:1" not in gateway_response
 
+        # Proper failure detection
+        if r.status_code != 200:
+            success = False
+            error_message = f"HTTP {r.status_code}"
+        elif "Failure:1" in gateway_response:
+            success = False
+            error_message = "Gateway returned Failure:1"
+        elif "Success" in gateway_response or gateway_response.strip() == "":
+            success = True
+        else:
+            # Unknown response — log as failed to be safe
+            success = False
+            error_message = f"Unexpected gateway response: {gateway_response[:100]}"
+
+    except requests.Timeout:
+        error_message = "Request timed out"
     except requests.RequestException as e:
         error_message = str(e)
 
+    from .models import SMSOutbox
     SMSOutbox.objects.create(
         recipient_number=contact_number,
         message=message,
@@ -76,7 +101,7 @@ def send_sms(contact_number, message, sent_by=None):
 
     return success
  
-# ── SESSION HELPERS ──────────────────────────────────
+# SESSION HELPERS 
 def set_user_session(request, user):
     request.session['user_id']   = user.userid
     request.session['user_type'] = user.user_type.type_name
@@ -95,7 +120,7 @@ def get_current_user(request):
     except Users.DoesNotExist:
         return None
 
-# ── PERMISSION CHECK ───────────────────────────────
+# PERMISSION CHECK
 def has_permission(user, permission_name):
 
     return RolePermissions.objects.filter(

@@ -17,9 +17,16 @@
     <li><a href="/adminpanel/residents/">Residents</a></li>
     <li><a href="/adminpanel/announcements/">Announcements</a></li>
     <li><a href="/adminpanel/complaints/">Complaints</a></li>
-    <li><a href="{% url 'logout' %}">
+    <li>
+    
+        <a href="{% url 'logout' %}">
             Logout
         </a>
+
+        <a href="{% url 'verification_list' %}" class="btn btn-warning">
+            Pending Verifications
+        </a>
+
     </li>
 </ul>
 

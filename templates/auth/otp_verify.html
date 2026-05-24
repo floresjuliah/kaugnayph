@@ -1,40 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>OTP Verification</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5" style="max-width:420px">
+  <h3 class="mb-4">OTP Verification</h3>
+  <p>An OTP has been sent to your registered mobile number.</p>
 
-<h2>OTP Verification</h2>
-
-{% if messages %}
+  {% if messages %}
     {% for message in messages %}
-        <p>{{ message }}</p>
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
     {% endfor %}
-{% endif %}
+  {% endif %}
 
-<form method="POST">
-
+  <form method="POST">
     {% csrf_token %}
+    <div class="mb-3">
+      <label>Enter OTP</label>
+      <input type="text" name="otp_code" class="form-control"
+             maxlength="6" inputmode="numeric" autofocus required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
+  </form>
 
-    <input
-        type="text"
-        name="otp_code"
-        placeholder="Enter OTP"
-        required
-    >
-
-    <button type="submit">
-        Verify OTP
-    </button>
-
-</form>
-
-<br>
-
-<a href="{% url 'resend_otp' %}">
-    Resend OTP
-</a>
-
-</body>
-</html>
+  <div class="mt-3 text-center">
+    <a href="{% url 'resend_otp' %}">Resend OTP</a>
+  </div>
+</div>
+{% endblock %}

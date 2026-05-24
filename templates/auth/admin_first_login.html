@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,11 +31,9 @@
     <p class="subtitle">This is your first login. Please set a new secure password.</p>
 
     {% if messages %}
-    <ul class="messages">
-        {% for msg in messages %}
-        <li class="{{ msg.tags }}">{{ msg }}</li>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
         {% endfor %}
-    </ul>
     {% endif %}
 
     <form method="POST" id="firstLoginForm">
@@ -52,6 +52,7 @@
         <button type="submit">Set Password & Continue</button>
     </form>
 </div>
+{% endblock %}
 
 <script>
     const bar = document.getElementById('strengthBar');

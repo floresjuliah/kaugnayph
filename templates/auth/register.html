@@ -53,7 +53,7 @@
   </div>
 {% endif %}
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data"> <!-- enctype: for ID upload -->
       {% csrf_token %}
 
       <div class="form-group">
@@ -100,6 +100,32 @@
       <button type="submit" class="btn-create">
         Create Account
       </button>
+
+      <!-- wait, for testing -->
+        <div class="mb-3">
+          <label>Type of ID *</label>
+          <select name="type_of_id" class="form-select" required>
+            <option value="">-- Select ID Type --</option>
+      {% for id_type in id_types %}
+        <option value="{{ id_type.toid }}">{{ id_type.name }}</option>
+      {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label>Upload ID Photo *</label>
+            <input type="file" name="id_image" class="form-control"
+              accept="image/jpeg,image/png" required>
+          <small class="text-muted">JPG or PNG, max 5MB</small>
+        </div>
+
+        <div class="mb-3">
+          <label>Selfie with ID *</label>
+            <input type="file" name="selfie_image" class="form-control"
+              accept="image/jpeg,image/png" required>
+          <small class="text-muted">Take a selfie holding your ID, max 5MB</small>
+        </div>
+        <!-- wait, for testing -->
 
     </form>
 

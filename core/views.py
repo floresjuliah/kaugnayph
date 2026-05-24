@@ -1,6 +1,7 @@
 import json
 import random
 import requests
+import os
 
 from django.conf import settings
 from django.contrib import messages
@@ -8,6 +9,10 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+from core.utils import validate_upload
 
 from .models import (
     Users,
@@ -24,9 +29,19 @@ from .auth_utils import (
     verify_otp, send_sms, set_user_session, get_current_user
 )
 
-from .decorators import login_required, admin_login_required, admin_required, resident_required
+from .decorators import (
+    login_required,
+    admin_login_required,
+    admin_required,
+    resident_required,
+    role_required,
+    permission_required,
+    chairman_required,
+)
 
 
+
+# FOR RESIDENTS:
 def landing_page(request):
     return render(request, 'public/landing.html')
 
@@ -72,7 +87,14 @@ def faqs(request):
 def contactus(request):
     return render(request, 'contactus.html')
 
-@csrf_exempt
+
+
+
+#FOR ADMIN:
+
+#@csrf_exempt
+@admin_login_required
+@permission_required('create_announcements')
 def create_announcement(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -140,7 +162,7 @@ def create_announcement(request):
 
     return JsonResponse({"error": "POST request required"}, status=400)
 
-@csrf_exempt
+#@csrf_exempt
 def update_announcement(request, announcement_id):
     if request.method == "PUT":
         data = json.loads(request.body)
@@ -172,7 +194,7 @@ def update_announcement(request, announcement_id):
 
     return JsonResponse({"error": "PUT request required"}, status=400)
 
-@csrf_exempt
+#@csrf_exempt
 def delete_announcement(request, announcement_id):
     if request.method == "DELETE":
 
@@ -212,7 +234,7 @@ def delete_announcement(request, announcement_id):
         "error": "DELETE request required"
     }, status=400)
 
-
+#Commented Out cuz IDK if this should be deleted or not. Please check. TY!
 ##def send_sms(recipient_number, message, sent_by):
 
     url = settings.SMS_URL
@@ -240,7 +262,7 @@ def delete_announcement(request, announcement_id):
 #    return sms ##
 
 
-@csrf_exempt
+@admin_login_required
 def create_sms_log(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -260,7 +282,7 @@ def create_sms_log(request):
 
     return JsonResponse({"error": "POST request required"}, status=400)
 
-@csrf_exempt
+@admin_login_required
 def get_sms_logs(request):
     data = list(SMSOutbox.objects.all().values())
     return JsonResponse(data, safe=False)
@@ -268,10 +290,36 @@ def get_sms_logs(request):
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
-#New - Auth - Tam
-# =========================================================
-# AUTHENTICATION SYSTEM
-# =========================================================
+
+@admin_login_required
+@permission_required('verify_residents')
+def serve_verification_file(request, rv_id, file_type):
+    """Serve verification images only to authorized admins."""
+    from .models import ResidentVerification
+    import mimetypes
+    from django.http import FileResponse, Http404
+
+    try:
+        rv = ResidentVerification.objects.get(rv_id=rv_id)
+    except ResidentVerification.DoesNotExist:
+        raise Http404
+
+    if file_type == "id":
+        path = rv.id_image_path
+    elif file_type == "selfie":
+        path = rv.selfie_image_path
+    else:
+        raise Http404
+
+    full_path = settings.MEDIA_ROOT / path
+    if not full_path.exists():
+        raise Http404
+
+    mime_type, _ = mimetypes.guess_type(str(full_path))
+    return FileResponse(open(full_path, 'rb'), content_type=mime_type or 'image/jpeg')
+
+#New - Auth - Tam (Below this)
+# FOR AUTHENTICATION SYSTEM
 
 def login_view(request):
 
@@ -303,9 +351,8 @@ def login_view(request):
             messages.error(request, "Invalid credentials.")
             return render(request, "auth/login.html")
 
-        # =================================================
+
         # ADMIN FLOW
-        # =================================================
         if user.user_type.type_name == "Admin":
 
             # TEMP SESSION
@@ -325,28 +372,34 @@ def login_view(request):
 
             return redirect("otp_verify")
 
-        # =================================================
-        # RESIDENT FLOW
-        # =================================================
-        if user.user_type.type_name == "Resident":
 
-            if not user.is_verified:
-                messages.warning(
-                    request,
-                    "Your account is pending verification."
+        # RESIDENT FLOW
+    if user.user_type.type_name == "Resident":
+        if not user.is_verified:
+            # Check verification status
+            from .models import ResidentVerification
+            rv = ResidentVerification.objects.filter(user=user).first()
+
+            if rv is None:
+                # No ID submitted yet
+                request.session["pending_user_id"] = user.userid
+                return redirect("pending_verification")
+            elif rv.status == "Rejected":
+                messages.error(request,
+                    "Your registration was rejected. Please contact the barangay office."
                 )
                 return render(request, "auth/login.html")
+            else:
+                # Pending review
+                request.session["pending_user_id"] = user.userid
+                return redirect("pending_verification")
 
-            set_user_session(request, user)
-
-            return redirect("resident_dashboard")
+        set_user_session(request, user)
+        return redirect("resident_dashboard")
 
     return render(request, "auth/login.html")
 
-
-# =========================================================
 # ADMIN LOGIN PAGE
-# =========================================================
 
 def admin_login_view(request):
 
@@ -450,9 +503,7 @@ def admin_login_view(request):
     )
 
 
-# =========================================================
 # FIRST LOGIN
-# =========================================================
 
 def admin_first_login_view(request):
 
@@ -511,6 +562,15 @@ def admin_first_login_view(request):
                 request,
                 "auth/admin_first_login.html"
             )
+        
+        # Ensure password has at least one letter and one number
+        if not any(c.isdigit() for c in new_password):
+            messages.error(request, "Password must contain at least one number.")
+            return render(request, "auth/admin_first_login.html")
+
+        if not any(c.isalpha() for c in new_password):
+            messages.error(request, "Password must contain at least one letter.")
+            return render(request, "auth/admin_first_login.html")
 
         # SAVE NEW PASSWORD
         user.password = hash_password(
@@ -548,75 +608,43 @@ def admin_first_login_view(request):
     )
 
 
-# =========================================================
 # OTP VERIFY
-# =========================================================
 
 def otp_verify_view(request):
-
-    pending_id = request.session.get(
-        "pending_user_id"
-    )
+    pending_id = request.session.get("pending_user_id")
 
     if not pending_id:
+        messages.error(request, "Session expired. Please log in again.")
         return redirect("admin_login")
 
     try:
         user = Users.objects.select_related(
-            "user_type",
-            "role",
-            "position"
-        ).get(
-            userid=pending_id
-        )
-
+            "user_type", "role", "position"
+        ).get(userid=pending_id)
     except Users.DoesNotExist:
+        messages.error(request, "User not found. Please log in again.")
         return redirect("admin_login")
 
     if request.method == "POST":
+        code = request.POST.get("otp_code", "").strip()
 
-        code = request.POST.get(
-            "otp_code",
-            ""
-        ).strip()
+        if not code or len(code) != 6 or not code.isdigit():
+            messages.error(request, "Please enter a valid 6-digit OTP.")
+            return render(request, "auth/otp_verify.html")
 
-        if verify_otp(
-            user,
-            code,
-            purpose="login"
-        ):
-
-            # REMOVE TEMP SESSION
-            del request.session[
-                "pending_user_id"
-            ]
-
-            # CREATE REAL SESSION
-            set_user_session(
-                request,
-                user
-            )
-
-            return redirect(
-                "admin_dashboard"
-            )
-
+        if verify_otp(user, code, purpose="login"):
+            del request.session["pending_user_id"]
+            set_user_session(request, user)
+            return redirect("admin_dashboard")
         else:
-
-            messages.error(
-                request,
-                "Invalid or expired OTP."
+            messages.error(request,
+                "Invalid or expired OTP. Please request a new one."
             )
 
-    return render(
-        request,
-        "auth/otp_verify.html"
-    )
+    return render(request, "auth/otp_verify.html")
 
 
-# =========================================================
 # RESEND OTP
-# =========================================================
 
 def resend_otp_view(request):
 
@@ -653,43 +681,74 @@ def resend_otp_view(request):
     return redirect("otp_verify")
 
 
-# =========================================================
 # REGISTER
-# =========================================================
 
 def resident_register_view(request):
 
     if request.method == "POST":
+        lastname    = request.POST.get("lastname", "").strip()
+        firstname   = request.POST.get("firstname", "").strip()
+        contact_no  = request.POST.get("contact_no", "").strip()
+        password    = request.POST.get("password", "").strip()
+        receive_sms = request.POST.get("receive_sms") == "on"
+        toid        = request.POST.get("type_of_id", "").strip()
+        id_image    = request.FILES.get("id_image")
+        selfie      = request.FILES.get("selfie_image")
 
-        lastname = request.POST.get(
-            "lastname",
-            ""
-        ).strip()
+        # --- Validations ---
+        errors = []
+        if not contact_no.startswith("09") or len(contact_no) != 11:
+            errors.append("Enter a valid 11-digit PH mobile number.")
+        if Users.objects.filter(contactno=contact_no).exists():
+            errors.append("Mobile number is already registered.")
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+        if not firstname or not lastname:
+            errors.append("First name and last name are required.")
+        if not toid:
+            errors.append("Please select a type of ID.")
+        if not id_image:
+            errors.append("Please upload a photo of your ID.")
+        if not selfie:
+            errors.append("Please upload a selfie with your ID.")
 
-        firstname = request.POST.get(
-            "firstname",
-            ""
-        ).strip()
+        from .utils import validate_upload
+            
+        ok, err = validate_upload(id_image)
+        if not ok:
+            messages.error(request, f"ID Photo: {err}")
 
-        contact_no = request.POST.get(
-            "contact_no",
-            ""
-        ).strip()
+        ok, err = validate_upload(selfie)
+        if not ok:
+            messages.error(request, f"Selfie: {err}")
+        
+        
+        # File type validation
+        allowed_types = ['image/jpeg', 'image/png', 'image/jpg'] #Iphone file type not YET integrated
+        if id_image and id_image.content_type not in allowed_types:
+            errors.append("ID image must be JPG or PNG.")
+        if selfie and selfie.content_type not in allowed_types:
+            errors.append("Selfie must be JPG or PNG.")
 
-        address = request.POST.get(
-            "address",
-            ""
-        ).strip()
+        # File size validation (max 5MB)
+        if id_image and id_image.size > 5 * 1024 * 1024:
+            errors.append("ID image must be less than 5MB.")
+        if selfie and selfie.size > 5 * 1024 * 1024:
+            errors.append("Selfie must be less than 5MB.")
 
-        password = request.POST.get(
-            "password",
-            ""
-        ).strip()
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+            from .models import TypeOfID
+            return render(request, "auth/register.html", {
+                "id_types": TypeOfID.objects.all()
+            })
 
-        receive_sms = (
-            request.POST.get("receive_sms")
-            == "on"
-        )
+        try:
+            resident_type = UserTypes.objects.get(type_name="Resident")
+        except UserTypes.DoesNotExist:
+            messages.error(request, "System error. Please contact admin.")
+            return render(request, "auth/register.html")
 
         # DUPLICATE NUMBER
         if Users.objects.filter(
@@ -705,19 +764,12 @@ def resident_register_view(request):
                 request,
                 "auth/register.html"
             )
-
+        
+        
         # PASSWORD VALIDATION
         if len(password) < 8:
-
-            messages.error(
-                request,
-                "Password must be at least 8 characters."
-            )
-
-            return render(
-                request,
-                "auth/register.html"
-            )
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, "auth/register.html")
 
         try:
             resident_type = UserTypes.objects.get(
@@ -736,54 +788,81 @@ def resident_register_view(request):
                 "auth/register.html"
             )
 
-        # CREATE USER
-        new_user = Users.objects.create(
+        # USER - Resident
+        if not firstname or not lastname:
+            messages.error(request, "First name and last name are required.")
+            return render(request, "auth/register.html")
 
-            username=contact_no,
+        try:
+            resident_type = UserTypes.objects.get(type_name="Resident")
+        except UserTypes.DoesNotExist:
+            messages.error(request, "System error: Resident type missing. Contact admin.")
+            return render(request, "auth/register.html")
 
-            password=hash_password(password),
-
-            firstname=firstname,
-            lastname=lastname,
-
-            contactno=contact_no,
-
-            user_type=resident_type,
-
-            is_verified=False,
-
-            is_active=True,
-
-            is_first_login=False,
-
-            is_password_changed=True
+        #Save uploaded files
+        upload_dir = f"uploads/verification/{new_user.userid}/"
+        id_path = default_storage.save(
+            upload_dir + "id_" + id_image.name,
+            ContentFile(id_image.read())
+        )
+        selfie_path = default_storage.save(
+            upload_dir + "selfie_" + selfie.name,
+            ContentFile(selfie.read())
         )
 
-        # SETTINGS
+
+        #CREATE New User
+        new_user = Users.objects.create(
+            username=contact_no,
+            password=hash_password(password),
+            firstname=firstname,
+            lastname=lastname,
+            contactno=contact_no,
+            user_type=resident_type,
+            is_verified=False,
+            is_active=True,
+            is_first_login=False,
+            is_password_changed=True,
+        )
+
+            # Create ResidentVerification record
+        from .models import ResidentVerification, TypeOfID
+        try:
+            id_type = TypeOfID.objects.get(toid=toid)
+        except TypeOfID.DoesNotExist:
+            id_type = None
+
+        ResidentVerification.objects.create(
+            user=new_user,
+            toid=id_type,
+            id_image_path=id_path,
+            selfie_image_path=selfie_path,
+            status="Pending",
+        )
+
+        #Setting
         Settings.objects.create(
             user=new_user,
             receive_sms=receive_sms,
             notifications_enabled=True,
             dark_mode=False,
-            updated_at=timezone.now()
+            updated_at=timezone.now(),
         )
 
-        messages.success(
-            request,
-            "Account created successfully."
+        messages.success(request,
+            "Account created successfully! "
+            "Please wait for admin verification before you can log in."
         )
-
         return redirect("login")
-
-    return render(
-        request,
-        "auth/register.html"
-    )
+    
+    from .models import TypeOfID
+    return render(request, "auth/register.html", {
+        "id_types": TypeOfID.objects.all()
+    })
 
 
 
 @admin_login_required
-@admin_required
 def admin_dashboard_view(request):
 
     user = get_current_user(request)
@@ -821,28 +900,215 @@ def pending_verification_view(request):
 
 
 def logout_view(request):
-
+    user_type = request.session.get("user_type", "Resident")
     request.session.flush()
-
+    messages.success(request, "You have been logged out successfully.")
+    if user_type == "Admin":
+        return redirect("admin_login")
     return redirect("login")
 
-
-def _redirect_by_type(request):
-
-    user_type = request.session.get(
-        "user_type"
-    )
-
-    if user_type == "Admin":
-        return redirect("admin_dashboard")
-
-    return redirect("resident_dashboard")
  
 def _redirect_by_type(request):
     user_type = request.session.get("user_type")
     if user_type == "Admin": return redirect("admin_dashboard")
     return redirect("resident_dashboard")
 
-def admin_register(request):
-    return render(request, "auth/admin_register.html")
+from .decorators import admin_login_required, permission_required
 
+@admin_login_required
+@permission_required('create_users')
+def admin_register(request):
+    """
+    Chairman-only: Create a new staff account.
+    GET  → render the create staff form
+    POST → create staff user with temp credentials
+    """
+    if request.method == "POST":
+        firstname  = request.POST.get("firstname", "").strip()
+        lastname   = request.POST.get("lastname", "").strip()
+        contact_no = request.POST.get("contact_no", "").strip()
+        role_id    = request.POST.get("role_id", "").strip()
+        position_id= request.POST.get("position_id", "").strip()
+
+        # --- basic validation ---
+        if not all([firstname, lastname, contact_no, role_id]):
+            messages.error(request, "All required fields must be filled.")
+            return redirect("admin_register")
+
+        if Users.objects.filter(contactno=contact_no).exists():
+            messages.error(request, "Contact number already exists.")
+            return redirect("admin_register")
+
+        # --- build username from lastname + random digits ---
+        import random, string as _string
+        suffix   = ''.join(random.choices(_string.digits, k=4))
+        username = (lastname.lower().replace(" ", "") + suffix)[:20]
+        while Users.objects.filter(username=username).exists():
+            suffix   = ''.join(random.choices(_string.digits, k=4))
+            username = (lastname.lower().replace(" ", "") + suffix)[:20]
+
+        # --- temp password ---
+        temp_password = ''.join(random.choices(
+            _string.ascii_letters + _string.digits, k=10
+        ))
+
+        from .models import UserTypes, Roles, Positions
+        try:
+            admin_type = UserTypes.objects.get(type_name="Admin")
+            role       = Roles.objects.get(roleid=role_id)
+        except (UserTypes.DoesNotExist, Roles.DoesNotExist):
+            messages.error(request, "Invalid role selected.")
+            return redirect("admin_register")
+
+        position = None
+        if position_id:
+            try:
+                position = Positions.objects.get(positionid=position_id)
+            except Positions.DoesNotExist:
+                pass
+
+        new_user = Users.objects.create(
+            username=username,
+            password=hash_password(temp_password),
+            firstname=firstname,
+            lastname=lastname,
+            contactno=contact_no,
+            user_type=admin_type,
+            role=role,
+            position=position,
+            is_verified=True,
+            is_active=True,
+            is_first_login=True,       # forces first-login flow
+            is_password_changed=False,
+        )
+
+        # --- SMS the temp credentials ---
+        send_sms(
+            contact_no,
+            f"KaugnayPH: Your account has been created.\n"
+            f"Username: {username}\n"
+            f"Temp Password: {temp_password}\n"
+            f"Please log in and change your password immediately.",
+            sent_by=get_current_user(request)
+        )
+
+        # --- Audit log ---
+        from .models import AuditLogs
+        AuditLogs.objects.create(
+            user=get_current_user(request),
+            action="Create Staff Account",
+            module_name="UserManagement",
+            table_name="Users",
+            record_id=new_user.userid,
+            new_value=f"Staff '{username}' created by chairman.",
+            created_at=timezone.now()
+        )
+
+        messages.success(
+            request,
+            f"Staff account created! Username: {username} | "
+            f"Temp Password: {temp_password}  (also sent via SMS)"
+        )
+        return redirect("admin_register")
+
+    # GET — load roles and positions for the dropdown
+    from .models import Roles, Positions
+    roles     = Roles.objects.all()
+    positions = Positions.objects.all()
+    return render(request, "auth/admin_register.html", {
+        "roles": roles,
+        "positions": positions,
+    })
+
+# FOR RESIDENT VERIFICATION:
+@admin_login_required
+@permission_required('verify_residents')
+def resident_verification_list(request):
+    """List all pending verification requests."""
+    from .models import ResidentVerification
+    pending = ResidentVerification.objects.select_related(
+        'user', 'toid'
+    ).filter(status="Pending").order_by('-rv_id')
+
+    return render(request, "adminpanel/verification_list.html", {
+        "verifications": pending,
+        "user": get_current_user(request),
+    })
+
+
+@admin_login_required
+@permission_required('verify_residents')
+def resident_verification_detail(request, rv_id):
+    """View detail and approve/reject a verification request."""
+    from .models import ResidentVerification
+    try:
+        rv = ResidentVerification.objects.select_related(
+            'user', 'toid'
+        ).get(rv_id=rv_id)
+    except ResidentVerification.DoesNotExist:
+        messages.error(request, "Verification record not found.")
+        return redirect("verification_list")
+
+    if request.method == "POST":
+        action = request.POST.get("action")  # "approve" or "reject"
+        admin = get_current_user(request)
+
+        if action == "approve":
+            rv.status = "Approved"
+            rv.reviewed_by = admin
+            rv.reviewed_at = timezone.now()
+            rv.save()
+
+            rv.user.is_verified = True
+            rv.user.save()
+
+            # Notify resident via SMS
+            send_sms(
+                rv.user.contactno,
+                "KaugnayPH: Your account has been verified! You can now log in.",
+                sent_by=admin
+            )
+
+            AuditLogs.objects.create(
+                user=admin,
+                action="Approve Resident",
+                module_name="Verification",
+                table_name="ResidentVerification",
+                record_id=rv.rv_id,
+                new_value=f"Resident {rv.user.username} approved.",
+                created_at=timezone.now()
+            )
+
+            messages.success(request, f"Resident {rv.user.firstname} {rv.user.lastname} approved.")
+
+        elif action == "reject":
+            rv.status = "Rejected"
+            rv.reviewed_by = admin
+            rv.reviewed_at = timezone.now()
+            rv.save()
+
+            send_sms(
+                rv.user.contactno,
+                "KaugnayPH: Your registration was not approved. "
+                "Please visit the barangay office for assistance.",
+                sent_by=admin
+            )
+
+            AuditLogs.objects.create(
+                user=admin,
+                action="Reject Resident",
+                module_name="Verification",
+                table_name="ResidentVerification",
+                record_id=rv.rv_id,
+                new_value=f"Resident {rv.user.username} rejected.",
+                created_at=timezone.now()
+            )
+
+            messages.warning(request, f"Resident {rv.user.firstname} {rv.user.lastname} rejected.")
+
+        return redirect("verification_list")
+
+    return render(request, "adminpanel/verification_detail.html", {
+        "rv": rv,
+        "user": get_current_user(request),
+    })
