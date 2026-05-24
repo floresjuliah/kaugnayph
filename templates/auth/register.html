@@ -8,10 +8,7 @@
 
   <title>KaugnayPH – Create Account</title>
 
-  <!-- CONNECT CSS -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-  <!-- POPPINS FONT -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
@@ -39,110 +36,152 @@
     </ul>
   </div>
 
- <!-- RIGHT PANEL -->
-<div class="right-panel">
-  <div class="form-card">
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="form-card">
 
-    <h1>Create your Account</h1>
-    <p class="subtitle">Get started by creating your new Account</p>
-    {% if messages %}
-  <div style="color:red;">
-    {% for message in messages %}
-      <p>{{ message }}</p>
-    {% endfor %}
-  </div>
-{% endif %}
+      <h1>Create your Account</h1>
+      <p class="subtitle">Get started by creating your new Account</p>
 
-    <form method="POST" enctype="multipart/form-data"> <!-- enctype: for ID upload -->
-      {% csrf_token %}
-
-      <div class="form-group">
-        <label for="lastname">Last Name:</label>
-        <input type="text" id="lastname" name="lastname" required />
+      <!-- STEP INDICATOR -->
+      <div class="step-indicator">
+        <div class="step active" id="dot1">1</div>
+        <div class="step-line"></div>
+        <div class="step" id="dot2">2</div>
       </div>
 
-      <div class="form-group">
-        <label for="firstname">First Name:</label>
-        <input type="text" id="firstname" name="firstname" required />
-      </div>
+      {% if messages %}
+        <div style="color:red;">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-      <div class="form-group">
-        <label for="contact_no">Mobile Number</label>
-        <p class="hint">e.g. 09952638048</p>
-        <input type="tel" id="contact_no" name="contact_no" required />
-      </div>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-      <div class="form-group">
-        <label for="address">Address</label>
-        <input type="text" id="address" name="address" required />
-      </div>
+        <!-- STEP 1: Personal Information -->
+        <div id="step1">
 
-      <div class="form-group">
-        <label for="password">Password:</label>
+          <div class="form-group">
+            <label for="lastname">Last Name</label>
+            <input type="text" id="lastname" name="lastname" required />
+          </div>
 
-        <div class="pw-wrapper">
-          <input type="password" id="password" name="password" required />
+          <div class="form-group">
+            <label for="firstname">First Name</label>
+            <input type="text" id="firstname" name="firstname" required />
+          </div>
 
-          <button type="button" class="pw-toggle" onclick="togglePassword()">
-            👁
+          <div class="form-group">
+            <label for="contact_no">Mobile Number</label>
+            <p class="hint">e.g. 09952638048</p>
+            <input type="tel" id="contact_no" name="contact_no" required />
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="pw-wrapper">
+              <input type="password" id="password" name="password" required />
+              <button type="button" class="pw-toggle" onclick="togglePassword()">
+                👁
+              </button>
+            </div>
+          </div>
+
+          <div class="sms-row">
+            <input type="checkbox" id="receive_sms" name="receive_sms" />
+            <label for="receive_sms">
+              Do you want to receive SMS text from Kaugnay PH?
+            </label>
+          </div>
+
+          <button type="button" class="btn-create" onclick="nextStep()">
+            Next →
           </button>
-        </div>
-      </div>
 
-      <div class="sms-row">
-        <input type="checkbox" id="receive_sms" name="receive_sms" />
-
-        <label for="receive_sms">
-          Do you want to receive SMS text from Kaugnay PH?
-        </label>
-      </div>
-
-      <button type="submit" class="btn-create">
-        Create Account
-      </button>
-
-      <!-- wait, for testing -->
-        <div class="mb-3">
-          <label>Type of ID *</label>
-          <select name="type_of_id" class="form-select" required>
-            <option value="">-- Select ID Type --</option>
-      {% for id_type in id_types %}
-        <option value="{{ id_type.toid }}">{{ id_type.name }}</option>
-      {% endfor %}
-          </select>
         </div>
 
-        <div class="mb-3">
-          <label>Upload ID Photo *</label>
-            <input type="file" name="id_image" class="form-control"
-              accept="image/jpeg,image/png" required>
-          <small class="text-muted">JPG or PNG, max 5MB</small>
+        <!-- STEP 2: ID Verification -->
+        <div id="step2" style="display:none;">
+
+          <div class="form-group">
+            <label>Type of ID</label>
+            <select name="type_of_id" class="form-select" required>
+              <option value="">-- Select ID Type --</option>
+              {% for id_type in id_types %}
+                <option value="{{ id_type.toid }}">{{ id_type.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Upload ID Photo</label>
+            <input type="file" name="id_image" accept="image/jpeg,image/png" required />
+            <p class="hint">JPG or PNG, max 5MB</p>
+          </div>
+
+          <div class="form-group">
+            <label>Selfie with ID</label>
+            <input type="file" name="selfie_image" accept="image/jpeg,image/png" required />
+            <p class="hint">Take a selfie holding your ID, max 5MB</p>
+          </div>
+
+          <div class="step-buttons">
+            <button type="button" class="btn-back" onclick="prevStep()">
+              ← Back
+            </button>
+            <button type="submit" class="btn-create">
+              Create Account
+            </button>
+          </div>
+
         </div>
 
-        <div class="mb-3">
-          <label>Selfie with ID *</label>
-            <input type="file" name="selfie_image" class="form-control"
-              accept="image/jpeg,image/png" required>
-          <small class="text-muted">Take a selfie holding your ID, max 5MB</small>
-        </div>
-        <!-- wait, for testing -->
+      </form>
 
-    </form>
+      <p class="signin-link">
+        Already have an Account?
+        <a href="/auth/login/">Sign In</a>
+      </p>
 
-    <p class="signin-link">
-      Already have an Account?
-      <a href="/login/">Sign In</a>
-    </p>
-
+    </div>
   </div>
-</div>
 
   <script>
+    function nextStep() {
+      const step1Inputs = document.querySelectorAll('#step1 input[required]');
+      for (let input of step1Inputs) {
+        if (!input.value.trim()) {
+          input.reportValidity();
+          return;
+        }
+      }
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('dot1').classList.remove('active');
+      document.getElementById('dot1').classList.add('done');
+      document.getElementById('dot2').classList.add('active');
+    }
+
+    function prevStep() {
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('dot2').classList.remove('active');
+      document.getElementById('dot1').classList.remove('done');
+      document.getElementById('dot1').classList.add('active');
+    }
+
     function togglePassword() {
       const input = document.getElementById('password');
       input.type = input.type === 'password' ? 'text' : 'password';
     }
-
   </script>
 
 </body>
