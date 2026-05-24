@@ -768,16 +768,6 @@ def resident_register_view(request):
             messages.error(request, "System error: Resident type missing. Contact admin.")
             return render(request, "auth/register.html")
 
-        #Save uploaded files
-        upload_dir = f"uploads/verification/{new_user.userid}/"
-        id_path = default_storage.save(
-            upload_dir + "id_" + id_image.name,
-            ContentFile(id_image.read())
-        )
-        selfie_path = default_storage.save(
-            upload_dir + "selfie_" + selfie.name,
-            ContentFile(selfie.read())
-        )
 
 
         #CREATE New User
@@ -793,8 +783,21 @@ def resident_register_view(request):
             is_first_login=False,
             is_password_changed=True,
         )
+        
 
-            # Create ResidentVerification record
+        #Save uploaded files
+        upload_dir = f"uploads/verification/{new_user.userid}/"
+        id_path = default_storage.save(
+            upload_dir + "id_" + id_image.name,
+            ContentFile(id_image.read())
+        )
+        selfie_path = default_storage.save(
+            upload_dir + "selfie_" + selfie.name,
+            ContentFile(selfie.read())
+        )
+
+
+        # Create ResidentVerification record
         from .models import ResidentVerification, TypeOfID
         try:
             id_type = TypeOfID.objects.get(toid=toid)
