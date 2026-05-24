@@ -503,7 +503,7 @@ def admin_first_login_view(request):
         positions = Positions.objects.all()
         errors = []
 
-        # --- Validation ---
+        # --- Validation --- PLS ORGANIZE OMG (PURO IF)
         if not firstname or not lastname:
             errors.append("First name and last name are required.")
 
@@ -563,7 +563,8 @@ def admin_first_login_view(request):
             f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
         )
 
-        messages.success(request, "Profile updated! Enter the OTP sent to your number.")
+        request.session["from_first_login"] = True
+        messages.success(request, "Profile updated! Enter the OTP sent to your number.")        
         return redirect("otp_verify")
 
     positions = Positions.objects.all()
@@ -597,15 +598,16 @@ def otp_verify_view(request):
             return render(request, "auth/otp_verify.html")
 
         if verify_otp(user, code, purpose="login"):
-            # Clear the pending session
             del request.session["pending_user_id"]
 
-            # Mark OTP verified — send them back to login to do a clean login
-            request.session["otp_verified_user_id"] = user.userid
-            messages.success(request,
-                "OTP verified! Your account is ready. Please log in."
-            )
-            return redirect("admin_login")
+            if request.session.pop("from_first_login", False):
+                messages.success(request,
+                    "Account setup complete! Please log in with your new credentials."
+                )
+                return redirect("admin_login")
+
+            set_user_session(request, user)
+            return redirect("admin_dashboard")
 
         else:
             messages.error(request, "Invalid or expired OTP. Please try again or resend.")
