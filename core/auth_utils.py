@@ -32,17 +32,41 @@ def generate_otp(user, purpose='login'):
         expires_at=expires_at, is_used=False,
     )
  
+OTP_MAX_ATTEMPTS = 3
+OTP_LOCKOUT_MINUTES = 5 
 def verify_otp(user, code, purpose='login'):
     try:
         otp = OTP.objects.get(
-            user=user, code=code, purpose=purpose,
-            is_used=False, expires_at__gt=timezone.now()
+            user=user,
+            purpose=purpose,
+            is_used=False,
+            expires_at__gt=timezone.now()
         )
-        otp.is_used = True
-        otp.save()
-        return True
     except OTP.DoesNotExist:
-        return False
+        return 'invalid'
+
+    # Check if locked out
+    if otp.locked_until and timezone.now() < otp.locked_until:
+        remaining = int((otp.locked_until - timezone.now()).total_seconds() / 60) + 1
+        return f'locked:{remaining}'
+
+    # Wrong code
+    if otp.code != code:
+        otp.attempts += 1
+
+        if otp.attempts >= OTP_MAX_ATTEMPTS:
+            otp.locked_until = timezone.now() + timedelta(minutes=OTP_LOCKOUT_MINUTES)
+            otp.save()
+            return f'locked:{OTP_LOCKOUT_MINUTES}'
+
+        otp.save()
+        remaining_attempts = OTP_MAX_ATTEMPTS - otp.attempts
+        return f'wrong:{remaining_attempts}'
+
+    # Correct code
+    otp.is_used = True
+    otp.save()
+    return 'ok'
  
 #otp = generate_otp(user, purpose="login")
 #send_sms(
@@ -69,19 +93,7 @@ def send_sms(contact_number, message, sent_by=None):
 
         gateway_response = r.text
 
-        # Proper failure detection
-        if r.status_code != 200:
-            success = False
-            error_message = f"HTTP {r.status_code}"
-        elif "Failure:1" in gateway_response:
-            success = False
-            error_message = "Gateway returned Failure:1"
-        elif "Success" in gateway_response or gateway_response.strip() == "":
-            success = True
-        else:
-            # Unknown response — log as failed to be safe
-            success = False
-            error_message = f"Unexpected gateway response: {gateway_response[:100]}"
+        success = r.status_code == 200 and "Failure:1" not in gateway_response
 
     except requests.Timeout:
         error_message = "Request timed out"

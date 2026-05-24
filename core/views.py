@@ -473,8 +473,49 @@ def admin_login_view(request):
 
 # FIRST LOGIN
 
-def admin_first_login_view(request):
+def _validate_first_login_form(data, current_user_id):
+    """
+    Validates the first-login form fields.
+    Returns a list of error strings (empty = no errors).
+    """
+    errors = []
 
+    # Name
+    if not data['firstname'] or not data['lastname']:
+        errors.append("First name and last name are required.")
+
+    # Username
+    if not data['username'] or len(data['username']) < 4:
+        errors.append("Username must be at least 4 characters.")
+    elif Users.objects.filter(username=data['username']).exclude(userid=current_user_id).exists():
+        errors.append("Username is already taken.")
+
+    # Contact number
+    if not data['contact_no'].startswith("09") or len(data['contact_no']) != 11:
+        errors.append("Enter a valid 11-digit PH mobile number (e.g. 09XXXXXXXXX).")
+    elif Users.objects.filter(contactno=data['contact_no']).exclude(userid=current_user_id).exists():
+        errors.append("Contact number is already in use.")
+
+    # Password
+    pw = data['new_password']
+    if len(pw) < 8:
+        errors.append("Password must be at least 8 characters.")
+    else:
+        if not any(c.isdigit() for c in pw):
+            errors.append("Password must contain at least one number.")
+        if not any(c.isalpha() for c in pw):
+            errors.append("Password must contain at least one letter.")
+
+    if pw != data['confirm_password']:
+        errors.append("Passwords do not match.")
+
+    return errors
+
+
+def admin_first_login_view(request):
+    from .models import Positions
+
+    # --- Guard clauses ---
     pending_id = request.session.get("pending_user_id")
     if not pending_id:
         return redirect("admin_login")
@@ -489,90 +530,55 @@ def admin_first_login_view(request):
     if not user.is_first_login:
         return redirect("admin_login")
 
-    from .models import Positions
-
-    if request.method == "POST":
-        firstname        = request.POST.get("firstname", "").strip()
-        lastname         = request.POST.get("lastname", "").strip()
-        username         = request.POST.get("username", "").strip()
-        contact_no       = request.POST.get("contact_no", "").strip()
-        position_id      = request.POST.get("position_id", "").strip()
-        new_password     = request.POST.get("new_password", "").strip()
-        confirm_password = request.POST.get("confirm_password", "").strip()
-
-        positions = Positions.objects.all()
-        errors = []
-
-        # --- Validation --- PLS ORGANIZE OMG (PURO IF)
-        if not firstname or not lastname:
-            errors.append("First name and last name are required.")
-
-        if not username or len(username) < 4:
-            errors.append("Username must be at least 4 characters.")
-
-        if Users.objects.filter(username=username).exclude(userid=user.userid).exists():
-            errors.append("Username is already taken.")
-
-        if not contact_no.startswith("09") or len(contact_no) != 11:
-            errors.append("Enter a valid 11-digit PH mobile number (e.g. 09XXXXXXXXX).")
-
-        if Users.objects.filter(contactno=contact_no).exclude(userid=user.userid).exists():
-            errors.append("Contact number is already in use.")
-
-        if len(new_password) < 8:
-            errors.append("Password must be at least 8 characters.")
-
-        if not any(c.isdigit() for c in new_password):
-            errors.append("Password must contain at least one number.")
-
-        if not any(c.isalpha() for c in new_password):
-            errors.append("Password must contain at least one letter.")
-
-        if new_password != confirm_password:
-            errors.append("Passwords do not match.")
-
-        if errors:
-            for e in errors:
-                messages.error(request, e)
-            return render(request, "auth/admin_first_login.html", {
-                "positions": positions,
-                "user": user,
-            })
-
-        # --- Save everything ---
-        user.firstname         = firstname
-        user.lastname          = lastname
-        user.username          = username
-        user.contactno         = contact_no
-        user.password          = hash_password(new_password)
-        user.is_first_login    = False
-        user.is_password_changed = True
-
-        if position_id:
-            try:
-                user.position = Positions.objects.get(positionid=position_id)
-            except Positions.DoesNotExist:
-                pass
-
-        user.save()
-
-        # --- Send OTP to the new contact number ---
-        otp = generate_otp(user, purpose="login")
-        send_sms(
-            user.contactno,
-            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
-        )
-
-        request.session["from_first_login"] = True
-        messages.success(request, "Profile updated! Enter the OTP sent to your number.")        
-        return redirect("otp_verify")
-
     positions = Positions.objects.all()
-    return render(request, "auth/admin_first_login.html", {
-        "positions": positions,
-        "user": user,
-    })
+    context   = {"positions": positions, "user": user}
 
+    # --- GET ---
+    if request.method != "POST":
+        return render(request, "auth/admin_first_login.html", context)
+
+    # --- POST: collect fields ---
+    data = {
+        'firstname':        request.POST.get("firstname", "").strip(),
+        'lastname':         request.POST.get("lastname", "").strip(),
+        'username':         request.POST.get("username", "").strip(),
+        'contact_no':       request.POST.get("contact_no", "").strip(),
+        'position_id':      request.POST.get("position_id", "").strip(),
+        'new_password':     request.POST.get("new_password", "").strip(),
+        'confirm_password': request.POST.get("confirm_password", "").strip(),
+    }
+
+    # --- Validate ---
+    errors = _validate_first_login_form(data, user.userid)
+    if errors:
+        for e in errors:
+            messages.error(request, e)
+        return render(request, "auth/admin_first_login.html", context)
+
+    # --- Save ---
+    user.firstname          = data['firstname']
+    user.lastname           = data['lastname']
+    user.username           = data['username']
+    user.contactno          = data['contact_no']
+    user.password           = hash_password(data['new_password'])
+    user.is_first_login     = False
+    user.is_password_changed = True
+
+    if data['position_id']:
+        try:
+            user.position = Positions.objects.get(positionid=data['position_id'])
+        except Positions.DoesNotExist:
+            pass
+
+    user.save()
+
+    # --- Send OTP ---
+    otp = generate_otp(user, purpose="login")
+    send_sms(user.contactno, f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes.")
+
+    request.session["from_first_login"] = True
+    messages.success(request, "Profile updated! Enter the OTP sent to your number.")
+    return redirect("otp_verify")
 
 # OTP VERIFY
 
@@ -597,7 +603,9 @@ def otp_verify_view(request):
             messages.error(request, "Please enter a valid 6-digit OTP.")
             return render(request, "auth/otp_verify.html")
 
-        if verify_otp(user, code, purpose="login"):
+        result = verify_otp(user, code, purpose="login")
+
+        if result == 'ok':
             del request.session["pending_user_id"]
 
             if request.session.pop("from_first_login", False):
@@ -609,8 +617,20 @@ def otp_verify_view(request):
             set_user_session(request, user)
             return redirect("admin_dashboard")
 
+        elif result.startswith('locked:'):
+            minutes = result.split(':')[1]
+            messages.error(request,
+                f"Too many incorrect attempts. Please wait {minutes} minute(s) before trying again."
+            )
+
+        elif result.startswith('wrong:'):
+            remaining = result.split(':')[1]
+            messages.error(request,
+                f"Incorrect OTP. {remaining} attempt(s) remaining."
+            )
+
         else:
-            messages.error(request, "Invalid or expired OTP. Please try again or resend.")
+            messages.error(request, "OTP has expired. Please request a new one.")
 
     return render(request, "auth/otp_verify.html")
 

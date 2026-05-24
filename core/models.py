@@ -129,6 +129,9 @@ class OTP(models.Model):
     expires_at = models.DateTimeField(blank=True, null=True)
     is_used = models.BooleanField(default=False)
 
+    attempts = models.IntegerField(default=0)
+    locked_until = models.DateTimeField(blank=True, null=True)
+    
     class Meta:
         db_table = 'OTP'
 
