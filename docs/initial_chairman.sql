@@ -16,7 +16,7 @@ INSERT INTO Users (
     is_password_changed
 ) VALUES (
     'TestChairman',                          -- <CHANGE THIS> username
-    '$2b$12$fewpl.2b5nks.AgApY4dk.Olqui2SnsA9ivd1bra20NRer0i4RPQe',            -- <CHANGE THIS> bcrypt hash from Django shell
+    '$2b$12$kTvtCs4j2nlGaAYd2cUwi.28.9bFIr8kh4qge7Ycwlc53xXjuJOB2',            -- <CHANGE THIS> bcrypt hash from Django shell
     'Tam',                                -- <CHANGE THIS> first name
     'Radaza',                           -- <CHANGE THIS> last name
     '09950323069',                         -- <CHANGE THIS> contact number
