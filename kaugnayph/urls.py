@@ -47,6 +47,7 @@ urlpatterns = [
     path('documents/', views.documents, name='documents'),
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
+    path('announcementslist/', views.announcementslist, name='announcementslist'),
 
    
     # App includes

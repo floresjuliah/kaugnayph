@@ -63,6 +63,11 @@ def faqs(request):
 def contactus(request):
     return render(request, 'contactus.html')
 
+def announcementslist(request):
+    return render(request, 'public/announcements.html')
+
+
+
 
 # API ENDPOINTS
 

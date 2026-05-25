@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/announcements.css' %}">
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+
+  <div class="hero-content">
+    <h1>Barangay 761<br>Announcements</h1>
+    <div class="ann-hero-divider"></div>
+
+    <p>
+      For updates and important information, please refer to the announcements below to 
+      stay informed about barangay activities and notices.
+    </p>
+
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M5 12h14M13 6l6 6-6 6"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<!-- ── ANNOUNCEMENTS LIST ── -->
+<section class="ann-section">
+
+  <!-- Filter Bar -->
+  <div class="ann-filter-bar">
+    <div class="ann-search-wrap">
+      <svg class="ann-search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+
+      <input
+        type="text"
+        class="ann-search"
+        placeholder="Search Announcements..."
+        id="annSearch"
+      />
+    </div>
+
+    <div class="ann-tabs" id="annTabs">
+      <button class="ann-tab active" data-filter="all">All</button>
+      <button class="ann-tab" data-filter="general">General</button>
+      <button class="ann-tab" data-filter="emergency">Emergency</button>
+      <button class="ann-tab" data-filter="events">Events</button>
+
+      <div class="ann-more-wrap">
+        <button class="ann-tab ann-more-btn">More ▾</button>
+
+        <div class="ann-more-menu">
+          <button class="ann-more-item" data-filter="health">Health</button>
+          <button class="ann-more-item" data-filter="infrastructure">Infrastructure</button>
+          <button class="ann-more-item" data-filter="livelihood">Livelihood</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Posts -->
+  <div class="ann-posts" id="annPosts">
+
+    <!-- POST 1 -->
+    <article class="ann-card" data-category="general">
+
+      <div class="ann-card-top">
+        <div class="ann-author">
+
+          <div class="ann-avatar">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </div>
+
+          <div>
+            <div class="ann-author-name">Ariel Haling</div>
+            <div class="ann-author-role">Barangay Chairman</div>
+            <div class="ann-time">1 hour ago</div>
+          </div>
+
+        </div>
+
+        <span class="ann-badge badge-general">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4m0 4h.01"/>
+          </svg>
+
+          General Updates
+        </span>
+      </div>
+
+      <div class="ann-card-body">
+        <h2 class="ann-title">DPWH – Asphalt Activities</h2>
+
+        <p class="ann-excerpt">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in fringilla neque.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          Sit amet accumsan euismod, enim diam malesuada elit,
+          in sagittis risus est at diam…
+
+          <a href="#" class="ann-readmore">Read more</a>
+        </p>
+      </div>
+
+      <div class="ann-card-footer">
+
+        <button class="ann-like-btn" onclick="toggleLike(this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+
+          <span class="ann-like-count">120</span>
+        </button>
+
+        <div class="ann-actions">
+
+          <button class="ann-action-btn" title="Feedback" onclick="openFeedback(this)">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+
+          <div class="ann-dots-wrap">
+
+            <button class="ann-dots-btn" onclick="toggleDots(this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="19" cy="12" r="2"/>
+              </svg>
+            </button>
+
+            <div class="ann-dots-menu">
+
+              <button class="ann-dots-item">
+                Copy link
+                <small>Copy the post URL</small>
+              </button>
+
+              <button class="ann-dots-item">
+                Save as PDF file
+                <small>Save post as PDF</small>
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- FEEDBACK MODAL -->
+<div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
+  <div class="ann-modal">
+
+    <h3>How helpful is this announcement?</h3>
+
+    <p class="ann-modal-sub">
+      ( Strongly Disagree → Strongly Agree )
+    </p>
+
+    <div class="ann-emoji-row" id="emojiRow">
+      <!-- emojis here -->
+    </div>
+
+    <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
+
+    <button class="ann-modal-close" onclick="closeFeedback()">
+      Close
+    </button>
+
+  </div>
+</div>
+
+<!-- ── SCRIPTS ── -->
+<script>
+// ── LIKE ──
+function toggleLike(btn) {
+  const liked = btn.classList.toggle('liked');
+  const countEl = btn.querySelector('.ann-like-count');
+  let count = parseInt(countEl.textContent);
+
+  countEl.textContent = liked ? count + 1 : count - 1;
+}
+
+// ── FILTER ──
+document.querySelectorAll('.ann-tab:not(.ann-more-btn)').forEach(tab => {
+  tab.addEventListener('click', function () {
+
+    document.querySelectorAll('.ann-tab:not(.ann-more-btn)')
+      .forEach(t => t.classList.remove('active'));
+
+    this.classList.add('active');
+
+    filterPosts(this.dataset.filter || 'all');
+  });
+});
+
+document.querySelectorAll('.ann-more-item').forEach(item => {
+  item.addEventListener('click', function () {
+
+    document.querySelectorAll('.ann-tab:not(.ann-more-btn)')
+      .forEach(t => t.classList.remove('active'));
+
+    filterPosts(this.dataset.filter);
+  });
+});
+
+function filterPosts(cat) {
+  document.querySelectorAll('.ann-card').forEach(card => {
+
+    if (cat === 'all' || card.dataset.category === cat) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+
+  });
+}
+
+// ── SEARCH ──
+document.getElementById('annSearch').addEventListener('input', function () {
+
+  const q = this.value.toLowerCase();
+
+  document.querySelectorAll('.ann-card').forEach(card => {
+
+    const text = card.innerText.toLowerCase();
+
+    card.classList.toggle(
+      'hidden',
+      q.length > 0 && !text.includes(q)
+    );
+
+  });
+});
+
+// ── DOTS MENU ──
+function toggleDots(btn) {
+
+  const menu = btn.nextElementSibling;
+  const isOpen = menu.classList.contains('open');
+
+  document.querySelectorAll('.ann-dots-menu.open')
+    .forEach(m => m.classList.remove('open'));
+
+  if (!isOpen) {
+    menu.classList.add('open');
+  }
+}
+
+document.addEventListener('click', function (e) {
+
+  if (!e.target.closest('.ann-dots-wrap')) {
+    document.querySelectorAll('.ann-dots-menu.open')
+      .forEach(m => m.classList.remove('open'));
+  }
+
+});
+
+// ── FEEDBACK MODAL ──
+const LABELS = [
+  '',
+  'Strongly Disagree',
+  'Disagree',
+  'Neutral',
+  'Agree',
+  'Strongly Agree'
+];
+
+function openFeedback(btn) {
+
+  document.querySelectorAll('.ann-emoji-btn')
+    .forEach(b => b.classList.remove('selected'));
+
+  document.getElementById('feedbackLabel').textContent = '\u00a0';
+
+  document.getElementById('feedbackModal')
+    .classList.add('active');
+}
+
+function closeFeedback() {
+  document.getElementById('feedbackModal')
+    .classList.remove('active');
+}
+
+function closeFeedbackOnOverlay(e) {
+
+  if (e.target === document.getElementById('feedbackModal')) {
+    closeFeedback();
+  }
+
+}
+
+function selectEmoji(btn) {
+
+  document.querySelectorAll('.ann-emoji-btn')
+    .forEach(b => b.classList.remove('selected'));
+
+  btn.classList.add('selected');
+
+  document.getElementById('feedbackLabel').textContent =
+    LABELS[btn.dataset.val] || '';
+}
+</script>
+
+{% endblock %}
