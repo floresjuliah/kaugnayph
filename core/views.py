@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.views.decorators.csrf import csrf_exempt
 
 from core.utils import validate_upload
 
@@ -144,7 +145,7 @@ def create_announcement(request):
         "gateway_responses": gateway_responses,
     })
 
-
+@csrf_exempt
 def update_announcement(request, announcement_id):
     if request.method != "PUT":
         return JsonResponse({"error": "PUT request required"}, status=400)
@@ -175,7 +176,7 @@ def update_announcement(request, announcement_id):
 
     return JsonResponse({"message": "Announcement updated successfully"})
 
-
+@csrf_exempt
 def delete_announcement(request, announcement_id):
     if request.method != "DELETE":
         return JsonResponse({"error": "DELETE request required"}, status=400)
