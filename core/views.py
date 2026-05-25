@@ -85,22 +85,34 @@ def get_announcement_detail(request, announcement_id):
 
 
 # ANNOUNCEMENTS (Admin)
-
+@csrf_exempt
 @admin_login_required
 @permission_required('create_announcements')
 def create_announcement(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required"}, status=400)
 
-    data         = json.loads(request.body)
     current_user = get_current_user(request)
-    title        = data.get("title", "").strip()
-    content      = data.get("content", "").strip()
+
+    if request.content_type and request.content_type.startswith("multipart/form-data"):
+        data = request.POST
+        uploaded_file = request.FILES.get("file")
+    else:
+        data = json.loads(request.body)
+        uploaded_file = None
+
+    title = data.get("title", "").strip()
+    content = data.get("content", "").strip()
 
     if not title:
         return JsonResponse({"error": "Title is required."}, status=400)
     if not content:
         return JsonResponse({"error": "Content is required."}, status=400)
+
+    try:
+        file_path = save_announcement_file(uploaded_file)
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
     send_sms_flag = int(data.get("send_sms", 0))
 
@@ -110,6 +122,7 @@ def create_announcement(request):
         send_sms=send_sms_flag,
         category_id=data.get("category_id", 1),
         posted_by=current_user,
+        file_path=file_path,
         created_at=timezone.now()
     )
 
@@ -123,9 +136,9 @@ def create_announcement(request):
                 sent_by=current_user
             )
             gateway_responses.append({
-                "user_id":        sub.user.userid,
+                "user_id": sub.user.userid,
                 "contact_number": sub.user.contactno,
-                "success":        result,
+                "success": result,
             })
 
     AuditLogs.objects.create(
@@ -139,9 +152,10 @@ def create_announcement(request):
     )
 
     return JsonResponse({
-        "message":         "Announcement created successfully",
+        "message": "Announcement created successfully",
         "announcement_id": announcement.announcement_id,
-        "send_sms":        send_sms_flag,
+        "send_sms": send_sms_flag,
+        "file_path": file_path,
         "gateway_responses": gateway_responses,
     })
 
@@ -269,6 +283,37 @@ def serve_verification_file(request, rv_id, file_type):
 
 
 # HELPERS
+
+def save_announcement_file(uploaded_file):
+    if not uploaded_file:
+        return None
+
+    allowed_types = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "application/pdf"
+    ]
+
+    if uploaded_file.content_type not in allowed_types:
+        raise ValueError(
+            "Invalid file type. Only JPG, PNG, and PDF files are allowed."
+        )
+
+    if uploaded_file.size > 5 * 1024 * 1024:
+        raise ValueError("File size must not exceed 5MB.")
+
+    upload_dir = settings.MEDIA_ROOT / "announcements"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path = upload_dir / uploaded_file.name
+
+    with open(file_path, "wb+") as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+
+    return f"announcements/{uploaded_file.name}"
+    
 
 def _redirect_by_type(request):
     if request.session.get("user_type") == "Admin":
