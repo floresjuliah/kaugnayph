@@ -245,3 +245,54 @@ body {
 .text-secondary {
     color: #6b7280 !important;
 }
+
+/* Announcement Page */
+
+.page-card{
+    background:#fff;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.04);
+}
+
+.stats-mini-card{
+    min-width:120px;
+    background:#f8fafc;
+    border-radius:12px;
+    padding:10px 16px;
+}
+
+.stats-mini-card h6{
+    margin:0;
+    font-weight:700;
+}
+
+.stats-mini-card small{
+    color:#64748b;
+}
+
+.table thead{
+    background:#f5f7fb;
+}
+
+.table thead th{
+    border:none;
+    color:#94a3b8;
+    font-size:12px;
+    font-weight:600;
+}
+
+.table tbody td{
+    border-color:#f1f5f9;
+    padding-top:16px;
+    padding-bottom:16px;
+}
+
+.btn-primary{
+    border-radius:10px;
+}
+
+.badge{
+    font-weight:500;
+    padding:8px 12px;
+}

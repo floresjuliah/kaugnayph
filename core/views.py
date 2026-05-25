@@ -793,3 +793,16 @@ def resident_records_view(request):
             "records": records
         }
     )
+
+@admin_login_required
+@admin_required
+def announcements_view(request):
+    announcements = Announcements.objects.all().order_by("-announcement_id")
+
+    return render(
+        request,
+        "adminpanel/announcements_list.html",
+        {
+            "announcements": announcements
+        }
+    )
