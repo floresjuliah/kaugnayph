@@ -8,5 +8,6 @@ urlpatterns = [
     path('pending/',            views.pending_verification_view, name='pending_verification'),
     path('admin/login/', views.admin_login_view, name='admin_login'),
     path('admin/register/', views.admin_register, name='admin_register'),
+    path('admin/residents/', views.resident_records_view, name='resident_records'),
     
 ]

@@ -185,3 +185,63 @@ body {
 .auth-card button:hover {
     background: #0052cc;
 }
+
+/* Resident Records */
+
+.card {
+    border-radius: 16px;
+}
+
+.table thead {
+    background: #f5f7fb;
+}
+
+.table thead th {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: none;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.badge {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.bg-success-subtle {
+    background: #dcfce7;
+}
+
+.bg-warning-subtle {
+    background: #fef3c7;
+}
+
+.bg-danger-subtle {
+    background: #fee2e2;
+}
+
+.bg-secondary-subtle {
+    background: #e5e7eb;
+}
+
+.text-success {
+    color: #16a34a !important;
+}
+
+.text-warning {
+    color: #d97706 !important;
+}
+
+.text-danger {
+    color: #dc2626 !important;
+}
+
+.text-secondary {
+    color: #6b7280 !important;
+}
