@@ -1,0 +1,53 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaugnayPH Admin</title>
+
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+
+        <div class="admin-logo">
+            Kaugnay<span>PH</span>
+        </div>
+
+        <nav class="admin-menu">
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Residents</a>
+            <a href="#">Announcements</a>
+            <a href="#">Requests</a>
+            <a href="#">Cases</a>
+            <a href="#">Inquiries</a>
+            <a href="#">Audit Logs</a>
+            <a href="#">SMS Outbox</a>
+            <a href="#">Admins</a>
+        </nav>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="admin-main">
+
+        <header class="admin-topbar">
+            <h1>{% block admin_title %}{% endblock %}</h1>
+        </header>
+
+        {% block admin_content %}
+        {% endblock %}
+
+    </main>
+
+</div>
+
+</body>
+</html>
