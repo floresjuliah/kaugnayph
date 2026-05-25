@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KaugnayPH Admin</title>
-
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
 
@@ -22,16 +21,55 @@
         </div>
 
         <nav class="admin-menu">
-            <a href="#" class="active">Dashboard</a>
-            <a href="#">Residents</a>
-            <a href="#">Announcements</a>
-            <a href="#">Requests</a>
-            <a href="#">Cases</a>
-            <a href="#">Inquiries</a>
-            <a href="#">Audit Logs</a>
-            <a href="#">SMS Outbox</a>
-            <a href="#">Admins</a>
+            <a href="{% url 'admin_dashboard' %}"
+               {% if request.resolver_match.url_name == 'admin_dashboard' %}class="active"{% endif %}>
+                Dashboard
+            </a>
+
+            <a href="{% url 'resident_records' %}"
+               {% if 'resident_record' in request.resolver_match.url_name %}class="active"{% endif %}>
+                Residents
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'announcements' %}class="active"{% endif %}>
+                Announcements
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'requests' %}class="active"{% endif %}>
+                Requests
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'cases' %}class="active"{% endif %}>
+                Cases
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'inquiries' %}class="active"{% endif %}>
+                Inquiries
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'audit_logs' %}class="active"{% endif %}>
+                Audit Logs
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'sms_outbox' %}class="active"{% endif %}>
+                SMS Outbox
+            </a>
+
+            <a href="#"
+               {% if request.resolver_match.url_name == 'admin_register' %}class="active"{% endif %}>
+                Admins
+            </a>
         </nav>
+
+        <div class="admin-sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
 
     </aside>
 
@@ -39,11 +77,31 @@
     <main class="admin-main">
 
         <header class="admin-topbar">
-            <h1>{% block admin_title %}{% endblock %}</h1>
+            <div class="topbar-left">
+                <h1 class="page-title">{% block admin_title %}{% endblock %}</h1>
+            </div>
+            <div class="topbar-right">
+                <span class="topbar-user">
+                    {{ request.session.fullname }}
+                </span>
+            </div>
         </header>
 
-        {% block admin_content %}
-        {% endblock %}
+        <div class="admin-content">
+            {% if messages %}
+                {% for m in messages %}
+                    <div class="alert alert-{{ m.tags }}">
+                        {{ m }}
+                        <button class="alert-close" onclick="this.parentElement.remove()">
+                            &times;
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block admin_content %}
+            {% endblock %}
+        </div>
 
     </main>
 

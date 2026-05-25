@@ -1,34 +1,50 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-</head>
-<body>
+{% extends "admin_base.html" %}
 
-<h1>Admin Dashboard</h1>
+{% block admin_title %}Dashboard{% endblock %}
 
-<p>Welcome {{ user.firstname }} {{ user.lastname }}</p>
+{% block admin_content %}
 
-<hr>
+<div class="dashboard-welcome">
+    <h2>Welcome back, {{ user.firstname }} {{ user.lastname }}</h2>
+    <p class="text-muted">{{ user.role.rolename|default:"Administrator" }}</p>
+</div>
 
-<h3>Quick Links</h3>
+<div class="dashboard-cards">
 
-<ul>
-    <li><a href="/adminpanel/residents/">Residents</a></li>
-    <li><a href="/adminpanel/announcements/">Announcements</a></li>
-    <li><a href="/adminpanel/complaints/">Complaints</a></li>
-    <li>
-    
-        <a href="{% url 'logout' %}">
-            Logout
-        </a>
+    <a href="{% url 'resident_records' %}" class="dash-card">
+        <div class="dash-card-label">Residents</div>
+    </a>
 
-        <a href="{% url 'verification_list' %}" class="btn btn-warning">
-            Pending Verifications
-        </a>
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">Announcements</div>
+    </a>
 
-    </li>
-</ul>
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">Requests</div>
+    </a>
 
-</body>
-</html>
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">Cases</div>
+    </a>
+
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">Inquiries</div>
+    </a>
+
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">Audit Logs</div>
+    </a>
+
+    <a href="#" class="dash-card">
+        <div class="dash-card-label">SMS Outbox</div>
+    </a>
+
+    {% if user.role.rolename == "Barangay Chairman" %}
+    <a href="{% url 'admin_register' %}" class="dash-card">
+        <div class="dash-card-label">Admins</div>
+    </a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

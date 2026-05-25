@@ -2,15 +2,25 @@ from django.urls import path
 from core import views
 
 urlpatterns = [
-    path(
-        'dashboard/',
-        views.admin_dashboard_view,
-        name='admin_dashboard'
-    ),
-    
-    path('verification/', views.resident_verification_list, name='verification_list'),
-    path('verification/<int:rv_id>/', views.resident_verification_detail, name='verification_detail'),
-    path('verification/<int:rv_id>/file/<str:file_type>/',
-     views.serve_verification_file,
-     name='verification_file'),
+    path('dashboard/',
+         views.admin_dashboard_view,
+         name='admin_dashboard'),
+
+    # Resident Records 
+    path('residents/',
+         views.resident_records,
+         name='resident_records'),
+
+    path('residents/<int:user_id>/',
+         views.resident_record_view,
+         name='resident_record_view'),
+
+    path('residents/<int:user_id>/edit/',
+         views.resident_record_edit,
+         name='resident_record_edit'),
+
+    # Moved out of /residents/ to avoid URL conflict
+    path('files/<int:rv_id>/<str:file_type>/',
+         views.serve_verification_file,
+         name='verification_file'),
 ]

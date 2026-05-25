@@ -1,0 +1,101 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Resident Records{% endblock %}
+{% block admin_content %}
+<div class="container mt-4" style="max-width: 620px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold">Edit Resident</h4>
+    <a href="{% url 'resident_record_view' resident.userid %}"
+       class="btn btn-secondary btn-sm">
+      &larr; Cancel
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name</label>
+            <input type="text" name="firstname" class="form-control"
+                   value="{{ resident.firstname }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="lastname" class="form-control"
+                   value="{{ resident.lastname }}" required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Contact Number</label>
+          <input type="text" name="contact_no" class="form-control"
+                 value="{{ resident.contactno }}"
+                 maxlength="11" placeholder="09XXXXXXXXX">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Sex</label>
+          <select name="sex" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Male"
+              {% if resident.sex == "Male" %}selected{% endif %}>
+              Male
+            </option>
+            <option value="Female"
+              {% if resident.sex == "Female" %}selected{% endif %}>
+              Female
+            </option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">ID Type</label>
+          <select name="type_of_id" class="form-select">
+            <option value="">-- No change --</option>
+            {% for id_type in id_types %}
+              <option value="{{ id_type.toid }}"
+                {% if rv and rv.toid and rv.toid.toid == id_type.toid %}
+                  selected
+                {% endif %}>
+                {{ id_type.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" name="action" value="save"
+                  class="btn btn-primary">
+            Save Changes
+          </button>
+          <a href="{% url 'resident_record_view' resident.userid %}"
+             class="btn btn-outline-secondary">
+            Cancel
+          </a>
+          <button type="submit" name="action" value="delete"
+                  class="btn btn-danger ms-auto"
+                  onclick="return confirm(
+                    'Permanently delete this resident? This cannot be undone.'
+                  )">
+            Delete Resident
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

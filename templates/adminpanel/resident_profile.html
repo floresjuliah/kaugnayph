@@ -1,0 +1,134 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Resident Records{% endblock %}
+{% block admin_content %}
+
+<div class="container mt-4" style="max-width: 860px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold">Resident Profile</h4>
+    <a href="{% url 'resident_records' %}" class="btn btn-secondary btn-sm">
+      &larr; Back to Records
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Personal Information --> 
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">Personal Information</div>
+    <div class="card-body">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Full Name</p>
+          <p class="fw-semibold mb-0">
+            {{ resident.firstname }} {{ resident.lastname }}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Contact Number</p>
+          <p class="fw-semibold mb-0">{{ resident.contactno }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Sex</p>
+          <p class="fw-semibold mb-0">{{ resident.sex|default:"—" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">SMS Subscriber</p>
+          <p class="fw-semibold mb-0">
+            {% if sms_sub %}Yes{% else %}No{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">ID Type</p>
+          <p class="fw-semibold mb-0">{{ rv.toid.name|default:"—" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="mb-1 text-muted small">Verification Status</p>
+          <p class="mb-0">
+            {% if rv %}
+              {% if rv.status == "Approved" %}
+                <span class="badge bg-success">Approved</span>
+              {% elif rv.status == "Rejected" %}
+                <span class="badge bg-danger">Rejected</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-secondary">No Submission</span>
+            {% endif %}
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Provided ID Photo -->
+{% if rv and rv.id_image_path %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">Provided ID Photo</div>
+    <div class="card-body">
+        <img src="{% url 'verification_file' rv.rv_id 'id' %}"
+             class="img-fluid rounded border"
+             style="max-height: 360px;"
+             alt="ID Photo">
+    </div>
+</div>
+{% endif %}
+
+  <!-- Selfie with ID -->
+{% if rv and rv.selfie_image_path %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">Selfie with ID</div>
+    <div class="card-body">
+        <img src="{% url 'verification_file' rv.rv_id 'selfie' %}"
+             class="img-fluid rounded border"
+             style="max-height: 360px;"
+             alt="Selfie with ID">
+    </div>
+</div>
+{% endif %}
+
+  <!-- Action Buttons -->
+  <div class="d-flex gap-2 flex-wrap">
+
+    {% if rv and rv.status == "Pending" %}
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="action" value="approve"
+                class="btn btn-success">
+          ✔ Approve
+        </button>
+      </form>
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="action" value="reject"
+                class="btn btn-danger"
+                onclick="return confirm('Reject this resident?')">
+          ✖ Reject
+        </button>
+      </form>
+    {% endif %}
+
+    <a href="{% url 'resident_record_edit' resident.userid %}"
+       class="btn btn-outline-secondary">
+      ✎ Edit
+    </a>
+
+  </div>
+
+</div>
+{% endblock %}
