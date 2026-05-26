@@ -914,3 +914,21 @@ def serve_verification_file(request, rv_id, file_type):
         open(full_path, 'rb'),
         content_type=mime_type or 'image/jpeg'
     )
+
+# Admin Announcement List 
+@admin_login_required
+def admin_announcements_view(request):
+
+    announcements = Announcements.objects.all().order_by(
+        "-announcement_id"
+    )
+
+    return render(
+        request,
+        "adminpanel/announcements_list.html",
+        {
+            "announcements": announcements,
+            "user": get_current_user(request),
+        }
+    )
+

@@ -1,116 +1,107 @@
 {% extends "admin_base.html" %}
-{% block admin_title %}Announcements{% endblock %}
+{% block admin_title %}Announcement{% endblock %}
+
 {% block admin_content %}
 
-<div class="container-fluid py-4">
+<div class="ann-page">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Announcement</h2>
+    <div class="ann-header">
+        <h1>Announcement</h1>
 
-    <a href="#" class="btn btn-primary btn-sm">
-      + Create Announcement
-    </a>
-  </div>
+        <a href="#" class="create-ann-btn">
+            + Create Announcement
+        </a>
+    </div>
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
+    <div class="ann-tools-row">
 
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="ann-search-filter">
+            <div class="ann-search-box">
+                <span>⌕</span>
+                <input type="text" placeholder="Search residents">
+            </div>
 
-        <div class="d-flex gap-2 flex-wrap">
-          <input type="text"
-                 class="form-control"
-                 placeholder="Search announcement"
-                 style="width: 260px;">
-
-          <button class="btn btn-outline-primary btn-sm">
-            Filter
-          </button>
+            <button class="ann-filter-btn">
+                ⫶ Filter
+            </button>
         </div>
 
-        <div class="d-flex gap-3 flex-wrap">
+        <div class="ann-stats-card">
+            <div>
+                <p>Total Views</p>
+                <h3>28</h3>
+            </div>
 
-          <div class="bg-light rounded-3 px-3 py-2 text-center">
-            <small class="text-muted d-block">Total Posts</small>
-            <h6 class="fw-bold mb-0">{{ announcements|length }}</h6>
-          </div>
+            <div>
+                <p>Most Viewed</p>
+                <h3>Flood Warning</h3>
+            </div>
 
-          <div class="bg-light rounded-3 px-3 py-2 text-center">
-            <small class="text-muted d-block">Recent Category</small>
-            <h6 class="fw-bold mb-0">Flood Warning</h6>
-          </div>
-
+            <div>
+                <p>Avg Views per Post</p>
+                <h3>86%</h3>
+            </div>
         </div>
-
-      </div>
-
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-
-          <thead style="background:#f5f7fb;">
-            <tr class="text-muted small">
-              <th class="border-0 py-3">TITLE</th>
-              <th class="border-0 py-3">CATEGORY</th>
-              <th class="border-0 py-3">DATE POSTED</th>
-              <th class="border-0 py-3 text-end">ACTIONS</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for announcement in announcements %}
-            <tr>
-              <td class="py-3 fw-medium">
-                {{ announcement.title }}
-              </td>
-
-              <td>
-                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
-                  {{ announcement.category.name|default:"General" }}
-                </span>
-              </td>
-
-              <td>
-                {{ announcement.created_at|date:"M d, Y" }}
-              </td>
-
-              <td class="text-end">
-                <a href="#" class="btn btn-sm btn-link text-primary text-decoration-none">
-                  View
-                </a>
-                <a href="#" class="btn btn-sm btn-link text-secondary text-decoration-none">
-                  Edit
-                </a>
-                <a href="#" class="btn btn-sm btn-link text-danger text-decoration-none">
-                  Delete
-                </a>
-              </td>
-            </tr>
-
-            {% empty %}
-            <tr>
-              <td colspan="4" class="text-center text-muted py-5">
-                No announcements found.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-
-        </table>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <small class="text-muted">
-          Showing 1–{{ announcements|length }} announcements
-        </small>
-
-        <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-light">Previous</button>
-          <button class="btn btn-sm btn-primary">Next</button>
-        </div>
-      </div>
 
     </div>
-  </div>
+
+    <div class="ann-table-card">
+
+        <table class="ann-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Date Posted</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for announcement in announcements %}
+                <tr>
+                    <td>{{ announcement.title }}</td>
+
+                    <td>
+                        <span class="ann-badge general">
+                            {{ announcement.category.name|default:"General" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ announcement.created_at|date:"M d, Y" }}
+                    </td>
+
+                    <td class="text-end ann-actions">
+                        <a href="#">👁</a>
+                        <a href="#">✎</a>
+                        <a href="#">🗑</a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-row">
+                        No announcements found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="ann-table-footer">
+            <p>Showing 1–5 of {{ announcements|length }} announcements</p>
+
+            <div class="ann-pagination">
+                <button>Previous</button>
+                <span class="active-page">1</span>
+                <span>2</span>
+                <span>3</span>
+                <button class="next-btn">Next</button>
+            </div>
+        </div>
+
+    </div>
 
 </div>
 
