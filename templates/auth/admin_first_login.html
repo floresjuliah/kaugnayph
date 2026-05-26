@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5" style="max-width: 500px;">
+<div class="container mt-5" style="max-width: 520px;">
 
   <h3 class="mb-1">Complete Your Profile</h3>
   <p class="text-muted mb-4">
-    This is your first login. Please fill in your details and set a password before continuing.
+    First login detected. Please fill in your details and set a password.
   </p>
 
   {% if messages %}
@@ -40,16 +40,27 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Position in the Barangay</label>
-      <select name="position_id" class="form-select">
-        <option value="">-- Select Position (optional) --</option>
+      <label class="form-label">Email Address *</label>
+      <input type="email" name="email" class="form-control"
+             value="{{ user.email|default:'' }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Barangay Position *</label>
+      <select name="position_id" class="form-select" required>
+        <option value="">-- Select Position --</option>
         {% for pos in positions %}
           <option value="{{ pos.positionid }}"
-            {% if user.position and user.position.positionid == pos.positionid %}selected{% endif %}>
+            {% if user.position and user.position.positionid == pos.positionid %}
+              selected
+            {% endif %}>
             {{ pos.name }}
           </option>
         {% endfor %}
       </select>
+      <small class="text-muted">
+        This determines your access level in the system.
+      </small>
     </div>
 
     <div class="mb-3">
@@ -57,7 +68,6 @@
       <input type="text" name="contact_no" class="form-control"
              value="{{ user.contactno|default:'' }}"
              placeholder="09XXXXXXXXX" maxlength="11" required>
-      <small class="text-muted">OTP will be sent to this number.</small>
     </div>
 
     <hr>
@@ -66,7 +76,9 @@
       <label class="form-label">New Password *</label>
       <input type="password" name="new_password" class="form-control"
              minlength="8" required>
-      <small class="text-muted">At least 8 characters, must include a letter and a number.</small>
+      <small class="text-muted">
+        At least 8 characters, must include a letter and a number.
+      </small>
     </div>
 
     <div class="mb-3">
@@ -75,7 +87,7 @@
     </div>
 
     <button type="submit" class="btn btn-success w-100 mt-2">
-      Save & Send OTP
+      Save & Go to Login
     </button>
   </form>
 

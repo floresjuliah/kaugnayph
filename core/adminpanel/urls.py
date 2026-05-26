@@ -19,7 +19,7 @@ urlpatterns = [
           views.resident_record_edit,
           name='resident_record_edit'),
 
-    # path('files/<int:rv_id>/<str:file_type>/',
-    #      views.serve_verification_file,
-    #      name='verification_file'),
+    path('files/<int:rv_id>/<str:file_type>/',
+          views.serve_verification_file,
+          name='verification_file'),
 ]
