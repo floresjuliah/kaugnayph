@@ -1,5 +1,6 @@
 from functools import wraps
-from pyexpat.errors import messages
+#from pyexpat.errors import messages
+from django.contrib import messages
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from .auth_utils import get_current_user

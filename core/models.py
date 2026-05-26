@@ -76,6 +76,14 @@ class Users(models.Model):
         unique=True
     )
 
+    email = models.CharField(
+        db_column='Email',
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+
     user_type = models.ForeignKey(
         'UserTypes',
         db_column='user_type_id',
@@ -480,10 +488,10 @@ class AuditLogs(models.Model):
     class Meta:
         db_table = 'AuditLogs'
 
-STATUS_CHOICES = [
-    ("Pending",  "Pending"),
-    ("Approved", "Approved"),
-    ("Rejected", "Rejected"),
-]
+#STATUS_CHOICES = [
+#    ("Pending",  "Pending"),
+#    ("Approved", "Approved"),
+#    ("Rejected", "Rejected"),
+#]
 
-status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+#status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
