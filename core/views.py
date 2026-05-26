@@ -228,7 +228,7 @@ def login_view(request):
                 return redirect("admin_first_login")
 
             # NORMAL ADMIN LOGIN
-            otp = generate_otp(user, purpose="login")
+            otp, cooldown = generate_otp(user, purpose="login")
 
             send_sms(
                 user.contactno,
@@ -297,7 +297,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # ADMIN ONLY
@@ -310,7 +310,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # PASSWORD CHECK
@@ -326,7 +326,7 @@ def admin_login_view(request):
 
             return render(
                 request,
-                "auth/admin_login.html"
+                "auth/login_admin.html"
             )
 
         # TEMP SESSION
@@ -342,23 +342,15 @@ def admin_login_view(request):
             )
 
         # NORMAL LOGIN FLOW
-        otp = generate_otp(
-            user,
-            purpose="login"
-        )
-
-        send_sms(
-            user.contactno,
-            f"KaugnayPH OTP: {otp.code}"
-        )
+        set_user_session(request, user)
 
         return redirect(
-            "otp_verify"
+            "admin_dashboard"
         )
 
     return render(
         request,
-        "auth/admin_login.html"
+        "auth/login_admin.html"
     )
 
 
@@ -435,7 +427,7 @@ def admin_first_login_view(request):
         user.save()
 
         # SEND OTP AFTER PASSWORD CHANGE
-        otp = generate_otp(
+        otp, cooldown = generate_otp(
             user,
             purpose="login"
         )
@@ -547,7 +539,7 @@ def resend_otp_view(request):
     except Users.DoesNotExist:
         return redirect("login")
 
-    otp = generate_otp(
+    otp, cooldown = generate_otp(
         user,
         purpose="login"
     )
@@ -759,7 +751,7 @@ def admin_register(request):
     return render(request, 'admin_register.html')
 
 def admin_login(request):
-    return render(request, 'Login_admin.html')
+    return render(request, 'auth/login_admin.html')
 
 @admin_login_required
 @admin_required
@@ -791,6 +783,60 @@ def resident_records_view(request):
         "adminpanel/resident_records.html",
         {
             "records": records
+        }
+    )
+
+@admin_login_required
+@admin_required
+def resident_record_view(request, user_id):
+    try:
+        resident = Users.objects.get(
+            userid=user_id,
+            user_type__type_name="Resident"
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Resident not found.")
+        return redirect("resident_records")
+
+    settings = Settings.objects.filter(user=resident).first()
+
+    return render(
+        request,
+        "adminpanel/resident_profile.html",
+        {
+            "resident": resident,
+            "settings": settings,
+            "sms_sub": settings.receive_sms if settings else False,
+        }
+    )
+
+
+@admin_login_required
+@admin_required
+def resident_record_edit(request, user_id):
+    try:
+        resident = Users.objects.get(
+            userid=user_id,
+            user_type__type_name="Resident"
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Resident not found.")
+        return redirect("resident_records")
+
+    if request.method == "POST":
+        resident.firstname = request.POST.get("firstname", resident.firstname).strip()
+        resident.lastname = request.POST.get("lastname", resident.lastname).strip()
+        resident.contactno = request.POST.get("contact_no", resident.contactno).strip()
+        resident.save()
+
+        messages.success(request, "Resident updated successfully.")
+        return redirect("resident_record_view", user_id=user_id)
+
+    return render(
+        request,
+        "adminpanel/resident_record_edit.html",
+        {
+            "resident": resident,
         }
     )
 
