@@ -10,5 +10,6 @@ urlpatterns = [
     path('admin/register/', views.admin_register, name='admin_register'),
     path('admin/residents/', views.resident_records_view, name='resident_records'),
     path('admin/announcements/', views.announcements_view, name='announcements'),
+    path('admin/first-login/', views.admin_first_login_view, name='admin_first_login'),
     
 ]
