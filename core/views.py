@@ -2,12 +2,11 @@ import json
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .models import Users, Announcements, SMSOutbox
+from .models import Users, Announcements, SMSOutbox, AuditLogs
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
-from django.utils import timezone
 from .models import Users, UserTypes, Settings
 from .auth_utils import (
     hash_password, check_password, generate_otp,
@@ -64,10 +63,15 @@ def contactus(request):
 
 @csrf_exempt
 def create_announcement(request):
+
     if request.method == "POST":
+
         data = json.loads(request.body)
 
-        send_sms_value = int(data.get("send_sms", 0))
+        send_sms_value = int(
+            data.get("send_sms", 0)
+        )
+
         gateway_response = None
 
         announcement = Announcements.objects.create(
@@ -78,7 +82,19 @@ def create_announcement(request):
             posted_by_id=1
         )
 
+        # AUDIT LOG
+        AuditLogs.objects.create(
+            user_id=1,
+            action="Create Announcement",
+            module_name="Announcements",
+            table_name="Announcements",
+            record_id=announcement.announcement_id,
+            new_value=f"Announcement '{announcement.title}' created.",
+            created_at=timezone.now()
+        )
+
         if send_sms_value == 1:
+
             gateway_response = send_sms(
                 recipient_number="09175585424",
                 message=f"New announcement: {announcement.title}",
@@ -92,37 +108,112 @@ def create_announcement(request):
             "gateway_response": gateway_response
         })
 
-    return JsonResponse({"error": "POST request required"}, status=400)
+    return JsonResponse(
+        {"error": "POST request required"},
+        status=400
+    )
+
 
 @csrf_exempt
 def update_announcement(request, announcement_id):
+
     if request.method == "PUT":
+
         data = json.loads(request.body)
 
         try:
-            announcement = Announcements.objects.get(announcement_id=announcement_id)
-            announcement.title = data.get("title", announcement.title)
-            announcement.content = data.get("content", announcement.content)
-            announcement.send_sms = data.get("send_sms", announcement.send_sms)
+
+            announcement = Announcements.objects.get(
+                announcement_id=announcement_id
+            )
+
+            announcement.title = data.get(
+                "title",
+                announcement.title
+            )
+
+            announcement.content = data.get(
+                "content",
+                announcement.content
+            )
+
+            announcement.send_sms = data.get(
+                "send_sms",
+                announcement.send_sms
+            )
+
             announcement.save()
 
-            return JsonResponse({"message": "Announcement updated successfully"})
-        except Announcements.DoesNotExist:
-            return JsonResponse({"error": "Announcement not found"}, status=404)
+            # AUDIT LOG
+            AuditLogs.objects.create(
+                user_id=1,
+                action="Update Announcement",
+                module_name="Announcements",
+                table_name="Announcements",
+                record_id=announcement.announcement_id,
+                new_value=f"Announcement '{announcement.title}' updated.",
+                created_at=timezone.now()
+            )
 
-    return JsonResponse({"error": "PUT request required"}, status=400)
+            return JsonResponse({
+                "message": "Announcement updated successfully"
+            })
+
+        except Announcements.DoesNotExist:
+
+            return JsonResponse(
+                {"error": "Announcement not found"},
+                status=404
+            )
+
+    return JsonResponse(
+        {"error": "PUT request required"},
+        status=400
+    )
+
 
 @csrf_exempt
 def delete_announcement(request, announcement_id):
-    if request.method == "DELETE":
-        try:
-            announcement = Announcements.objects.get(announcement_id=announcement_id)
-            announcement.delete()
-            return JsonResponse({"message": "Announcement deleted successfully"})
-        except Announcements.DoesNotExist:
-            return JsonResponse({"error": "Announcement not found"}, status=404)
 
-    return JsonResponse({"error": "DELETE request required"}, status=400)
+    if request.method == "DELETE":
+
+        try:
+
+            announcement = Announcements.objects.get(
+                announcement_id=announcement_id
+            )
+
+            title = announcement.title
+            record_id = announcement.announcement_id
+
+            # AUDIT LOG
+            AuditLogs.objects.create(
+                user_id=1,
+                action="Delete Announcement",
+                module_name="Announcements",
+                table_name="Announcements",
+                record_id=record_id,
+                new_value=f"Announcement '{title}' deleted.",
+                created_at=timezone.now()
+            )
+
+            announcement.delete()
+
+            return JsonResponse({
+                "message": "Announcement deleted successfully"
+            })
+
+        except Announcements.DoesNotExist:
+
+            return JsonResponse(
+                {"error": "Announcement not found"},
+                status=404
+            )
+
+    return JsonResponse(
+        {"error": "DELETE request required"},
+        status=400
+    )
 
 
 ##def send_sms(recipient_number, message, sent_by):
@@ -742,10 +833,6 @@ def _redirect_by_type(request):
 
     return redirect("resident_dashboard")
  
-def _redirect_by_type(request):
-    user_type = request.session.get("user_type")
-    if user_type == "Admin": return redirect("admin_dashboard")
-    return redirect("resident_dashboard")
 
 def admin_register(request):
     return render(request, 'admin_register.html')
