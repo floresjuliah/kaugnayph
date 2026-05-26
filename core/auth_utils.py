@@ -1,4 +1,5 @@
 from django.http import HttpResponseForbidden
+from django.core.mail import send_mail
 import bcrypt, random, string, requests
 from datetime import timedelta
 from django.utils import timezone
@@ -127,6 +128,21 @@ def send_sms(contact_number, message, sent_by=None):
     )
 
     return success
+
+# EMAIL OTP
+def send_email_otp(email_address, otp_code):
+    subject = "KaugnayPH Email OTP"
+    message = f"Your KaugnayPH OTP is {otp_code}. This code is valid for 5 minutes."
+
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [email_address],
+        fail_silently=False,
+    )
+
+    return True
 
 
 # SESSION HELPERS
