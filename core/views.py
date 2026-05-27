@@ -1037,3 +1037,25 @@ def admin_announcements_view(request):
         }
     )
 
+# ADMIN ANNOUNCEMENT DETAIL
+
+@admin_login_required
+def admin_announcement_detail_view(request, announcement_id):
+
+    try:
+        announcement = Announcements.objects.get(
+            announcement_id=announcement_id
+        )
+
+    except Announcements.DoesNotExist:
+        messages.error(request, "Announcement not found.")
+        return redirect("announcements")
+
+    return render(
+        request,
+        "adminpanel/announcement_detail.html",
+        {
+            "announcement": announcement,
+            "user": get_current_user(request),
+        }
+    )

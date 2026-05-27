@@ -1,0 +1,35 @@
+{% extends "admin_base.html" %}
+
+{% block admin_title %}Announcement Detail{% endblock %}
+
+{% block admin_content %}
+
+<div class="ann-page">
+
+    <div class="ann-header">
+        <h1>{{ announcement.title }}</h1>
+    </div>
+
+    <div class="ann-table-card">
+
+        <p>
+            <strong>Category:</strong>
+            {{ announcement.category.name|default:"General" }}
+        </p>
+
+        <p>
+            <strong>Date Posted:</strong>
+            {{ announcement.created_at|date:"M d, Y h:i A" }}
+        </p>
+
+        <hr>
+
+        <p>
+            {{ announcement.content }}
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}
