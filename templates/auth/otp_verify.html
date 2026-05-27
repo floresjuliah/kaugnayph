@@ -1,8 +1,16 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-5" style="max-width:420px">
   <h3 class="mb-4">OTP Verification</h3>
-  <p>An OTP has been sent to your registered mobile number.</p>
+
+  {% if request.session.otp_method == "email" %}
+    <p>An OTP has been sent to your registered email address.</p>
+  {% elif request.session.otp_method == "sms" %}
+    <p>An OTP has been sent to your registered mobile number.</p>
+  {% else %}
+    <p>An OTP has been sent to your registered contact method.</p>
+  {% endif %}
 
   {% if messages %}
     {% for message in messages %}
@@ -12,16 +20,30 @@
 
   <form method="POST">
     {% csrf_token %}
+
     <div class="mb-3">
       <label>Enter OTP</label>
-      <input type="text" name="otp_code" class="form-control"
-             maxlength="6" inputmode="numeric" autofocus required>
+
+      <input
+        type="text"
+        name="otp_code"
+        class="form-control"
+        maxlength="6"
+        inputmode="numeric"
+        autofocus
+        required
+      >
     </div>
-    <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
+
+    <button type="submit" class="btn btn-primary w-100">
+      Verify OTP
+    </button>
   </form>
 
   <div class="mt-3 text-center">
-    <a href="{% url 'resend_otp' %}">Resend OTP</a>
+    <a href="{% url 'resend_otp' %}">
+      Resend OTP
+    </a>
   </div>
 </div>
 {% endblock %}

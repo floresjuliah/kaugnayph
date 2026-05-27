@@ -81,6 +81,7 @@ def get_announcement_detail(request, announcement_id):
     except Announcements.DoesNotExist:
         return JsonResponse({"error": "Not found"}, status=404)
 
+#CREATE ANNOUNCEMENT
 @csrf_exempt
 def create_announcement(request):
     if request.method != "POST":
@@ -112,6 +113,7 @@ def create_announcement(request):
     )
     return JsonResponse({"message": "Created", "announcement_id": announcement.announcement_id})
 
+#UPDATE ANNOUNCEMENT
 @csrf_exempt
 def update_announcement(request, announcement_id):
     if request.method != "PUT":
@@ -128,6 +130,7 @@ def update_announcement(request, announcement_id):
     a.save()
     return JsonResponse({"message": "Updated"})
 
+#DELETE ANNOUNCEMENT
 @csrf_exempt
 def delete_announcement(request, announcement_id):
     if request.method != "DELETE":
@@ -139,6 +142,7 @@ def delete_announcement(request, announcement_id):
     a.delete()
     return JsonResponse({"message": "Deleted"})
 
+#CREATE SMS LOG
 @admin_login_required
 def create_sms_log(request):
     if request.method != "POST":
@@ -147,6 +151,7 @@ def create_sms_log(request):
     send_sms(data.get("recipient_number"), data.get("message"))
     return JsonResponse({"message": "SMS logged"})
 
+#GET SMS LOG
 @admin_login_required
 def get_sms_logs(request):
     return JsonResponse(list(SMSOutbox.objects.all().values()), safe=False)
@@ -261,7 +266,6 @@ def admin_login_view(request):
     send_email_otp(user.email, otp.code)
     request.session["otp_method"] = "email"
 
-    messages.success(request, "An OTP has been sent to your email.")
     return redirect("otp_verify")
 
 
