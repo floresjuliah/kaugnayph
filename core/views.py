@@ -402,181 +402,113 @@ def otp_verify_view(request):
     pending_id = request.session.get("pending_user_id")
 
     if not pending_id:
-        messages.error(
-            request,
-            "Session expired. Please log in again."
-        )
-
+        messages.error(request, "Session expired. Please log in again.")
         return redirect("admin_login")
 
     try:
         user = Users.objects.select_related(
-            "user_type",
-            "role",
-            "position"
+            "user_type", "role", "position"
         ).get(userid=pending_id)
-
     except Users.DoesNotExist:
         return redirect("admin_login")
 
     if request.method != "POST":
-        return render(
-            request,
-            "auth/otp_verify.html"
-        )
+        return render(request, "auth/otp_verify.html")
 
-    code = request.POST.get(
-        "otp_code",
-        ""
-    ).strip()
+    code = request.POST.get("otp_code", "").strip()
 
     if not code or len(code) != 6 or not code.isdigit():
+        messages.error(request, "Please enter a valid 6-digit OTP.")
+        return render(request, "auth/otp_verify.html")
 
-        messages.error(
-            request,
-            "Please enter a valid 6-digit OTP."
-        )
+    purpose = "first_login" if request.session.get("from_first_login") else "login"
 
-        return render(
-            request,
-            "auth/otp_verify.html"
-        )
-
-    purpose = (
-        "first_login"
-        if request.session.get("from_first_login")
-        else "login"
-    )
-
-    result = verify_otp(
-        user,
-        code,
-        purpose=purpose
-    )
+    result = verify_otp(user, code, purpose=purpose)
 
     if result == 'ok':
 
         # FIRST LOGIN FLOW
         if request.session.get("from_first_login"):
-
-            data = request.session.get(
-                "pending_first_login_data"
-            )
+            data = request.session.get("pending_first_login_data")
 
             if data:
-
                 user.firstname = data['firstname']
-                user.lastname = data['lastname']
-                user.username = data['username']
-                user.email = data['email']
+                user.lastname  = data['lastname']
+                user.username  = data['username']
+                user.email     = data['email']
                 user.contactno = data['contact_no']
-                user.password = hash_password(
-                    data['new_password']
-                )
-
-                user.is_first_login = False
+                user.password  = hash_password(data['new_password'])
+                user.is_first_login      = False
                 user.is_password_changed = True
 
-                # Position → Role
                 if data['position_id']:
-
                     try:
-                        position = Positions.objects.get(
-                            positionid=data['position_id']
-                        )
-
+                        position = Positions.objects.get(positionid=data['position_id'])
+                    except Positions.DoesNotExist:
+                        print(f"[ROLE DEBUG] Position ID {data['position_id']} not found")
+                    else:
                         user.position = position
 
-                        role_map = {
-                            'Punong Barangay': 'Barangay Chairman',
-                            'Kagawad': 'Barangay Kagawad',
-                            'Barangay Secretary': 'Barangay Secretary',
-                            'Barangay Treasurer': 'Barangay Treasurer',
-                            'SK Chairman': 'SK Chairman',
-                            'Lupon Tagapamayapa': 'Lupong Tagapamayapa',
-                            'Barangay Tanod': 'Barangay Tanod',
-                        }
+                        try:
+                            role_name = position.name.strip()
 
-                        role_name = role_map.get(
-                            position.name
-                        )
+                            # Special case only for Kagawad
+                            if role_name == "Kagawad":
+                                role_name = "Barangay Kagawad"
 
-                        if role_name:
+                            role = Roles.objects.get(rolename=role_name)
+                            user.role = role
 
-                            try:
-                                user.role = Roles.objects.get(
-                                    rolename=role_name
-                                )
+                            print(f"[ROLE DEBUG] Assigned role: {role.rolename}")
 
-                            except Roles.DoesNotExist:
-                                pass
-
-                    except Positions.DoesNotExist:
-                        pass
+                        except Roles.DoesNotExist:
+                            print(f"[ROLE DEBUG] Role '{position.name}' not found")
 
                 user.save()
 
-                del request.session[
-                    "pending_first_login_data"
-                ]
+                # Confirm save
+                refreshed = Users.objects.select_related('role', 'position').get(userid=user.userid)
+                print(f"[ROLE DEBUG] After save — role='{refreshed.role}' position='{refreshed.position}'")
 
-            del request.session[
-                "pending_user_id"
-            ]
+                del request.session["pending_first_login_data"]
 
-            request.session.pop(
-                "from_first_login",
-                None
-            )
+            del request.session["pending_user_id"]
+            request.session.pop("from_first_login", None)
 
-            messages.success(
-                request,
-                "Account setup complete! Please log in with your new credentials."
-            )
-
+            messages.success(request,
+                "Account setup complete! Please log in with your new credentials.")
             return redirect("admin_login")
 
-        # NORMAL LOGIN
+        #NORMAL LOGIN
+        fresh_user = Users.objects.select_related(
+                "user_type",
+                "role",
+                "position"
+        ).get(userid=pending_id)
+
         del request.session["pending_user_id"]
 
-        set_user_session(
-            request,
-            user
-        )
+        request.session.pop("role", None)
+        request.session.pop("user_type", None)
 
-        return redirect(
-            "admin_dashboard"
-        )
+        set_user_session(request, fresh_user)
+
+        return redirect("admin_dashboard")
 
     elif result.startswith('locked:'):
-
         minutes = result.split(':')[1]
-
-        messages.error(
-            request,
-            f"Too many incorrect attempts. Please wait {minutes} minute(s)."
-        )
+        messages.error(request,
+            f"Too many incorrect attempts. Please wait {minutes} minute(s).")
 
     elif result.startswith('wrong:'):
-
         remaining = result.split(':')[1]
-
-        messages.error(
-            request,
-            f"Incorrect OTP. {remaining} attempt(s) remaining."
-        )
+        messages.error(request,
+            f"Incorrect OTP. {remaining} attempt(s) remaining.")
 
     else:
+        messages.error(request, "OTP has expired. Please request a new one.")
 
-        messages.error(
-            request,
-            "OTP has expired. Please request a new one."
-        )
-
-    return render(
-        request,
-        "auth/otp_verify.html"
-    )
+    return render(request, "auth/otp_verify.html")
 
 
 # RESEND OTP
