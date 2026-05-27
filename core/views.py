@@ -1059,3 +1059,45 @@ def admin_announcement_detail_view(request, announcement_id):
             "user": get_current_user(request),
         }
     )
+
+# ADMIN ANNOUNCEMENT EDIT
+
+@admin_login_required
+def admin_announcement_edit_view(request, announcement_id):
+
+    try:
+        announcement = Announcements.objects.get(
+            announcement_id=announcement_id
+        )
+
+    except Announcements.DoesNotExist:
+        messages.error(request, "Announcement not found.")
+        return redirect("announcements")
+
+    if request.method == "POST":
+        announcement.title = request.POST.get("title", "").strip()
+        announcement.content = request.POST.get("content", "").strip()
+
+        if not announcement.title:
+            messages.error(request, "Title is required.")
+            return render(request, "adminpanel/announcement_edit.html", {
+                "announcement": announcement,
+                "user": get_current_user(request),
+            })
+
+        if not announcement.content:
+            messages.error(request, "Content is required.")
+            return render(request, "adminpanel/announcement_edit.html", {
+                "announcement": announcement,
+                "user": get_current_user(request),
+            })
+
+        announcement.save()
+
+        messages.success(request, "Announcement updated successfully.")
+        return redirect("admin_announcement_detail", announcement_id=announcement.announcement_id)
+
+    return render(request, "adminpanel/announcement_edit.html", {
+        "announcement": announcement,
+        "user": get_current_user(request),
+    })

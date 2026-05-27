@@ -76,7 +76,9 @@
                         <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}">
                             👁
                         </a>
-                        <a href="#">✎</a>
+                        <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}">
+                            ✎
+                        </a>
                         <a href="#">🗑</a>
                     </td>
                 </tr>
