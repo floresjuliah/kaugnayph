@@ -1101,3 +1101,24 @@ def admin_announcement_edit_view(request, announcement_id):
         "announcement": announcement,
         "user": get_current_user(request),
     })
+
+# ADMIN ANNOUNCEMENT DELETE
+
+@admin_login_required
+def admin_announcement_delete_view(request, announcement_id):
+
+    try:
+        announcement = Announcements.objects.get(
+            announcement_id=announcement_id
+        )
+
+    except Announcements.DoesNotExist:
+        messages.error(request, "Announcement not found.")
+        return redirect("announcements")
+
+    if request.method == "POST":
+        announcement.delete()
+        messages.success(request, "Announcement deleted successfully.")
+        return redirect("announcements")
+
+    return redirect("admin_announcement_detail", announcement_id=announcement_id)

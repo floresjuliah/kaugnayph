@@ -19,7 +19,12 @@ urlpatterns = [
     'admin/announcements/<int:announcement_id>/edit/',
     views.admin_announcement_edit_view,
     name='admin_announcement_edit'
-    ),    
+    ),
+    path(
+    'admin/announcements/<int:announcement_id>/delete/',
+    views.admin_announcement_delete_view,
+    name='admin_announcement_delete'
+    ), 
     path('admin/first-login/', views.admin_first_login_view, name='admin_first_login'),
     
 ]
