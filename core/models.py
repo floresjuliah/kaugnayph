@@ -76,6 +76,7 @@ class Users(models.Model):
         unique=True
     )
 
+
     email = models.CharField(
         db_column='Email',
         max_length=255,

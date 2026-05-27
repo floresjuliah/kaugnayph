@@ -201,6 +201,7 @@ def login_view(request):
         messages.error(request, "Invalid credentials.")
         return render(request, "auth/login.html")
 
+
     if not user.is_verified:
         rv = ResidentVerification.objects.filter(user=user).first()
         if rv and rv.status == "Rejected":
@@ -298,9 +299,11 @@ def _validate_first_login_form(data, current_user_id):
 
     return errors
 
+# FIRST LOGIN
 
 def admin_first_login_view(request):
     pending_id = request.session.get("pending_user_id")
+
     if not pending_id:
         return redirect("admin_login")
 
@@ -308,6 +311,7 @@ def admin_first_login_view(request):
         user = Users.objects.select_related(
             "user_type", "role", "position"
         ).get(userid=pending_id)
+
     except Users.DoesNotExist:
         return redirect("admin_login")
 
@@ -315,10 +319,17 @@ def admin_first_login_view(request):
         return redirect("admin_login")
 
     positions = Positions.objects.all()
-    context   = {"positions": positions, "user": user}
+    context = {
+        "positions": positions,
+        "user": user
+    }
 
     if request.method != "POST":
-        return render(request, "auth/admin_first_login.html", context)
+        return render(
+            request,
+            "auth/admin_first_login.html",
+            context
+        )
 
     data = {
         'firstname':        request.POST.get("firstname", "").strip(),
@@ -331,102 +342,232 @@ def admin_first_login_view(request):
         'confirm_password': request.POST.get("confirm_password", "").strip(),
     }
 
-    errors = _validate_first_login_form(data, user.userid)
+    errors = _validate_first_login_form(
+        data,
+        user.userid
+    )
+
     if errors:
         for e in errors:
             messages.error(request, e)
-        return render(request, "auth/admin_first_login.html", context)
 
-    # Save profile
-    user.firstname           = data['firstname']
-    user.lastname            = data['lastname']
-    user.username            = data['username']
-    user.email               = data['email']
-    user.contactno           = data['contact_no']
-    user.password            = hash_password(data['new_password'])
-    user.is_first_login      = False
-    user.is_password_changed = True
+        return render(
+            request,
+            "auth/admin_first_login.html",
+            context
+        )
 
-    # Position drives the role for RBAC
-    if data['position_id']:
-        try:
-            position = Positions.objects.get(positionid=data['position_id'])
-            user.position = position
-            # Map position name to role
-            role_map = {
-                'Punong Barangay':      'Barangay Chairman',
-                'Kagawad':              'Barangay Kagawad',
-                'Barangay Secretary':   'Barangay Secretary',
-                'Barangay Treasurer':   'Barangay Treasurer',
-                'SK Chairman':          'SK Chairman',
-                'Lupon Tagapamayapa':   'Lupong Tagapamayapa',
-                'Barangay Tanod':       'Barangay Tanod',
-            }
-            role_name = role_map.get(position.name)
-            if role_name:
-                try:
-                    user.role = Roles.objects.get(rolename=role_name)
-                except Roles.DoesNotExist:
-                    pass
-        except Positions.DoesNotExist:
-            pass
+    # STORE TEMP DATA ONLY
+    request.session["pending_first_login_data"] = data
+    request.session["from_first_login"] = True
 
-    user.save()
+    otp, cooldown = generate_otp(
+        user,
+        purpose="first_login"
+    )
 
-    # Clear pending session, redirect to login
-    del request.session["pending_user_id"]
-    messages.success(request,
-        "Profile setup complete! Please log in with your new credentials.")
-    return redirect("admin_login")
+    if cooldown:
+        messages.error(
+            request,
+            "Please wait before requesting another OTP."
+        )
+
+        return render(
+            request,
+            "auth/admin_first_login.html",
+            context
+        )
+
+    # SEND OTP TO NEW NUMBER
+    send_sms(
+        data["contact_no"],
+        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+    )
+
+    return redirect("otp_verify")
 
 
 # OTP VERIFY
 
 def otp_verify_view(request):
     pending_id = request.session.get("pending_user_id")
+
     if not pending_id:
-        messages.error(request, "Session expired. Please log in again.")
+        messages.error(
+            request,
+            "Session expired. Please log in again."
+        )
+
         return redirect("admin_login")
 
     try:
         user = Users.objects.select_related(
-            "user_type", "role", "position"
+            "user_type",
+            "role",
+            "position"
         ).get(userid=pending_id)
+
     except Users.DoesNotExist:
         return redirect("admin_login")
 
     if request.method != "POST":
-        return render(request, "auth/otp_verify.html")
+        return render(
+            request,
+            "auth/otp_verify.html"
+        )
 
-    code = request.POST.get("otp_code", "").strip()
+    code = request.POST.get(
+        "otp_code",
+        ""
+    ).strip()
 
     if not code or len(code) != 6 or not code.isdigit():
-        messages.error(request, "Please enter a valid 6-digit OTP.")
-        return render(request, "auth/otp_verify.html")
 
-    purpose = "first_login" if request.session.get("from_first_login") else "login"
-    result  = verify_otp(user, code, purpose=purpose)
+        messages.error(
+            request,
+            "Please enter a valid 6-digit OTP."
+        )
+
+        return render(
+            request,
+            "auth/otp_verify.html"
+        )
+
+    purpose = (
+        "first_login"
+        if request.session.get("from_first_login")
+        else "login"
+    )
+
+    result = verify_otp(
+        user,
+        code,
+        purpose=purpose
+    )
 
     if result == 'ok':
-        del request.session["pending_user_id"]
-        if request.session.pop("from_first_login", False):
-            messages.success(request,
-                "Account setup complete! Please log in with your new credentials.")
+
+        # FIRST LOGIN FLOW
+        if request.session.get("from_first_login"):
+
+            data = request.session.get(
+                "pending_first_login_data"
+            )
+
+            if data:
+
+                user.firstname = data['firstname']
+                user.lastname = data['lastname']
+                user.username = data['username']
+                user.email = data['email']
+                user.contactno = data['contact_no']
+                user.password = hash_password(
+                    data['new_password']
+                )
+
+                user.is_first_login = False
+                user.is_password_changed = True
+
+                # Position → Role
+                if data['position_id']:
+
+                    try:
+                        position = Positions.objects.get(
+                            positionid=data['position_id']
+                        )
+
+                        user.position = position
+
+                        role_map = {
+                            'Punong Barangay': 'Barangay Chairman',
+                            'Kagawad': 'Barangay Kagawad',
+                            'Barangay Secretary': 'Barangay Secretary',
+                            'Barangay Treasurer': 'Barangay Treasurer',
+                            'SK Chairman': 'SK Chairman',
+                            'Lupon Tagapamayapa': 'Lupong Tagapamayapa',
+                            'Barangay Tanod': 'Barangay Tanod',
+                        }
+
+                        role_name = role_map.get(
+                            position.name
+                        )
+
+                        if role_name:
+
+                            try:
+                                user.role = Roles.objects.get(
+                                    rolename=role_name
+                                )
+
+                            except Roles.DoesNotExist:
+                                pass
+
+                    except Positions.DoesNotExist:
+                        pass
+
+                user.save()
+
+                del request.session[
+                    "pending_first_login_data"
+                ]
+
+            del request.session[
+                "pending_user_id"
+            ]
+
+            request.session.pop(
+                "from_first_login",
+                None
+            )
+
+            messages.success(
+                request,
+                "Account setup complete! Please log in with your new credentials."
+            )
+
             return redirect("admin_login")
-        set_user_session(request, user)
-        return redirect("admin_dashboard")
+
+        # NORMAL LOGIN
+        del request.session["pending_user_id"]
+
+        set_user_session(
+            request,
+            user
+        )
+
+        return redirect(
+            "admin_dashboard"
+        )
 
     elif result.startswith('locked:'):
-        minutes = result.split(':')[1]
-        messages.error(request,
-            f"Too many incorrect attempts. Please wait {minutes} minute(s).")
-    elif result.startswith('wrong:'):
-        remaining = result.split(':')[1]
-        messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")
-    else:
-        messages.error(request, "OTP has expired. Please request a new one.")
 
-    return render(request, "auth/otp_verify.html")
+        minutes = result.split(':')[1]
+
+        messages.error(
+            request,
+            f"Too many incorrect attempts. Please wait {minutes} minute(s)."
+        )
+
+    elif result.startswith('wrong:'):
+
+        remaining = result.split(':')[1]
+
+        messages.error(
+            request,
+            f"Incorrect OTP. {remaining} attempt(s) remaining."
+        )
+
+    else:
+
+        messages.error(
+            request,
+            "OTP has expired. Please request a new one."
+        )
+
+    return render(
+        request,
+        "auth/otp_verify.html"
+    )
 
 
 # RESEND OTP
