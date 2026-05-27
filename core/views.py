@@ -23,7 +23,8 @@ from .models import (
 
 from .auth_utils import (
     hash_password, check_password, generate_otp,
-    verify_otp, send_sms, set_user_session, get_current_user
+    verify_otp, send_sms, send_email_otp,
+    set_user_session, get_current_user
 )
 
 from .decorators import (
@@ -251,9 +252,17 @@ def admin_login_view(request):
     if user.is_first_login:
         return redirect("admin_first_login")
 
-    # Normal login — no OTP, straight to dashboard
-    set_user_session(request, user)
-    return redirect("admin_dashboard")
+    otp, cooldown = generate_otp(user, purpose="login")
+
+    if cooldown:
+        messages.error(request, f"Please wait {cooldown} before requesting another OTP.")
+        return render(request, "auth/login_admin.html")
+
+    send_email_otp(user.email, otp.code)
+    request.session["otp_method"] = "email"
+
+    messages.success(request, "An OTP has been sent to your email.")
+    return redirect("otp_verify")
 
 
 # FIRST LOGIN
@@ -383,7 +392,7 @@ def admin_first_login_view(request):
         data["contact_no"],
         f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
     )
-
+    request.session["otp_method"] = "sms"
     return redirect("otp_verify")
 
 
@@ -583,11 +592,30 @@ def resend_otp_view(request):
         return redirect("login")
 
     purpose = "first_login" if request.session.get("from_first_login") else "login"
-    blocked = _send_otp_or_error(request, user,
-                                  purpose=purpose,
-                                  template="auth/otp_verify.html")
-    if blocked:
-        return blocked
+    otp, cooldown = generate_otp(user, purpose=purpose)
+
+    if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
+
+        messages.error(
+            request,
+            f"Please wait {mins}m {secs}s before requesting a new OTP."
+        )
+
+        return render(request, "auth/otp_verify.html")
+
+    if purpose == "login":
+        send_email_otp(user.email, otp.code)
+        request.session["otp_method"] = "email"
+    
+    else:
+        send_sms(
+            user.contactno,
+            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+        )
+
+        request.session["otp_method"] = "sms"
 
     messages.success(request, "New OTP sent.")
     return redirect("otp_verify")
