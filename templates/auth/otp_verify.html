@@ -1,49 +1,65 @@
-{% extends "base.html" %}
+{% load static %}
 
-{% block content %}
-<div class="container mt-5" style="max-width:420px">
-  <h3 class="mb-4">OTP Verification</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP Verification</title>
 
-  {% if request.session.otp_method == "email" %}
-    <p>An OTP has been sent to your registered email address.</p>
-  {% elif request.session.otp_method == "sms" %}
-    <p>An OTP has been sent to your registered mobile number.</p>
-  {% else %}
-    <p>An OTP has been sent to your registered contact method.</p>
-  {% endif %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+<body>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
+<div class="admin-login-page">
+    <div class="admin-login-card">
 
-  <form method="POST">
-    {% csrf_token %}
+        <h1 class="login-logo">
+            Kaugnay<span>PH</span>
+        </h1>
 
-    <div class="mb-3">
-      <label>Enter OTP</label>
+        <p class="login-subtitle">OTP Verification</p>
 
-      <input
-        type="text"
-        name="otp_code"
-        class="form-control"
-        maxlength="6"
-        inputmode="numeric"
-        autofocus
-        required
-      >
+        {% if request.session.otp_method == "email" %}
+            <p class="login-note">An OTP has been sent to your registered email address.</p>
+        {% elif request.session.otp_method == "sms" %}
+            <p class="login-note">An OTP has been sent to your registered mobile number.</p>
+        {% else %}
+            <p class="login-note">An OTP has been sent to your registered contact method.</p>
+        {% endif %}
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="login-alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label for="otp_code">Enter OTP</label>
+
+            <input
+                type="text"
+                id="otp_code"
+                name="otp_code"
+                maxlength="6"
+                inputmode="numeric"
+                placeholder="Enter 6-digit OTP"
+                autofocus
+                required
+            >
+
+            <button type="submit">Verify OTP</button>
+        </form>
+
+        <div class="otp-resend">
+            <a href="{% url 'resend_otp' %}">Resend OTP</a>
+        </div>
+
     </div>
-
-    <button type="submit" class="btn btn-primary w-100">
-      Verify OTP
-    </button>
-  </form>
-
-  <div class="mt-3 text-center">
-    <a href="{% url 'resend_otp' %}">
-      Resend OTP
-    </a>
-  </div>
 </div>
-{% endblock %}
+
+</body>
+</html>

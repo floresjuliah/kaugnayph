@@ -897,3 +897,21 @@ body {
 .alert .btn-close {
     display: none !important;
 }
+
+/* OTP PAGE */
+
+.otp-resend {
+    text-align: right;
+    margin-top: 18px;
+}
+
+.otp-resend a {
+    color: #0066ff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.otp-resend a:hover {
+    text-decoration: underline;
+}

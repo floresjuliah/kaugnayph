@@ -77,4 +77,16 @@ urlpatterns = [
         name='admin_first_login'
     ),
 
+    path( 
+        'otp/verify/', 
+        views.otp_verify_view, 
+        name='otp_verify' 
+    ), 
+    
+    path( 
+        'otp/resend/', 
+        views.resend_otp_view, 
+        name='resend_otp' 
+    ),
+
 ]
