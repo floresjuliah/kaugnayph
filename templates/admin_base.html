@@ -59,36 +59,44 @@ window.addEventListener("click", function(e){
 
             <a href="{% url 'resident_records' %}"
                class="{% if 'resident_record' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="menu-icon"></span>
                 Residents
             </a>
 
             <a href="{% url 'announcements' %}"
                class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">
+                <span class="menu-icon"></span>
                 Announcements
             </a>
 
             <a href="#">
+                <span class="menu-icon"></span>
                 Requests
             </a>
 
             <a href="#">
+                <span class="menu-icon"></span>
                 Cases
             </a>
 
             <a href="#">
+                <span class="menu-icon"></span>
                 Inquiries
             </a>
 
             <a href="#">
+                <span class="menu-icon"></span>
                 Audit Logs
             </a>
 
             <a href="#">
+                <span class="menu-icon"></span>
                 SMS Outbox
             </a>
 
             <a href="{% url 'admin_register' %}"
                class="{% if request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
+                <span class="menu-icon"></span> 
                 Admins
             </a>
 
