@@ -1075,32 +1075,107 @@ def admin_announcement_edit_view(request, announcement_id):
         return redirect("announcements")
 
     if request.method == "POST":
-        announcement.title = request.POST.get("title", "").strip()
-        announcement.content = request.POST.get("content", "").strip()
+
+        announcement.title = request.POST.get(
+            "title",
+            ""
+        ).strip()
+
+        announcement.content = request.POST.get(
+            "content",
+            ""
+        ).strip()
+
+        announcement.send_sms = (
+            request.POST.get("send_sms") == "on"
+        )
 
         if not announcement.title:
-            messages.error(request, "Title is required.")
-            return render(request, "adminpanel/announcement_edit.html", {
-                "announcement": announcement,
-                "user": get_current_user(request),
-            })
+
+            messages.error(
+                request,
+                "Title is required."
+            )
+
+            return render(
+                request,
+                "adminpanel/announcement_edit.html",
+                {
+                    "announcement": announcement,
+                    "user": get_current_user(request),
+                }
+            )
 
         if not announcement.content:
-            messages.error(request, "Content is required.")
-            return render(request, "adminpanel/announcement_edit.html", {
-                "announcement": announcement,
-                "user": get_current_user(request),
-            })
+
+            messages.error(
+                request,
+                "Content is required."
+            )
+
+            return render(
+                request,
+                "adminpanel/announcement_edit.html",
+                {
+                    "announcement": announcement,
+                    "user": get_current_user(request),
+                }
+            )
+
+        # FILE UPLOAD
+        uploaded_file = request.FILES.get(
+            "attachment"
+        )
+
+        if uploaded_file:
+
+            ok, err = validate_upload(
+                uploaded_file
+            )
+
+            if not ok:
+
+                messages.error(
+                    request,
+                    err
+                )
+
+                return render(
+                    request,
+                    "adminpanel/announcement_edit.html",
+                    {
+                        "announcement": announcement,
+                        "user": get_current_user(request),
+                    }
+                )
+
+            file_path = default_storage.save(
+                "announcements/" + uploaded_file.name,
+                ContentFile(uploaded_file.read())
+            )
+
+            announcement.file_path = file_path
 
         announcement.save()
 
-        messages.success(request, "Announcement updated successfully.")
-        return redirect("admin_announcement_detail", announcement_id=announcement.announcement_id)
+        messages.success(
+            request,
+            "Announcement updated successfully."
+        )
 
-    return render(request, "adminpanel/announcement_edit.html", {
-        "announcement": announcement,
-        "user": get_current_user(request),
-    })
+        return redirect(
+            "admin_announcement_detail",
+            announcement_id=announcement.announcement_id
+        )
+
+    return render(
+        request,
+        "adminpanel/announcement_edit.html",
+        {
+            "announcement": announcement,
+            "user": get_current_user(request),
+        }
+    )
 
 # ADMIN ANNOUNCEMENT DELETE
 
@@ -1158,9 +1233,35 @@ def admin_announcement_create_view(request):
                 }
             )
 
+        # FILE UPLOAD
+        file_path = None
+        uploaded_file = request.FILES.get("attachment")
+
+        if uploaded_file:
+
+            ok, err = validate_upload(uploaded_file)
+
+            if not ok:
+
+                messages.error(request, err)
+
+                return render(
+                    request,
+                    "adminpanel/announcement_create.html",
+                    {
+                        "user": current_admin,
+                    }
+                )
+
+            file_path = default_storage.save(
+                "announcements/" + uploaded_file.name,
+                ContentFile(uploaded_file.read())
+            )
+
         announcement = Announcements.objects.create(
             title=title,
             content=content,
+            file_path=file_path,
             send_sms=1 if send_sms_flag else 0,
             category_id=1,
             posted_by=current_admin,

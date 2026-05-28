@@ -48,6 +48,7 @@
 
         <div class="ann-detail-group">
             <label>Category</label>
+
             <span class="ann-badge general">
                 {{ announcement.category.name|default:"General" }}
             </span>
@@ -55,14 +56,57 @@
 
         <div class="ann-detail-group">
             <label>Full Description</label>
+
             <div class="ann-description-box">
                 {{ announcement.content }}
             </div>
         </div>
 
         <div class="ann-detail-group">
+            <label>Attachment</label>
+
+            {% if announcement.file_path %}
+
+                {% with announcement.file_path|lower as file %}
+
+                    {% if ".jpg" in file or ".jpeg" in file or ".png" in file or ".gif" in file or ".webp" in file %}
+
+                        <div class="ann-image-preview">
+                            <img
+                                src="/media/{{ announcement.file_path }}"
+                                alt="Announcement Attachment"
+                            >
+                        </div>
+
+                    {% else %}
+
+                        <a
+                            href="/media/{{ announcement.file_path }}"
+                            target="_blank"
+                            class="ann-file-link"
+                        >
+                            View Attached File
+                        </a>
+
+                    {% endif %}
+
+                {% endwith %}
+
+            {% else %}
+
+                <p class="ann-no-file">
+                    No attachment uploaded.
+                </p>
+
+            {% endif %}
+        </div>
+
+        <div class="ann-detail-group">
             <label>Date Posted</label>
-            <p>{{ announcement.created_at|date:"F d, Y" }}</p>
+
+            <p>
+                {{ announcement.created_at|date:"F d, Y" }}
+            </p>
         </div>
 
         <hr>

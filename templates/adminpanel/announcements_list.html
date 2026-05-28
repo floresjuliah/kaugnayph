@@ -18,7 +18,7 @@
         <div class="ann-search-filter">
             <div class="ann-search-box">
                 <span>⌕</span>
-                <input type="text" placeholder="Search residents">
+                <input type="text" placeholder="Search announcements">
             </div>
 
             <button class="ann-filter-btn">
@@ -76,17 +76,23 @@
                         <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}">
                             👁
                         </a>
+
                         <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}">
                             ✎
                         </a>
+
                         <form
                             method="POST"
                             action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
                             style="display:inline;"
-                            onsubmit="return confirm('Are you sure you want to delete this announcement?');"
+                            onsubmit="return openDeleteModal(event, this);"
                         >
                             {% csrf_token %}
-                            <button type="submit" style="border:none; background:none; padding:0;">
+
+                            <button
+                                type="submit"
+                                style="border:none; background:none; padding:0;"
+                            >
                                 🗑
                             </button>
                         </form>
@@ -118,5 +124,74 @@
     </div>
 
 </div>
+
+<div id="deleteModal" class="delete-modal-overlay">
+    <div class="delete-modal">
+
+        <h3>Delete Announcement?</h3>
+
+        <p>
+            Are you sure you want to delete this announcement?
+            This action cannot be undone.
+        </p>
+
+        <div class="delete-modal-actions">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeDeleteModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-outline-danger"
+                onclick="submitDeleteForm()"
+            >
+                Delete
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let deleteForm = null;
+
+    function openDeleteModal(event, form) {
+        event.preventDefault();
+        deleteForm = form;
+        document.getElementById("deleteModal").classList.add("show");
+        return false;
+    }
+
+    function closeDeleteModal() {
+        deleteForm = null;
+        document.getElementById("deleteModal").classList.remove("show");
+    }
+
+    function submitDeleteForm() {
+        if (deleteForm) {
+            deleteForm.submit();
+        }
+    }
+</script>
+
+<script>
+    setTimeout(() => {
+        const alerts = document.querySelectorAll(".alert");
+
+        alerts.forEach(alert => {
+            alert.style.transition = "0.3s ease";
+            alert.style.opacity = "0";
+
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        });
+
+    }, 5000);
+</script>
 
 {% endblock %}

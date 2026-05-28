@@ -24,7 +24,7 @@
             {% endfor %}
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="ann-form-group">
@@ -60,9 +60,18 @@
 
             <div class="ann-form-group">
                 <label>Upload/Attach</label>
+
                 <div class="ann-upload-box">
                     <div class="ann-upload-icon">↥</div>
+
                     <p>Upload/Attach Images or Files Here</p>
+
+                    <input
+                        type="file"
+                        name="attachment"
+                        class="form-control"
+                        style="margin-top:16px;"
+                    >
                 </div>
             </div>
 
