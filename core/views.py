@@ -1122,3 +1122,86 @@ def admin_announcement_delete_view(request, announcement_id):
         return redirect("announcements")
 
     return redirect("admin_announcement_detail", announcement_id=announcement_id)
+
+# ADMIN ANNOUNCEMENT CREATE
+
+@admin_login_required
+def admin_announcement_create_view(request):
+
+    current_admin = get_current_user(request)
+
+    if request.method == "POST":
+
+        title = request.POST.get("title", "").strip()
+        content = request.POST.get("content", "").strip()
+        send_sms_flag = request.POST.get("send_sms") == "on"
+
+        if not title:
+            messages.error(request, "Title is required.")
+
+            return render(
+                request,
+                "adminpanel/announcement_create.html",
+                {
+                    "user": current_admin,
+                }
+            )
+
+        if not content:
+            messages.error(request, "Content is required.")
+
+            return render(
+                request,
+                "adminpanel/announcement_create.html",
+                {
+                    "user": current_admin,
+                }
+            )
+
+        announcement = Announcements.objects.create(
+            title=title,
+            content=content,
+            send_sms=1 if send_sms_flag else 0,
+            category_id=1,
+            posted_by=current_admin,
+            created_at=timezone.now()
+        )
+
+        # OPTIONAL SMS SEND
+        if send_sms_flag:
+
+            for sub in SMSSubscriptions.objects.select_related(
+                "user"
+            ).filter(is_active=True):
+
+                send_sms(
+                    sub.user.contactno,
+                    f"KaugnayPH: {announcement.title}",
+                    sent_by=current_admin
+                )
+
+        # AUDIT LOG
+        AuditLogs.objects.create(
+            user=current_admin,
+            action="Create Announcement",
+            module_name="Announcements",
+            table_name="Announcements",
+            record_id=announcement.announcement_id,
+            new_value=f"Announcement '{title}' created.",
+            created_at=timezone.now()
+        )
+
+        messages.success(
+            request,
+            "Announcement created successfully."
+        )
+
+        return redirect("announcements")
+
+    return render(
+        request,
+        "adminpanel/announcement_create.html",
+        {
+            "user": current_admin,
+        }
+    )

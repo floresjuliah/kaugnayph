@@ -11,17 +11,13 @@
 
   <div class="hero-content">
     <h1>Barangay 761<br>Announcements</h1>
+
     <div class="ann-hero-divider"></div>
 
     <p>
-      For updates and important information, please refer to the announcements below to 
+      For updates and important information, please refer to the announcements below to
       stay informed about barangay activities and notices.
     </p>
-
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-        <path d="M5 12h14M13 6l6 6-6 6"/>
-      </svg>
-    </a>
   </div>
 </section>
 
@@ -30,8 +26,10 @@
 
   <!-- Filter Bar -->
   <div class="ann-filter-bar">
+
     <div class="ann-search-wrap">
-      <svg class="ann-search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <svg class="ann-search-icon" width="16" height="16" fill="none"
+           stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="8"/>
         <path d="m21 21-4.35-4.35"/>
       </svg>
@@ -48,280 +46,183 @@
       <button class="ann-tab active" data-filter="all">All</button>
       <button class="ann-tab" data-filter="general">General</button>
       <button class="ann-tab" data-filter="emergency">Emergency</button>
-      <button class="ann-tab" data-filter="events">Sports</button>
-
-      <div class="ann-more-wrap">
-        <button class="ann-tab ann-more-btn">More ▾</button>
-
-        <div class="ann-more-menu">
-          <button class="ann-more-item" data-filter="health">Health</button>
-          <button class="ann-more-item" data-filter="infrastructure">Education</button>
-          <button class="ann-more-item" data-filter="livelihood">Environment</button>
-        </div>
-      </div>
+      <button class="ann-tab" data-filter="sports">Sports</button>
     </div>
+
   </div>
 
-  <!-- Posts -->
+  <!-- POSTS -->
   <div class="ann-posts" id="annPosts">
 
-    <!-- POST 1 -->
-    <article class="ann-card" data-category="general">
+    {% for announcement in announcements %}
+
+    <article
+      class="ann-card"
+      data-category="{{ announcement.category.name|default:'general'|lower }}"
+    >
 
       <div class="ann-card-top">
+
         <div class="ann-author">
 
           <div class="ann-avatar">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
               <circle cx="12" cy="8" r="4"/>
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
           </div>
 
           <div>
-            <div class="ann-author-name">Ariel Haling</div>
-            <div class="ann-author-role">Barangay Chairman</div>
-            <div class="ann-time">1 hour ago</div>
-          </div>
 
+            <div class="ann-author-name">
+              {% if announcement.posted_by %}
+                {{ announcement.posted_by.firstname }}
+                {{ announcement.posted_by.lastname }}
+              {% else %}
+                Barangay Admin
+              {% endif %}
+            </div>
+
+            <div class="ann-author-role">
+              Barangay Admin
+            </div>
+
+            <div class="ann-time">
+              {{ announcement.created_at|timesince }} ago
+            </div>
+
+          </div>
         </div>
 
         <span class="ann-badge badge-general">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+          <svg width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 8v4m0 4h.01"/>
           </svg>
 
-          General Updates
+          {{ announcement.category.name|default:"General Updates" }}
+
         </span>
+
       </div>
 
       <div class="ann-card-body">
-  <h2 class="ann-title">DPWH – Asphalt Activities</h2>
 
-  <p class="ann-excerpt"
-     data-short="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in fringilla neque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit amet accumsan euismod, enim diam malesuada elit, in sagittis risus est at diam…"
-     data-full="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in fringilla neque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit amet accumsan euismod, enim diam malesuada elit, in sagittis risus est at diam. Phasellus condimentum, nunc a tincidunt cursus, nisi nisl aliquet nulla, nec tincidunt lorem libero at arcu. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl.">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in fringilla neque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit amet accumsan euismod, enim diam malesuada elit, in sagittis risus est at diam…
-    <a href="#" class="ann-readmore" onclick="toggleReadMore(this); return false;">Read more</a>
-  </p>
-</div>
+        <h2 class="ann-title">
+          {{ announcement.title }}
+        </h2>
 
-<div class="ann-card-footer">
+        <p class="ann-excerpt">
+          {{ announcement.content|truncatewords:35 }}
+        </p>
+
+      </div>
+
+      <div class="ann-card-footer">
 
         <button class="ann-like-btn" onclick="toggleLike(this)">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+
+          <svg width="16" height="16" fill="none"
+               stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
 
-          <span class="ann-like-count">120</span>
+          <span class="ann-like-count">0</span>
+
         </button>
 
         <div class="ann-actions">
 
-          <button class="ann-action-btn" title="Feedback" onclick="openFeedback(this)">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <button class="ann-action-btn" title="Feedback">
+            <svg width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </button>
 
-          <div class="ann-dots-wrap">
-
-            <button class="ann-dots-btn" onclick="toggleDots(this)">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="5" cy="12" r="2"/>
-                <circle cx="12" cy="12" r="2"/>
-                <circle cx="19" cy="12" r="2"/>
-              </svg>
-            </button>
-
-            <div class="ann-dots-menu">
-
-              <button class="ann-dots-item">
-                Copy link
-                <small>Copy the post URL</small>
-              </button>
-
-              <button class="ann-dots-item">
-                Save as PDF file
-                <small>Save post as PDF</small>
-              </button>
-
-            </div>
-          </div>
-
         </div>
+
       </div>
+
     </article>
 
+    {% empty %}
+
+    <p>No announcements available.</p>
+
+    {% endfor %}
+
   </div>
+
 </section>
 
-<!-- FEEDBACK MODAL -->
-<div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
-  <div class="ann-modal">
-
-    <h3>How helpful is this announcement?</h3>
-
-    <p class="ann-modal-sub">
-      ( Strongly Disagree → Strongly Agree )
-    </p>
-
-    <div class="ann-emoji-row" id="emojiRow">
-      <button class="emoji-btn" onclick="selectEmoji(this, 1)" title="Strongly Disagree">
-        <img src="{% static 'images/emoji-1.png' %}" width="50" height="50" />
-      </button>
-
-      <div class="emoji-line"></div>
-
-      <button class="emoji-btn" onclick="selectEmoji(this, 2)" title="Disagree">
-        <img src="{% static 'images/emoji-2.png' %}" width="50" height="50" />
-      </button>
-
-      <div class="emoji-line"></div>
-
-      <button class="emoji-btn" onclick="selectEmoji(this, 3)" title="Neutral">
-        <img src="{% static 'images/emoji-3.png' %}" width="50" height="50" />
-      </button>
-
-      <div class="emoji-line"></div>
-
-      <button class="emoji-btn" onclick="selectEmoji(this, 4)" title="Agree">
-        <img src="{% static 'images/emoji-4.png' %}" width="50" height="50" />
-      </button>
-
-      <div class="emoji-line"></div>
-
-      <button class="emoji-btn" onclick="selectEmoji(this, 5)" title="Strongly Agree">
-        <img src="{% static 'images/emoji-5.png' %}" width="50" height="50" />
-      </button>
-    </div>
-
-    <!-- THANK YOU MESSAGE -->
-    <div id="thankYouMsg" style="display:none; text-align:center; padding: 16px 0;">
-      <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Thank you for your feedback!</p>
-      <p style="font-size: 0.85rem; color: var(--muted);">Your response has been recorded.</p>
-    </div>
-
-    <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
-
-    <button class="ann-modal-close" onclick="closeFeedback()">
-      Close
-    </button>
-
-  </div>
-</div>
-
-<!-- ── SCRIPTS ── -->
 <script>
-// ── LIKE ──
+
 function toggleLike(btn) {
   const liked = btn.classList.toggle('liked');
+
   const countEl = btn.querySelector('.ann-like-count');
+
   let count = parseInt(countEl.textContent);
+
   countEl.textContent = liked ? count + 1 : count - 1;
 }
 
-// ── FILTER ──
-document.querySelectorAll('.ann-tab:not(.ann-more-btn)').forEach(tab => {
-  tab.addEventListener('click', function () {
-    document.querySelectorAll('.ann-tab:not(.ann-more-btn)')
-      .forEach(t => t.classList.remove('active'));
-    this.classList.add('active');
-    filterPosts(this.dataset.filter || 'all');
-  });
-});
+// SEARCH
 
-document.querySelectorAll('.ann-more-item').forEach(item => {
-  item.addEventListener('click', function () {
-    document.querySelectorAll('.ann-tab:not(.ann-more-btn)')
-      .forEach(t => t.classList.remove('active'));
-    filterPosts(this.dataset.filter);
-  });
-});
-
-function filterPosts(cat) {
-  document.querySelectorAll('.ann-card').forEach(card => {
-    if (cat === 'all' || card.dataset.category === cat) {
-      card.classList.remove('hidden');
-    } else {
-      card.classList.add('hidden');
-    }
-  });
-}
-
-// ── SEARCH ──
 document.getElementById('annSearch').addEventListener('input', function () {
+
   const q = this.value.toLowerCase();
+
   document.querySelectorAll('.ann-card').forEach(card => {
+
     const text = card.innerText.toLowerCase();
-    card.classList.toggle('hidden', q.length > 0 && !text.includes(q));
+
+    card.classList.toggle(
+      'hidden',
+      q.length > 0 && !text.includes(q)
+    );
+
   });
 });
 
-// ── DOTS MENU ──
-function toggleDots(btn) {
-  const menu = btn.nextElementSibling;
-  const isOpen = menu.classList.contains('open');
-  document.querySelectorAll('.ann-dots-menu.open')
-    .forEach(m => m.classList.remove('open'));
-  if (!isOpen) {
-    menu.classList.add('open');
-  }
-}
+// FILTER
 
-document.addEventListener('click', function (e) {
-  if (!e.target.closest('.ann-dots-wrap')) {
-    document.querySelectorAll('.ann-dots-menu.open')
-      .forEach(m => m.classList.remove('open'));
-  }
+document.querySelectorAll('.ann-tab').forEach(tab => {
+
+  tab.addEventListener('click', function () {
+
+    document.querySelectorAll('.ann-tab')
+      .forEach(t => t.classList.remove('active'));
+
+    this.classList.add('active');
+
+    const filter = this.dataset.filter;
+
+    document.querySelectorAll('.ann-card').forEach(card => {
+
+      if (
+        filter === 'all' ||
+        card.dataset.category.includes(filter)
+      ) {
+        card.classList.remove('hidden');
+      }
+
+      else {
+        card.classList.add('hidden');
+      }
+
+    });
+
+  });
+
 });
-
-// ── FEEDBACK MODAL ──
-const LABELS = ['', 'Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-
-function openFeedback(btn) {
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('feedbackLabel').textContent = '\u00a0';
-  document.getElementById('emojiRow').style.display = 'flex';
-  document.getElementById('thankYouMsg').style.display = 'none';
-  document.getElementById('feedbackModal').classList.add('active');
-}
-
-function closeFeedback() {
-  document.getElementById('feedbackModal').classList.remove('active');
-}
-
-function closeFeedbackOnOverlay(e) {
-  if (e.target === document.getElementById('feedbackModal')) {
-    closeFeedback();
-  }
-}
-
-function selectEmoji(btn, rating) {
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-
-  document.getElementById('emojiRow').style.display = 'none';
-  document.getElementById('thankYouMsg').style.display = 'block';
-
-  setTimeout(() => {
-    closeFeedback();
-    document.getElementById('emojiRow').style.display = 'flex';
-    document.getElementById('thankYouMsg').style.display = 'none';
-  }, 2000);
-}
-
-function toggleReadMore(link) {
-  const p = link.parentElement;
-  const isExpanded = link.textContent === 'Read less';
-
-  if (isExpanded) {
-    p.innerHTML = p.dataset.short + ' <a class="read-more-link" href="#" onclick="toggleReadMore(this); return false;">Read more</a>';
-  } else {
-    p.innerHTML = p.dataset.full + ' <a class="read-more-link" href="#" onclick="toggleReadMore(this); return false;">Read less</a>';
-  }
-}
 
 </script>
 
