@@ -6,11 +6,15 @@
 
 <div class="ann-page">
 
-    <div class="ann-header">
-        <h1>Create Announcement</h1>
+    <div class="ann-page-top">
+        <a href="{% url 'announcements' %}" class="ann-back-link">
+            ← Back to Announcements Table
+        </a>
+
+        <h1>Create New Announcement</h1>
     </div>
 
-    <div class="ann-table-card">
+    <div class="ann-form-card">
 
         {% if messages %}
             {% for message in messages %}
@@ -21,54 +25,62 @@
         {% endif %}
 
         <form method="POST">
-
             {% csrf_token %}
 
-            <div class="mb-3">
-
-                <label>Title</label>
-
+            <div class="ann-form-group">
+                <label>Announcement Title</label>
                 <input
                     type="text"
                     name="title"
                     class="form-control"
+                    placeholder="Enter a title..."
                     required
                 >
-
             </div>
 
-            <div class="mb-3">
+            <div class="ann-form-group">
+                <label>Category</label>
+                <select name="category_id" class="form-control">
+                    <option value="1">General</option>
+                    <option value="2">Emergency</option>
+                    <option value="3">Events</option>
+                    <option value="4">Sports</option>
+                </select>
+            </div>
 
-                <label>Content</label>
-
+            <div class="ann-form-group">
+                <label>Description</label>
                 <textarea
                     name="content"
-                    class="form-control"
-                    rows="6"
+                    class="form-control ann-textarea"
+                    placeholder="Write the full description and details here..."
                     required
                 ></textarea>
-
             </div>
 
-            <div class="mb-3">
-
-                <label>
-                    <input type="checkbox" name="send_sms">
-                    Send as urgent SMS announcement
-                </label>
-
+            <div class="ann-form-group">
+                <label>Upload/Attach</label>
+                <div class="ann-upload-box">
+                    <div class="ann-upload-icon">↥</div>
+                    <p>Upload/Attach Images or Files Here</p>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">
-                Create Announcement
+                Publish
             </button>
 
-            <a href="{% url 'announcements' %}"
-               class="btn btn-secondary">
+            <hr>
 
-                Cancel
+            <div class="ann-broadcast-section">
+                <h2>Broadcast Settings</h2>
 
-            </a>
+                <label class="ann-toggle-row">
+                    <input type="checkbox" name="send_sms">
+                    <span class="ann-toggle-slider"></span>
+                    <span>Send this announcement via SMS</span>
+                </label>
+            </div>
 
         </form>
 
