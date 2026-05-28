@@ -3,210 +3,116 @@
 
 {% block admin_content %}
 
-<div class="container-fluid py-4">
+<div class="resident-page">
 
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">Resident Records</h2>
-    </div>
+    <h1>Resident Records</h1>
 
-    {% if messages %}
-        {% for m in messages %}
-            <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
-                {{ m }}
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"></button>
+    <div class="resident-top-row">
+
+        <div class="resident-controls">
+            <div class="resident-search">
+                <span>⌕</span>
+                <input type="text" placeholder="Search residents">
             </div>
-        {% endfor %}
-    {% endif %}
 
-    <!-- Main Card -->
-    <div class="card border-0 shadow-sm rounded-4">
+            <div class="resident-filter-wrap">
+                <button class="resident-filter-btn" type="button">
+                    ⫶ Filter
+                </button>
 
-        <div class="card-body p-4">
-
-            <!-- Top Controls -->
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-
-                <!-- Search + Filter -->
-                <div class="d-flex gap-2 flex-wrap">
-
-                    <input type="text"
-                           class="form-control"
-                           placeholder="Search residents"
-                           style="width: 260px;">
-
-                    <button class="btn btn-outline-primary">
-                        Filter
-                    </button>
-
+                <div class="resident-filter-dropdown">
+                    <a href="#">All <span>✓</span></a>
+                    <a href="#">Verified</a>
+                    <a href="#">Unverified</a>
                 </div>
-
-                <!-- Stats -->
-                <div class="d-flex gap-3 flex-wrap">
-
-                    <div class="bg-light rounded-3 px-3 py-2 text-center">
-                        <small class="text-muted d-block">
-                            Total Residents
-                        </small>
-                        <h6 class="fw-bold mb-0">
-                            {{ records|length }}
-                        </h6>
-                    </div>
-
-                    <div class="bg-light rounded-3 px-3 py-2 text-center">
-                        <small class="text-muted d-block">
-                            Pending
-                        </small>
-                        <h6 class="fw-bold text-warning mb-0">
-                            34
-                        </h6>
-                    </div>
-
-                    <div class="bg-light rounded-3 px-3 py-2 text-center">
-                        <small class="text-muted d-block">
-                            Verified
-                        </small>
-                        <h6 class="fw-bold text-success mb-0">
-                            980
-                        </h6>
-                    </div>
-
-                    <div class="bg-light rounded-3 px-3 py-2 text-center">
-                        <small class="text-muted d-block">
-                            SMS Subscribers
-                        </small>
-                        <h6 class="fw-bold mb-0">
-                            785
-                        </h6>
-                    </div>
-
-                </div>
-
             </div>
-
-            <!-- Table -->
-            <div class="table-responsive">
-
-                <table class="table align-middle">
-
-                    <thead style="background:#f5f7fb;">
-                        <tr class="text-muted small">
-
-                            <th class="border-0 py-3">
-                                FULL NAME
-                            </th>
-
-                            <th class="border-0 py-3">
-                                VERIFICATION STATUS
-                            </th>
-
-                            <th class="border-0 py-3">
-                                SMS SUBSCRIBER
-                            </th>
-
-                            <th class="border-0 py-3 text-end">
-                                ACTIONS
-                            </th>
-
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {% for rec in records %}
-                        <tr>
-
-                            <td class="py-3 fw-medium">
-                                {{ rec.user.firstname }} {{ rec.user.lastname }}
-                            </td>
-
-                            <td>
-
-                                {% if rec.status == "Approved" %}
-                                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
-                                        Verified
-                                    </span>
-
-                                {% elif rec.status == "Pending" %}
-                                    <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">
-                                        Pending
-                                    </span>
-
-                                {% elif rec.status == "Rejected" %}
-                                    <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
-                                        Rejected
-                                    </span>
-
-                                {% else %}
-                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary px-3 py-2">
-                                        No Submission
-                                    </span>
-                                {% endif %}
-
-                            </td>
-
-                            <td>
-
-                                {% if rec.sms_sub %}
-                                    Yes
-                                {% else %}
-                                    No
-                                {% endif %}
-
-                            </td>
-
-                            <td class="text-end">
-
-                                <a href="{% url 'resident_record_view' rec.user.userid %}"
-                                   class="btn btn-sm btn-link text-primary fw-semibold text-decoration-none">
-                                    View
-                                </a>
-
-                            </td>
-
-                        </tr>
-                        {% empty %}
-
-                        <tr>
-                            <td colspan="4"
-                                class="text-center text-muted py-5">
-                                No resident records found.
-                            </td>
-                        </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-            <!-- Footer -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-
-                <small class="text-muted">
-                    Showing 1–{{ records|length }} residents
-                </small>
-
-                <div class="d-flex gap-2">
-
-                    <button class="btn btn-sm btn-light">
-                        Previous
-                    </button>
-
-                    <button class="btn btn-sm btn-primary">
-                        Next
-                    </button>
-
-                </div>
-
-            </div>
-
         </div>
 
+        <div class="resident-stats">
+            <div>
+                <p>Total Residents</p>
+                <h3>{{ records|length }}</h3>
+            </div>
+
+            <div>
+                <p>Pending Verifications</p>
+                <h3 class="stat-warning">34</h3>
+            </div>
+
+            <div>
+                <p>Verified Accounts</p>
+                <h3 class="stat-success">980</h3>
+            </div>
+
+            <div>
+                <p>SMS Subscriber</p>
+                <h3>785</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="resident-table-card">
+        <table class="resident-table">
+            <thead>
+                <tr>
+                    <th>FULL NAME</th>
+                    <th>VERIFICATION STATUS</th>
+                    <th>SMS SUBSCRIBER</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for rec in records %}
+                <tr>
+                    <td>{{ rec.user.firstname }} {{ rec.user.lastname }}</td>
+
+                    <td>
+                        {% if rec.status == "Approved" %}
+                            <span class="resident-badge verified">Verified</span>
+                        {% elif rec.status == "Pending" %}
+                            <span class="resident-badge pending">Pending</span>
+                        {% elif rec.status == "Rejected" %}
+                            <span class="resident-badge rejected">Rejected</span>
+                        {% else %}
+                            <span class="resident-badge no-submission">No Submission</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if rec.sms_sub %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <a href="{% url 'resident_record_view' rec.user.userid %}">
+                            View
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="resident-empty">
+                        No resident records found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="resident-table-footer">
+            <p>Showing 1–{{ records|length }} residents</p>
+
+            <div>
+                <button>Previous</button>
+                <button class="active">Next</button>
+            </div>
+        </div>
     </div>
 
 </div>
