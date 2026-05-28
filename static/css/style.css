@@ -1568,25 +1568,34 @@ footer ul li a:hover {
   max-width: 28px;
 }
 
-.ann-emoji-btn {
+.emoji-btn {
   background: none;
-  border: 3px solid transparent;
+  border: none;
+  outline: none;
   border-radius: 50%;
   padding: 3px;
   cursor: pointer;
-  transition: transform 0.18s, border-color 0.18s;
+  transition: transform 0.18s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.ann-emoji-btn:hover {
+.emoji-btn:hover {
   transform: scale(1.18);
 }
 
 .ann-emoji-btn.selected {
-  border-color: var(--navy);
   transform: scale(1.2);
+}
+
+.emoji-btn img {
+  display: block;
+  border: none;
+  outline: none;
+  margin-right: 10px;
+  width:70px;
+  height: 70px;
 }
 
 .ann-feedback-label {
