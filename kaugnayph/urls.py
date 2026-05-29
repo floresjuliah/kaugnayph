@@ -40,7 +40,7 @@ urlpatterns = [
     path('sms/', get_sms_logs),
 
     # Public pages
-    path('', views.landing_page, name='landing'),
+    path('landing', views.landing_page, name='landing'),
     path('filecomplaint/', views.filecomplaint, name='filecomplaint'),
     path('aboutus/', views.aboutus, name='aboutus'),
     path('tracksub/', views.tracksub, name='tracksub'),

@@ -1377,6 +1377,7 @@ footer ul li a:hover {
   line-height: 1.7;
 }
 
+
 .ann-readmore {
   color: var(--blue);
   font-weight: 600;
@@ -1521,12 +1522,87 @@ footer ul li a:hover {
   background: #fff;
   border-radius: 20px;
   padding: 40px 36px 32px;
-  max-width: 460px;
+  max-width: 600px;
   width: 90%;
   text-align: center;
   box-shadow: 0 20px 60px rgba(27,44,107,0.22);
   animation: modalIn 0.25s ease;
 }
+
+.ann-detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(27,44,107,0.35);
+  backdrop-filter: blur(3px);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+}
+
+.ann-detail-overlay.active {
+  display: flex;
+}
+
+.ann-detail-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  max-width: 560px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(27,44,107,0.22);
+  position: relative;
+}
+
+.ann-detail-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.ann-detail-close:hover {
+  background: var(--light);
+  color: var(--navy);
+}
+
+.ann-detail-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+.ann-detail-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.ann-detail-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef2f8;
+}
+
+.ann-detail-content {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+
 
 @keyframes modalIn {
   from {

@@ -58,7 +58,13 @@
 
     <article
       class="ann-card"
+      style="cursor:pointer;"
       data-category="{{ announcement.category.name|default:'general'|lower }}"
+      data-title="{{ announcement.title|escapejs }}"
+      data-content="{{ announcement.content|escapejs }}"
+      data-catname="{{ announcement.category.name|default:'General Updates'|escapejs }}"
+      data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Admin{% endif %}"
+      data-time="{{ announcement.created_at|timesince }}"
     >
 
       <div class="ann-card-top">
@@ -124,7 +130,7 @@
 
       <div class="ann-card-footer">
 
-        <button class="ann-like-btn" onclick="toggleLike(this)">
+        <button class="ann-like-btn" onclick="event.stopPropagation(); toggleLike(this)">
 
           <svg width="16" height="16" fill="none"
                stroke="currentColor" stroke-width="2"
@@ -138,7 +144,7 @@
 
         <div class="ann-actions">
 
-          <button class="ann-action-btn" title="Feedback">
+          <button class="ann-action-btn" title="Feedback" onclick="event.stopPropagation(); openFeedback(this)">
             <svg width="16" height="16" fill="none"
                  stroke="currentColor" stroke-width="2"
                  viewBox="0 0 24 24">
@@ -162,67 +168,146 @@
 
 </section>
 
+<!-- ANNOUNCEMENT DETAIL MODAL -->
+<div class="ann-detail-overlay" id="annDetailModal">
+  <div class="ann-detail-modal">
+    <button class="ann-detail-close" onclick="closeDetail()">✕</button>
+    <div class="ann-detail-badge" id="detailBadge"></div>
+    <h2 class="ann-detail-title" id="detailTitle"></h2>
+    <div class="ann-detail-meta" id="detailMeta"></div>
+    <p class="ann-detail-content" id="detailContent"></p>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
+  <div class="ann-modal">
+
+    <h3>How helpful is this announcement?</h3>
+
+    <p class="ann-modal-sub">
+      ( Strongly Disagree → Strongly Agree )
+    </p>
+
+    <div class="ann-emoji-row" id="emojiRow">
+      <button class="emoji-btn" onclick="selectEmoji(this, 1)" title="Strongly Disagree">
+        <img src="{% static 'images/emoji-1.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 2)" title="Disagree">
+        <img src="{% static 'images/emoji-2.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 3)" title="Neutral">
+        <img src="{% static 'images/emoji-3.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 4)" title="Agree">
+        <img src="{% static 'images/emoji-4.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 5)" title="Strongly Agree">
+        <img src="{% static 'images/emoji-5.png' %}" width="50" height="50" />
+      </button>
+    </div>
+
+    <div id="thankYouMsg" style="display:none; text-align:center; padding: 16px 0;">
+      <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Thank you for your feedback!</p>
+      <p style="font-size: 0.85rem; color: var(--muted);">Your response has been recorded.</p>
+    </div>
+
+    <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
+
+    <button class="ann-modal-close" onclick="closeFeedback()">Close</button>
+
+  </div>
+</div>
+
 <script>
+
+// CARD CLICK - DETAIL MODAL
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.ann-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      document.getElementById('detailTitle').textContent = card.dataset.title;
+      document.getElementById('detailContent').textContent = card.dataset.content;
+      document.getElementById('detailMeta').innerHTML = '<strong>' + card.dataset.author + '</strong> · ' + card.dataset.time + ' ago';
+      document.getElementById('detailBadge').textContent = card.dataset.catname;
+      document.getElementById('annDetailModal').classList.add('active');
+    });
+  });
+
+  document.getElementById('annDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetail();
+  });
+});
+
+function closeDetail() {
+  document.getElementById('annDetailModal').classList.remove('active');
+}
 
 function toggleLike(btn) {
   const liked = btn.classList.toggle('liked');
-
   const countEl = btn.querySelector('.ann-like-count');
-
   let count = parseInt(countEl.textContent);
-
   countEl.textContent = liked ? count + 1 : count - 1;
 }
 
 // SEARCH
-
 document.getElementById('annSearch').addEventListener('input', function () {
-
   const q = this.value.toLowerCase();
-
   document.querySelectorAll('.ann-card').forEach(card => {
-
     const text = card.innerText.toLowerCase();
-
-    card.classList.toggle(
-      'hidden',
-      q.length > 0 && !text.includes(q)
-    );
-
+    card.classList.toggle('hidden', q.length > 0 && !text.includes(q));
   });
 });
 
 // FILTER
-
 document.querySelectorAll('.ann-tab').forEach(tab => {
-
   tab.addEventListener('click', function () {
-
-    document.querySelectorAll('.ann-tab')
-      .forEach(t => t.classList.remove('active'));
-
+    document.querySelectorAll('.ann-tab').forEach(t => t.classList.remove('active'));
     this.classList.add('active');
-
     const filter = this.dataset.filter;
-
     document.querySelectorAll('.ann-card').forEach(card => {
-
-      if (
-        filter === 'all' ||
-        card.dataset.category.includes(filter)
-      ) {
+      if (filter === 'all' || card.dataset.category.includes(filter)) {
         card.classList.remove('hidden');
-      }
-
-      else {
+      } else {
         card.classList.add('hidden');
       }
-
     });
-
   });
-
 });
+
+// FEEDBACK MODAL
+function openFeedback(btn) {
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('feedbackLabel').textContent = '\u00a0';
+  document.getElementById('emojiRow').style.display = 'flex';
+  document.getElementById('thankYouMsg').style.display = 'none';
+  document.getElementById('feedbackModal').classList.add('active');
+}
+
+function closeFeedback() {
+  document.getElementById('feedbackModal').classList.remove('active');
+}
+
+function closeFeedbackOnOverlay(e) {
+  if (e.target === document.getElementById('feedbackModal')) {
+    closeFeedback();
+  }
+}
+
+function selectEmoji(btn, rating) {
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('emojiRow').style.display = 'none';
+  document.getElementById('thankYouMsg').style.display = 'block';
+  setTimeout(() => {
+    closeFeedback();
+    document.getElementById('emojiRow').style.display = 'flex';
+    document.getElementById('thankYouMsg').style.display = 'none';
+  }, 2000);
+}
 
 </script>
 

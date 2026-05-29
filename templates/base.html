@@ -16,24 +16,24 @@
   <!-- ── NAVBAR ── -->
   <nav>
 
-    <a class="nav-brand" href="#">
+    <a class="nav-brand" href="{% url 'landing' %}">
       <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo" />
       KAUGNAYPH
     </a>
 
     <ul class="nav-links">
-      <li><a href="#" class="active">Home</a></li>
-      <li><a href="{% url 'aboutus' %}">About Us</a></li>
+      <li><a href="{% url 'landing' %}" {% if active_page == 'home' %}class="active"{% endif %}>Home</a></li>
+      <li><a href="{% url 'aboutus' %}" {% if active_page == 'aboutus' %}class="active"{% endif %}>About Us</a></li>
       <li class="nav-dropdown">
-        <a href="#">Services ▾</a>
+        <a href="#" {% if active_page == 'services' %}class="active"{% endif %}>Services ▾</a>
         <ul class="dropdown-menu">
           <li><a href="{% url 'filecomplaint' %}">File a Complaint</a></li>
           <li><a href="{% url 'tracksub' %}">Track Submissions</a></li>
           <li><a href="{% url 'documents' %}">Documents/Requirements</a></li>
         </ul>
       </li>
-      <li><a href="{% url 'faqs' %}">FAQs</a></li>
-    </ul>
+      <li><a href="{% url 'faqs' %}" {% if active_page == 'faqs' %}class="active"{% endif %}>FAQs</a></li>
+      </ul>
 
     {% if request.user.is_authenticated %}
     <div class="nav-icon" aria-label="Account">
@@ -102,6 +102,18 @@
     </div>
 
   </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('href') === path) {
+          a.classList.add('active');
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
