@@ -65,6 +65,7 @@
       data-catname="{{ announcement.category.name|default:'General Updates'|escapejs }}"
       data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Admin{% endif %}"
       data-time="{{ announcement.created_at|timesince }}"
+      data-image="{% if announcement.file_path %}/media/{{ announcement.file_path }}{% endif %}"
     >
 
       <div class="ann-card-top">
@@ -118,13 +119,23 @@
 
       <div class="ann-card-body">
 
-        <h2 class="ann-title">
-          {{ announcement.title }}
-        </h2>
+        <div class="ann-card-text">
+          <h2 class="ann-title">
+            {{ announcement.title }}
+          </h2>
 
-        <p class="ann-excerpt">
-          {{ announcement.content|truncatewords:35 }}
-        </p>
+          <p class="ann-excerpt">
+            {{ announcement.content|truncatewords:35 }}
+          </p>
+        </div>
+
+        {% if announcement.file_path %}
+          <img
+            src="/media/{{ announcement.file_path }}"
+            alt="Announcement image"
+            class="ann-card-image"
+          >
+        {% endif %}
 
       </div>
 
@@ -176,6 +187,14 @@
     <h2 class="ann-detail-title" id="detailTitle"></h2>
     <div class="ann-detail-meta" id="detailMeta"></div>
     <p class="ann-detail-content" id="detailContent"></p>
+
+    <img
+      id="detailImage"
+      class="ann-detail-image"
+      src=""
+      alt="Announcement attachment"
+      style="display:none; max-width:100%; border-radius:14px; margin-top:18px;"
+    >
   </div>
 </div>
 
@@ -233,6 +252,17 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('detailContent').textContent = card.dataset.content;
       document.getElementById('detailMeta').innerHTML = '<strong>' + card.dataset.author + '</strong> · ' + card.dataset.time + ' ago';
       document.getElementById('detailBadge').textContent = card.dataset.catname;
+
+      const detailImage = document.getElementById('detailImage');
+
+      if (card.dataset.image) {
+        detailImage.src = card.dataset.image;
+        detailImage.style.display = 'block';
+      } else {
+        detailImage.src = '';
+        detailImage.style.display = 'none';
+      }
+
       document.getElementById('annDetailModal').classList.add('active');
     });
   });

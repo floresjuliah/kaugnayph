@@ -1732,3 +1732,37 @@ footer ul li a:hover {
     grid-template-columns: 1fr;
   }
 }
+.ann-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.ann-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ann-card-image {
+  width: 240px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.ann-excerpt {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .ann-card-body {
+    flex-direction: column;
+  }
+
+  .ann-card-image {
+    width: 100%;
+    height: 220px;
+  }
+}
