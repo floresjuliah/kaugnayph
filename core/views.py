@@ -176,6 +176,17 @@ def _send_otp_or_error(request, user, purpose, template, context=None):
              f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes.")
     return None
 
+def _send_admin_login_otp(request, user, otp):
+    try:
+        send_sms(
+            user.contactno,
+            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+        )
+        request.session["otp_method"] = "sms"
+    except Exception:
+        send_email_otp(user.email, otp.code)
+        request.session["otp_method"] = "email"
+
 
 # RESIDENT LOGIN
 
@@ -260,11 +271,27 @@ def admin_login_view(request):
     otp, cooldown = generate_otp(user, purpose="login")
 
     if cooldown:
-        messages.error(request, f"Please wait {cooldown} before requesting another OTP.")
+        messages.error(
+            request,
+            f"Please wait {cooldown} before requesting another OTP."
+        )
         return render(request, "auth/login_admin.html")
 
-    send_email_otp(user.email, otp.code)
-    request.session["otp_method"] = "email"
+    sms_sent = send_sms(
+        user.contactno,
+        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+    )
+
+    if sms_sent:
+        request.session["otp_method"] = "sms"
+    else:
+        send_email_otp(user.email, otp.code)
+        request.session["otp_method"] = "email"
+
+        messages.warning(
+            request,
+            "SMS delivery failed. OTP has been sent to your registered email address instead."
+        )
 
     return redirect("otp_verify")
 
@@ -542,9 +569,22 @@ def resend_otp_view(request):
         return render(request, "auth/otp_verify.html")
 
     if purpose == "login":
-        send_email_otp(user.email, otp.code)
-        request.session["otp_method"] = "email"
-    
+        sms_sent = send_sms(
+            user.contactno,
+            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+        )
+
+        if sms_sent:
+            request.session["otp_method"] = "sms"
+        else:
+            send_email_otp(user.email, otp.code)
+            request.session["otp_method"] = "email"
+
+            messages.warning(
+                request,
+                "SMS delivery failed. OTP has been sent to your registered email address instead."
+            )
+
     else:
         send_sms(
             user.contactno,
