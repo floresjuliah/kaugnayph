@@ -1064,7 +1064,25 @@ def serve_verification_file(request, rv_id, file_type):
 @admin_login_required
 def admin_announcements_view(request):
 
-    announcements = Announcements.objects.all().order_by(
+    search = request.GET.get("search", "").strip()
+    category = request.GET.get("category", "").strip()
+
+    announcements = Announcements.objects.select_related(
+        "category",
+        "posted_by"
+    ).all()
+
+    if search:
+        announcements = announcements.filter(
+            title__icontains=search
+        )
+
+    if category and category != "all":
+        announcements = announcements.filter(
+            category__name__iexact=category
+        )
+
+    announcements = announcements.order_by(
         "-announcement_id"
     )
 
@@ -1074,6 +1092,8 @@ def admin_announcements_view(request):
         {
             "announcements": announcements,
             "user": get_current_user(request),
+            "search": search,
+            "selected_category": category,
         }
     )
 
@@ -1250,6 +1270,10 @@ def admin_announcement_create_view(request):
         title = request.POST.get("title", "").strip()
         content = request.POST.get("content", "").strip()
         send_sms_flag = request.POST.get("send_sms") == "on"
+        category_id = request.POST.get("category_id", 1)
+
+        if send_sms_flag:
+            category_id = 2
 
         if not title:
             messages.error(request, "Title is required.")
@@ -1303,10 +1327,10 @@ def admin_announcement_create_view(request):
             content=content,
             file_path=file_path,
             send_sms=1 if send_sms_flag else 0,
-            category_id=1,
+            category_id=category_id,
             posted_by=current_admin,
             created_at=timezone.now()
-        )
+)
 
         # OPTIONAL SMS SEND
         if send_sms_flag:

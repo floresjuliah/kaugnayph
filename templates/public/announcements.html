@@ -46,6 +46,7 @@
       <button class="ann-tab active" data-filter="all">All</button>
       <button class="ann-tab" data-filter="general">General</button>
       <button class="ann-tab" data-filter="emergency">Emergency</button>
+      <button class="ann-tab" data-filter="events">Events</button>
       <button class="ann-tab" data-filter="sports">Sports</button>
     </div>
 
@@ -93,7 +94,11 @@
             </div>
 
             <div class="ann-author-role">
-              Barangay Admin
+              {% if announcement.posted_by.position %}
+                {{ announcement.posted_by.position.name }}
+              {% else %}
+                Barangay Admin
+              {% endif %}
             </div>
 
             <div class="ann-time">
@@ -103,7 +108,7 @@
           </div>
         </div>
 
-        <span class="ann-badge badge-general">
+        <span class="ann-badge badge-{{ announcement.category.name|lower }}">
 
           <svg width="12" height="12" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2">

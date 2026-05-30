@@ -24,7 +24,7 @@
             {% endfor %}
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" onsubmit="return confirmSmsSend();">
             {% csrf_token %}
 
             <div class="ann-form-group">
@@ -96,5 +96,50 @@
     </div>
 
 </div>
+<div id="smsConfirmModal" class="delete-modal-overlay">
+    <div class="delete-modal">
+        <h3>Send SMS Notification</h3>
+        <p>
+            This announcement will be sent via SMS to all subscribed residents.
+            Do you want to continue?
+        </p>
 
+        <div class="delete-modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeSmsModal()">
+                Cancel
+            </button>
+
+            <button type="button" class="btn btn-primary" onclick="submitAnnouncementForm()">
+                Send SMS
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let pendingAnnouncementForm = null;
+
+function confirmSmsSend() {
+    const smsCheckbox = document.querySelector('input[name="send_sms"]');
+
+    if (smsCheckbox && smsCheckbox.checked) {
+        pendingAnnouncementForm = smsCheckbox.closest("form");
+        document.getElementById("smsConfirmModal").classList.add("show");
+        return false;
+    }
+
+    return true;
+}
+
+function closeSmsModal() {
+    pendingAnnouncementForm = null;
+    document.getElementById("smsConfirmModal").classList.remove("show");
+}
+
+function submitAnnouncementForm() {
+    if (pendingAnnouncementForm) {
+        pendingAnnouncementForm.submit();
+    }
+}
+</script>
 {% endblock %}

@@ -1317,12 +1317,25 @@ footer ul li a:hover {
   flex-shrink: 0;
 }
 
-.badge-general  { background: #e8f5e9; color: #2e7d32; }
-.badge-emergency { background: #fdeaea; color: var(--red); }
-.badge-events   { background: #fff8e1; color: #b8860b; }
-.badge-health   { background: #e3f2fd; color: #1565c0; }
-.badge-infrastructure { background: #ede7f6; color: #6a1b9a; }
-.badge-livelihood { background: #e8f5e9; color: #1b5e20; }
+.badge-general {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.badge-emergency {
+    background: #FDEAEA;
+    color: #D32F2F;
+}
+
+.badge-events {
+    background: #FFF4E5;
+    color: #E67E22;
+}
+
+.badge-sports {
+    background: #E8F0FE;
+    color: #1565C0;
+}
 
 .ann-card-body {
   margin-bottom: 16px;
