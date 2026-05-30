@@ -286,16 +286,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 24px;
     margin-bottom: 34px;
 }
 
 .ann-search-filter {
     display: flex;
-    gap: 14px;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .ann-search-box {
-    width: 330px;
+    width: 300px;
     height: 46px;
     background: white;
     border: 1px solid #dbe3ef;
@@ -315,12 +318,13 @@ body {
 
 .ann-filter-btn {
     height: 46px;
-    padding: 0 24px;
+    padding: 0 20px;
     border: 2px solid #0066ff;
     background: white;
     color: #0066ff;
     border-radius: 8px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .ann-stats-card {
@@ -329,10 +333,11 @@ body {
     border-radius: 16px;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .ann-stats-card div {
-    padding: 16px 28px;
+    padding: 16px 24px;
     border-right: 1px solid #e2e8f0;
 }
 
@@ -343,13 +348,13 @@ body {
 .ann-stats-card p {
     margin: 0 0 8px;
     color: #64748b;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .ann-stats-card h3 {
     margin: 0;
     color: #1e293b;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
 }
 
@@ -1179,4 +1184,63 @@ body {
 .resident-table-footer button.active {
     background: #0066ff;
     color: white;
+}
+
+/* =========================
+   ADMIN TOAST MESSAGES
+========================= */
+
+.admin-toast-container {
+    position: fixed;
+    top: 90px;
+    right: 32px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-toast {
+    min-width: 300px;
+    max-width: 380px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.admin-toast-error {
+    border-left: 5px solid #ef4444;
+}
+
+.admin-toast-success {
+    border-left: 5px solid #22c55e;
+}
+
+.admin-toast-warning {
+    border-left: 5px solid #f59e0b;
+}
+
+.admin-toast-info {
+    border-left: 5px solid #0066ff;
+}
+
+.admin-toast-close {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.admin-toast-close:hover {
+    color: #1e293b;
 }

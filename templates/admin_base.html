@@ -154,15 +154,21 @@ window.addEventListener("click", function(e){
         <div class="admin-content">
 
             {% if messages %}
-                {% for m in messages %}
-                    <div class="alert alert-{{ m.tags }}">
-                        {{ m }}
-                        <button class="alert-close"
-                                onclick="this.parentElement.remove()">
-                            &times;
-                        </button>
-                    </div>
-                {% endfor %}
+                <div class="admin-toast-container">
+                    {% for m in messages %}
+                        <div class="admin-toast admin-toast-{{ m.tags }}">
+                            <span>{{ m }}</span>
+
+                            <button
+                                type="button"
+                                class="admin-toast-close"
+                                onclick="this.parentElement.remove()"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
 
             {% block admin_content %}

@@ -16,14 +16,6 @@
 
     <div class="ann-form-card">
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <form method="POST" enctype="multipart/form-data" onsubmit="return confirmSmsSend();">
             {% csrf_token %}
 
