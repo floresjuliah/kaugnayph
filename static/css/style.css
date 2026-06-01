@@ -550,8 +550,8 @@ body.landing-page .nav-links .active {
 
 .nav-dropdown {
   position: relative;
-  display: flex;        /* ← change from inline-block to flex */
-  align-items: center;  /* ← add this back */
+  display: flex;        
+  align-items: center;
 }
 
 .nav-dropdown > a {
@@ -560,9 +560,70 @@ body.landing-page .nav-links .active {
   height: 70px;
 }
 
+.nav-user-trigger {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* MANAGE SMS TOGGLE */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #ccc;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--blue);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+
+/* SMS Subscription row */
+.nav-dropdown .dropdown-menu li:has(.toggle-switch) {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  gap: 12px;
+}
+
 /* DROPDOWN MENU */
 .nav-dropdown .dropdown-menu {
-  /* replace display:none with this */
   visibility: hidden;
   opacity: 0;
   transform: translateX(-50%) translateY(-8px);
@@ -575,7 +636,7 @@ body.landing-page .nav-links .active {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(27,44,107,0.14);
   padding: 8px 0;
-  min-width: 220px;
+  min-width: 300px;
   z-index: 2000;
   list-style: none;
   margin: 0;
@@ -635,6 +696,7 @@ body.landing-page .nav-links .active {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
 
 /* ── HERO ── */
 
@@ -834,6 +896,8 @@ section {
   align-items: center;
   background: var(--light);
   padding: 16px 22px;
+  margin: -18px -18px 18px -18px; 
+  border-radius: 14px 14px 0 0;  
 }
 
 .notice-title {

@@ -232,7 +232,7 @@ def login_view(request):
         return render(request, "auth/login.html")
 
     set_user_session(request, user)
-    return redirect("resident_dashboard")
+    return redirect("landing")
 
 
 # ADMIN LOGIN
