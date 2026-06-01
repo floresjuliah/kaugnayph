@@ -1244,3 +1244,358 @@ body {
 .admin-toast-close:hover {
     color: #1e293b;
 }
+
+/* =========================
+RESIDENT PROFILE PAGE
+========================= */
+
+.resident-profile-page {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.resident-profile-back {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.resident-profile-back:hover {
+    color: #0066ff;
+}
+
+.resident-profile-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.15;
+    margin-bottom: 50px;
+}
+
+.resident-profile-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 30px;
+    align-items: stretch;
+}
+
+.resident-profile-card {
+    background: white;
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.resident-profile-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 24px;
+}
+
+.resident-profile-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.profile-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.profile-label {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-value {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.profile-badge.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.profile-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.profile-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.profile-badge.gray {
+    background: #e5e7eb;
+    color: #64748b;
+}
+
+.resident-id-photo,
+.resident-selfie-photo {
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 12px;
+    display: block;
+}
+
+
+.no-id-text {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.btn-approve {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-reject {
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-edit {
+    background: white;
+    color: #0066ff;
+    border: 1px solid #0066ff;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-approve:hover {
+    opacity: 0.9;
+}
+
+.btn-reject:hover {
+    background: #fff5f5;
+}
+
+.btn-edit:hover {
+    background: #f8fbff;
+}
+
+@media (max-width: 992px) {
+    .resident-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+/* Right column photos */
+.resident-photo-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100%;
+}
+
+.resident-photo-column .resident-profile-card {
+    padding: 28px 32px;
+}
+
+/* Keep sidebar fixed, only main page scrolls */
+.admin-layout {
+    display: flex;
+    height: 100vh;
+    background: #eef4f8;
+    overflow: hidden;
+}
+
+.admin-sidebar {
+    width: 260px;
+    height: 100vh;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+}
+
+.admin-main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* =========================
+EDIT RESIDENT PROFILE PAGE
+========================= */
+
+.resident-edit-page {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.resident-edit-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.15;
+    margin-bottom: 50px;
+}
+
+.resident-edit-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.resident-edit-card {
+    background: white;
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.resident-edit-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 24px;
+}
+
+.resident-edit-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.edit-form-group {
+    margin-bottom: 18px;
+}
+
+.edit-form-group label {
+    display: block;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.edit-form-group input,
+.edit-form-group select {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #d9e4ef;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    color: #0f172a;
+    outline: none;
+    background: white;
+}
+
+.short-field {
+    max-width: 270px;
+}
+
+.resident-edit-photo-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.edit-id-photo {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 12px;
+    display: block;
+}
+
+.resident-edit-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 14px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #dbe3ef;
+}
+
+.edit-cancel-btn,
+.edit-save-btn,
+.edit-delete-btn {
+    height: 42px;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-cancel-btn {
+    background: white;
+    border: 1px solid #d9e4ef;
+    color: #52698a;
+}
+
+.edit-save-btn {
+    background: #3b82f6;
+    border: 1px solid #3b82f6;
+    color: white;
+}
+
+.edit-delete-btn {
+    background: white;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+@media (max-width: 992px) {
+    .resident-edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resident-edit-actions {
+        flex-wrap: wrap;
+    }
+}

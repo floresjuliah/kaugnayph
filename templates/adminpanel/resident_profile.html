@@ -1,137 +1,163 @@
 {% extends "admin_base.html" %}
-{% block admin_title %}Resident Records{% endblock %}
+{% block admin_title %}Resident Profile{% endblock %}
 {% block admin_content %}
 
-<div class="container mt-4" style="max-width: 860px;">
+<div class="resident-profile-page">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold">Resident Profile</h4>
-    <a href="{% url 'resident_records' %}" class="btn btn-secondary btn-sm">
-      &larr; Back to Records
+    <a href="{% url 'resident_records' %}" class="resident-profile-back">
+        ← Back to Residents
     </a>
-  </div>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
-        {{ m }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
+    <h1 class="resident-profile-title">
+        Resident Profile:<br>
+        {{ resident.firstname }} {{ resident.lastname }}
+    </h1>
 
-  <!-- Personal Information --> 
-  <div class="card shadow-sm mb-4">
-    <div class="card-header fw-semibold">Personal Information</div>
-    <div class="card-body">
-      <div class="row g-3">
+    <div class="resident-profile-grid">
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">Full Name</p>
-          <p class="fw-semibold mb-0">
-            {{ resident.firstname }} {{ resident.lastname }}
-          </p>
+        <div class="resident-profile-card">
+
+            <h2>Personal Information</h2>
+            <div class="resident-profile-divider"></div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">Full Name</span>
+                <span class="profile-value">
+                    {{ resident.firstname }} {{ resident.lastname }}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">Address</span>
+                <span class="profile-value">
+                    {{ resident.address|default:"Barangay 761" }}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">Contact Number</span>
+                <span class="profile-value">
+                    {{ resident.contactno }}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">Sex</span>
+                <span class="profile-value">
+                    {{ resident.sex|default:"—" }}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">ID Type</span>
+                <span class="profile-value">
+                    {{ rv.toid.name|default:"—" }}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">Verification Status</span>
+
+                <span>
+                    {% if rv %}
+                        {% if rv.status == "Approved" %}
+                            <span class="profile-badge success">Verified</span>
+                        {% elif rv.status == "Rejected" %}
+                            <span class="profile-badge rejected">Rejected</span>
+                        {% else %}
+                            <span class="profile-badge pending">Pending</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="profile-badge gray">No Submission</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="profile-info-row">
+                <span class="profile-label">SMS Subscriber</span>
+
+                {% if sms_sub %}
+                    <span class="profile-badge success">Yes</span>
+                {% else %}
+                    <span class="profile-badge gray">No</span>
+                {% endif %}
+            </div>
+
         </div>
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">Contact Number</p>
-          <p class="fw-semibold mb-0">{{ resident.contactno }}</p>
-        </div>
+<div class="resident-photo-column">
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">Sex</p>
-          <p class="fw-semibold mb-0">{{ resident.sex|default:"—" }}</p>
-        </div>
+    <div class="resident-profile-card">
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">SMS Subscriber</p>
-          <p class="fw-semibold mb-0">
-            {% if sms_sub %}Yes{% else %}No{% endif %}
-          </p>
-        </div>
+        <h2>Provided ID Photo</h2>
+        <div class="resident-profile-divider"></div>
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">ID Type</p>
-          <p class="fw-semibold mb-0">{{ rv.toid.name|default:"—" }}</p>
-        </div>
+        {% if rv and rv.id_image_path %}
+            <img
+                src="{% url 'verification_file' rv.rv_id 'id' %}"
+                alt="ID Photo"
+                class="resident-id-photo"
+            >
+        {% else %}
+            <p class="no-id-text">No ID submitted.</p>
+        {% endif %}
 
-        <div class="col-md-6">
-          <p class="mb-1 text-muted small">Verification Status</p>
-          <p class="mb-0">
-            {% if rv %}
-              {% if rv.status == "Approved" %}
-                <span class="badge bg-success">Approved</span>
-              {% elif rv.status == "Rejected" %}
-                <span class="badge bg-danger">Rejected</span>
-              {% else %}
-                <span class="badge bg-warning text-dark">Pending</span>
-              {% endif %}
-            {% else %}
-              <span class="badge bg-secondary">No Submission</span>
-            {% endif %}
-          </p>
-        </div>
-
-      </div>
     </div>
-  </div>
 
-  <!-- Provided ID Photo -->
-{% if rv and rv.id_image_path %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-header fw-semibold">Provided ID Photo</div>
-    <div class="card-body">
-        <img src="{% url 'verification_file' rv.rv_id 'id' %}"
-             class="img-fluid rounded border"
-             style="max-height: 360px;"
-             alt="ID Photo">
+    <div class="resident-profile-card">
+
+        <h2>Selfie with ID</h2>
+        <div class="resident-profile-divider"></div>
+
+        {% if rv and rv.selfie_image_path %}
+            <img
+                src="{% url 'verification_file' rv.rv_id 'selfie' %}"
+                alt="Selfie with ID"
+                class="resident-id-photo"
+            >
+        {% else %}
+            <p class="no-id-text">No selfie with ID submitted.</p>
+        {% endif %}
+
     </div>
+
 </div>
-{% endif %}
 
-  <!-- Selfie with ID -->
-{% if rv and rv.selfie_image_path %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-header fw-semibold">Selfie with ID</div>
-    <div class="card-body">
-        <img src="{% url 'verification_file' rv.rv_id 'selfie' %}"
-             class="img-fluid rounded border"
-             style="max-height: 360px;"
-             alt="Selfie with ID">
-    </div>
 </div>
-{% endif %}
 
-  <!-- Action Buttons -->
-  <div class="d-flex gap-2 flex-wrap">
+    <div class="profile-actions">
 
-    {% if rv and rv.status == "Pending" %}
-      <form method="POST">
-        {% csrf_token %}
-        <button type="submit" name="action" value="approve"
-                class="btn btn-success">
-          ✔ Approve
-        </button>
-      </form>
-      <form method="POST">
-        {% csrf_token %}
-        <div class="mb-2">
-          <textarea name="remarks" class="form-control form-control-sm"
-                    placeholder="Rejection reason (optional)" rows="2"></textarea>
-        </div>
-        <button type="submit" name="action" value="reject" class="btn btn-danger"
+        <form method="POST">
+            {% csrf_token %}
+            <button
+                type="submit"
+                name="action"
+                value="approve"
+                class="btn-approve">
+                Approve
+            </button>
+        </form>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button
+                type="submit"
+                name="action"
+                value="reject"
+                class="btn-reject"
                 onclick="return confirm('Reject this resident?')">
-          ✖ Reject
-        </button>
-      </form>
-    {% endif %}
+                Reject
+            </button>
+        </form>
 
-    <a href="{% url 'resident_record_edit' resident.userid %}"
-       class="btn btn-outline-secondary">
-      ✎ Edit
-    </a>
+        <a
+            href="{% url 'resident_record_edit' resident.userid %}"
+            class="btn-edit">
+            Edit
+        </a>
 
-  </div>
+    </div>
 
 </div>
+
 {% endblock %}
