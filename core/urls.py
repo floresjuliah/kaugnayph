@@ -89,4 +89,12 @@ urlpatterns = [
         name='resend_otp' 
     ),
 
+    path('login/', views.login_view, name='login'),
+    path('register/', views.resident_register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+
+    path('admin/residents/<int:user_id>/', views.resident_record_view, name='resident_record_view'),
+    path('admin/residents/<int:user_id>/edit/', views.resident_record_edit, name='resident_record_edit'),
+    path('admin/verification/<int:rv_id>/<str:file_type>/', views.serve_verification_file, name='verification_file')
+
 ]

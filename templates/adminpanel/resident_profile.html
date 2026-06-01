@@ -115,8 +115,11 @@
       </form>
       <form method="POST">
         {% csrf_token %}
-        <button type="submit" name="action" value="reject"
-                class="btn btn-danger"
+        <div class="mb-2">
+          <textarea name="remarks" class="form-control form-control-sm"
+                    placeholder="Rejection reason (optional)" rows="2"></textarea>
+        </div>
+        <button type="submit" name="action" value="reject" class="btn btn-danger"
                 onclick="return confirm('Reject this resident?')">
           ✖ Reject
         </button>
