@@ -944,9 +944,9 @@ def resident_record_view(request, user_id):
                 f"{resident.firstname} {resident.lastname} approved.")
 
         elif action == "reject" and rv:
-            remarks = request.POST.get("remarks", "").strip()  # ← ADD
+            remarks = request.POST.get("remarks", "").strip() 
             rv.status = "Rejected"
-            rv.remarks = remarks                                # ← ADD
+            rv.remarks = remarks                                
             rv.reviewed_by = admin
             rv.reviewed_at = timezone.now()
             rv.save()
