@@ -1,17 +1,18 @@
 from datetime import datetime
- 
+
 def generate_case_id(complaints_id):
     """Generates: CMP-2026-0001"""
     year = datetime.now().year
     return f'CMP-{year}-{str(complaints_id).zfill(4)}'
- 
+
 def generate_document_id(document_request_id):
     """Generates: DOC-2026-0001"""
     year = datetime.now().year
     return f'DOC-{year}-{str(document_request_id).zfill(4)}'
 
-ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/jpg'}
-MAX_UPLOAD_BYTES   = 5 * 1024 * 1024  # 5 MB
+ALLOWED_MIME_TYPES      = {'image/jpeg', 'image/png', 'image/jpg'}
+ALLOWED_EXTENSIONS      = {'jpg', 'jpeg', 'png'}   
+MAX_UPLOAD_BYTES        = 5 * 1024 * 1024  # 5 MB
 
 def validate_upload(file):
     """
@@ -20,6 +21,11 @@ def validate_upload(file):
     """
     if file is None:
         return False, "No file was uploaded."
+
+    # Extension check                                 
+    ext = file.name.rsplit('.', 1)[-1].lower()        
+    if ext not in ALLOWED_EXTENSIONS:                 
+        return False, "Only JPG and PNG files are allowed."  
 
     if file.content_type not in ALLOWED_MIME_TYPES:
         return False, f"Invalid file type '{file.content_type}'. Only JPG and PNG are allowed."

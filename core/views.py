@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.db.models import Q
 
 from core.utils import validate_upload
 
@@ -24,7 +25,8 @@ from .models import (
 from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, send_email_otp,
-    set_user_session, get_current_user
+    set_user_session, get_current_user,
+    has_permission,
 )
 
 from .decorators import (
@@ -607,6 +609,8 @@ def _validate_register_form(data, files):
         errors.append("Enter a valid 11-digit PH mobile number.")
     elif Users.objects.filter(contactno=data['contact_no']).exists():
         errors.append("Mobile number is already registered.")
+    elif Users.objects.filter(username=data['contact_no']).exists():  # ← ADD THIS
+        errors.append("An account with this mobile number already exists.")
     if len(data['password']) < 8:
         errors.append("Password must be at least 8 characters.")
     if not data['toid']:
@@ -639,6 +643,7 @@ def resident_register_view(request):
         'password':    request.POST.get("password", "").strip(),
         'toid':        request.POST.get("type_of_id", "").strip(),
         'receive_sms': request.POST.get("receive_sms") == "on",
+        'email': request.POST.get("email", "").strip(),
     }
     files = {
         'id_image': request.FILES.get("id_image"),
@@ -663,6 +668,7 @@ def resident_register_view(request):
 
     new_user = Users.objects.create(
         username=data['contact_no'],
+        email=data['email'],
         password=hash_password(data['password']),
         firstname=data['firstname'],
         lastname=data['lastname'],
@@ -849,24 +855,48 @@ def admin_register(request):
 @admin_login_required
 @permission_required('view_residents')
 def resident_records_view(request):
+    status_filter = request.GET.get("status", "").strip()   # ← ADD
+    search_query  = request.GET.get("search", "").strip()   # ← ADD
+
     residents = Users.objects.filter(
         user_type__type_name="Resident"
     ).order_by("lastname", "firstname")
 
+    #search filtering
+    if search_query:
+        from django.db.models import Q
+        residents = residents.filter(
+            Q(firstname__icontains=search_query) |
+            Q(lastname__icontains=search_query)  |
+            Q(contactno__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+
     records = []
     for u in residents:
-        rv  = ResidentVerification.objects.filter(user=u).first()
-        s   = Settings.objects.filter(user=u).first()
+        rv     = ResidentVerification.objects.filter(user=u).first()
+        s      = Settings.objects.filter(user=u).first()
+        status = rv.status if rv else "No Submission"
+
+        #status filtering
+        if status_filter and status != status_filter:
+            continue
+
         records.append({
             "user":    u,
             "rv":      rv,
-            "status":  rv.status if rv else "No Submission",
+            "status":  status,
             "sms_sub": s.receive_sms if s else False,
         })
 
     return render(request, "adminpanel/resident_records.html", {
-        "records": records,
-        "user":    get_current_user(request),
+        "records":        records,
+        "user":           get_current_user(request),
+        "status_filter":  status_filter,
+        "search_query":   search_query,
+        "pending_count":  ResidentVerification.objects.filter(status="Pending").count(),
+        "verified_count": ResidentVerification.objects.filter(status="Approved").count(),
+        "sms_count":      Settings.objects.filter(receive_sms=True).count(),
     })
 
 
@@ -888,7 +918,11 @@ def resident_record_view(request, user_id):
 
     if request.method == "POST":
         action = request.POST.get("action")
-
+        
+        if action in ("approve", "reject"):
+            if not has_permission(admin, 'verify_residents'):
+                messages.error(request, "You do not have permission to verify residents.")
+                return redirect("resident_record_view", user_id=user_id)
         if action == "approve" and rv:
             rv.status = "Approved"
             rv.reviewed_by = admin
@@ -910,7 +944,9 @@ def resident_record_view(request, user_id):
                 f"{resident.firstname} {resident.lastname} approved.")
 
         elif action == "reject" and rv:
+            remarks = request.POST.get("remarks", "").strip()  # ← ADD
             rv.status = "Rejected"
+            rv.remarks = remarks                                # ← ADD
             rv.reviewed_by = admin
             rv.reviewed_at = timezone.now()
             rv.save()
@@ -924,7 +960,7 @@ def resident_record_view(request, user_id):
                 user=admin, action="Reject Resident",
                 module_name="Verification", table_name="ResidentVerification",
                 record_id=rv.rv_id,
-                new_value=f"Resident {resident.username} rejected.",
+                new_value=f"Resident {resident.username} rejected. Remarks: {remarks or 'None'}",  # ← UPDATED
                 created_at=timezone.now()
             )
             messages.warning(request,

@@ -182,6 +182,7 @@ class ResidentVerification(models.Model):
         blank=True,
         null=True
     )
+    remarks = models.TextField(null=True, blank=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=20, blank=True, null=True)
 

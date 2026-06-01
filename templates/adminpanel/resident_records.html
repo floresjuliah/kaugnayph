@@ -10,22 +10,44 @@
     <div class="resident-top-row">
 
         <div class="resident-controls">
-            <div class="resident-search">
+            <!-- Search now submits to the same URL with GET params -->
+            <form method="GET" action="" class="resident-search">
                 <span>⌕</span>
-                <input type="text" placeholder="Search residents">
-            </div>
+                <input type="text" name="search" placeholder="Search residents"
+                       value="{{ search_query }}">             {# ← keeps search term on reload #}
+                {% if status_filter %}
+                    <input type="hidden" name="status" value="{{ status_filter }}">
+                {% endif %}
+            </form>
 
-            <div class="resident-filter-wrap">
-                <button class="resident-filter-btn" type="button">
-                    ⫶ Filter
-                </button>
-
-                <div class="resident-filter-dropdown">
-                    <a href="#">All <span>✓</span></a>
-                    <a href="#">Verified</a>
-                    <a href="#">Unverified</a>
-                </div>
-            </div>
+            <!-- Filter tabs replace the old dropdown -->
+            <ul class="nav nav-tabs mb-0">             {# ← ADD filter tabs #}
+                <li class="nav-item">
+                    <a class="nav-link {% if not status_filter %}active{% endif %}"
+                       href="?{% if search_query %}search={{ search_query }}{% endif %}">All</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'Pending' %}active{% endif %}"
+                       href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}">
+                        Pending
+                        {% if pending_count %}
+                            <span class="badge bg-warning text-dark">{{ pending_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'Approved' %}active{% endif %}"
+                       href="?status=Approved{% if search_query %}&search={{ search_query }}{% endif %}">
+                        Approved
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'Rejected' %}active{% endif %}"
+                       href="?status=Rejected{% if search_query %}&search={{ search_query }}{% endif %}">
+                        Rejected
+                    </a>
+                </li>
+            </ul>             {# ← END filter tabs #}
         </div>
 
         <div class="resident-stats">
@@ -36,17 +58,17 @@
 
             <div>
                 <p>Pending Verifications</p>
-                <h3 class="stat-warning">34</h3>
+                <h3 class="stat-warning">{{ pending_count }}</h3>   {# ← was hardcoded 34 #}
             </div>
 
             <div>
                 <p>Verified Accounts</p>
-                <h3 class="stat-success">980</h3>
+                <h3 class="stat-success">{{ verified_count }}</h3>  {# ← was hardcoded 980 #}
             </div>
 
             <div>
                 <p>SMS Subscriber</p>
-                <h3>785</h3>
+                <h3>{{ sms_count }}</h3>                             {# ← was hardcoded 785 #}
             </div>
         </div>
 
@@ -80,26 +102,15 @@
                         {% endif %}
                     </td>
 
-                    <td>
-                        {% if rec.sms_sub %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </td>
+                    <td>{% if rec.sms_sub %}Yes{% else %}No{% endif %}</td>
 
                     <td>
-                        <a href="{% url 'resident_record_view' rec.user.userid %}">
-                            View
-                        </a>
+                        <a href="{% url 'resident_record_view' rec.user.userid %}">View</a>
                     </td>
                 </tr>
-
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="resident-empty">
-                        No resident records found.
-                    </td>
+                    <td colspan="4" class="resident-empty">No resident records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -107,7 +118,6 @@
 
         <div class="resident-table-footer">
             <p>Showing 1–{{ records|length }} residents</p>
-
             <div>
                 <button>Previous</button>
                 <button class="active">Next</button>
