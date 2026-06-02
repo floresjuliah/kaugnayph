@@ -11,7 +11,7 @@
         {{ resident.firstname }} {{ resident.lastname }}
     </h1>
 
-    <form method="POST">
+    <form method="POST" id="editResidentForm">
         {% csrf_token %}
 
         <div class="resident-edit-grid">
@@ -39,15 +39,6 @@
                 <div class="edit-form-group short-field">
                     <label>Contact Number</label>
                     <input type="text" name="contact_no" value="{{ resident.contactno }}" maxlength="11">
-                </div>
-
-                <div class="edit-form-group short-field">
-                    <label>Sex</label>
-                    <select name="sex">
-                        <option value="">-- Select --</option>
-                        <option value="Male" {% if resident.sex == "Male" %}selected{% endif %}>Male</option>
-                        <option value="Female" {% if resident.sex == "Female" %}selected{% endif %}>Female</option>
-                    </select>
                 </div>
 
                 <div class="edit-form-group short-field">
@@ -114,18 +105,59 @@
             </button>
 
             <button
-                type="submit"
-                name="action"
-                value="delete"
+                type="button"
                 class="edit-delete-btn"
-                onclick="return confirm('Permanently delete this resident? This cannot be undone.')">
+                onclick="openDeleteResidentModal()">
                 🗑 Delete Resident
             </button>
 
         </div>
 
+        <input type="hidden" name="action" id="residentEditAction" value="save">
+
     </form>
 
 </div>
+
+<div id="deleteResidentModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3>Delete Resident Record</h3>
+
+        <p>
+            This resident record will be permanently deleted and cannot be recovered.
+        </p>
+
+        <div class="modal-actions">
+            <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeDeleteResidentModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="edit-delete-btn"
+                onclick="submitDeleteResidentForm()">
+                Delete Record
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteResidentModal() {
+    document.getElementById("deleteResidentModal").style.display = "flex";
+}
+
+function closeDeleteResidentModal() {
+    document.getElementById("deleteResidentModal").style.display = "none";
+}
+
+function submitDeleteResidentForm() {
+    document.getElementById("residentEditAction").value = "delete";
+    document.getElementById("editResidentForm").submit();
+}
+</script>
 
 {% endblock %}

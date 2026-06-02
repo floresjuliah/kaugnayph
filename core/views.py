@@ -20,6 +20,7 @@ from .models import (
     Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
+    OTP,
 )
 
 from .auth_utils import (
@@ -598,6 +599,64 @@ def resend_otp_view(request):
     messages.success(request, "New OTP sent.")
     return redirect("otp_verify")
 
+# IF EMAIL OTP
+def send_email_otp_view(request):
+    pending_id = request.session.get("pending_user_id")
+
+    if not pending_id:
+        return redirect("admin_login")
+
+    try:
+        user = Users.objects.get(userid=pending_id)
+    except Users.DoesNotExist:
+        return redirect("admin_login")
+
+    if not user.email:
+        messages.error(
+            request,
+            "No email address is registered for this account."
+        )
+        return redirect("otp_verify")
+
+    purpose = "first_login" if request.session.get("from_first_login") else "login"
+
+    otp = OTP.objects.filter(
+        user=user,
+        purpose=purpose,
+        is_used=False,
+        expires_at__gt=timezone.now()
+    ).order_by("-created_at").first()
+
+    if not otp:
+        otp, cooldown = generate_otp(
+            user,
+            purpose=purpose
+        )
+
+        if cooldown:
+            mins = cooldown // 60
+            secs = cooldown % 60
+
+            messages.error(
+                request,
+                f"Please wait {mins}m {secs}s before requesting another OTP."
+            )
+            return redirect("otp_verify")
+
+    send_email_otp(
+        user.email,
+        otp.code
+    )
+
+    request.session["otp_method"] = "email"
+
+    messages.success(
+        request,
+        "OTP has been sent to your registered email address."
+    )
+
+    return redirect("otp_verify")
+
 
 # RESIDENT REGISTER
 
@@ -953,6 +1012,13 @@ def resident_record_view(request, user_id):
             rv.save()
             resident.is_verified = True
             resident.save()
+            s = Settings.objects.filter(user=resident).first()
+
+            if s and s.receive_sms:
+                SMSSubscriptions.objects.update_or_create(
+                    user=resident,
+                    defaults={"is_active": True}
+                )
             send_sms(resident.contactno,
                 "KaugnayPH: Your account has been verified! You can now log in.",
                 sent_by=admin)
@@ -975,6 +1041,7 @@ def resident_record_view(request, user_id):
             rv.save()
             resident.is_verified = False
             resident.save()
+            SMSSubscriptions.objects.filter(user=resident).update(is_active=False)
             send_sms(resident.contactno,
                 "KaugnayPH: Your registration was not approved. "
                 "Please visit the barangay office.",
@@ -1046,12 +1113,10 @@ def resident_record_edit(request, user_id):
             "firstname": resident.firstname,
             "lastname":  resident.lastname,
             "contactno": resident.contactno,
-            "sex":       resident.sex,
         }
 
         resident.firstname = request.POST.get("firstname", resident.firstname).strip()
         resident.lastname  = request.POST.get("lastname",  resident.lastname).strip()
-        resident.sex       = request.POST.get("sex",       resident.sex or "").strip()
 
         new_contact = request.POST.get("contact_no", resident.contactno).strip()
         if new_contact != resident.contactno:

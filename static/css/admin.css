@@ -1667,3 +1667,83 @@ EDIT RESIDENT PROFILE PAGE
         flex-wrap: wrap;
     }
 }
+/* =========================
+   REJECT RESIDENT MODAL
+========================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-box {
+    width: 420px;
+    max-width: 90%;
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.modal-box h3 {
+    color: #1e293b;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.modal-box p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-cancel {
+    border: 1px solid #d9e4ef;
+    background: white;
+    color: #52698a;
+    border-radius: 8px;
+    padding: 10px 22px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+}
+
+.otp-email-option {
+    text-align: center;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.otp-email-option p {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.otp-email-option a {
+    color: #0066ff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.otp-email-option a:hover {
+    text-decoration: underline;
+}
