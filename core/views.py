@@ -1044,12 +1044,10 @@ def resident_record_edit(request, user_id):
             "firstname": resident.firstname,
             "lastname":  resident.lastname,
             "contactno": resident.contactno,
-            "sex":       resident.sex,
         }
 
         resident.firstname = request.POST.get("firstname", resident.firstname).strip()
         resident.lastname  = request.POST.get("lastname",  resident.lastname).strip()
-        resident.sex       = request.POST.get("sex",       resident.sex or "").strip()
 
         new_contact = request.POST.get("contact_no", resident.contactno).strip()
         if new_contact != resident.contactno:
