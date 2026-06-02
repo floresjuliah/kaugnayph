@@ -1,8 +1,8 @@
 {% extends "admin_base.html" %}
+
 {% block admin_title %}Resident Records{% endblock %}
 
 {% block admin_content %}
-
 <div class="resident-page">
 
     <h1>Resident Records</h1>
@@ -10,65 +10,62 @@
     <div class="resident-top-row">
 
         <div class="resident-controls">
-            <!-- Search now submits to the same URL with GET params -->
             <form method="GET" action="" class="resident-search">
                 <span>⌕</span>
-                <input type="text" name="search" placeholder="Search residents"
-                       value="{{ search_query }}">             {# ← keeps search term on reload #}
-                {% if status_filter %}
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search residents"
+                    value="{{ search_query }}"
+                >
+
+                {% if status_filter and status_filter != "All" %}
                     <input type="hidden" name="status" value="{{ status_filter }}">
                 {% endif %}
             </form>
 
-            <!-- Filter tabs replace the old dropdown -->
-            <ul class="nav nav-tabs mb-0">             {# ← ADD filter tabs #}
-                <li class="nav-item">
-                    <a class="nav-link {% if not status_filter %}active{% endif %}"
-                       href="?{% if search_query %}search={{ search_query }}{% endif %}">All</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'Pending' %}active{% endif %}"
-                       href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}">
+            <div class="resident-filter-wrap">
+                <button type="button" class="resident-filter-btn" onclick="event.stopPropagation(); this.parentElement.classList.toggle('open')">    
+                    Filter
+                </button>
+
+                <div class="resident-filter-dropdown">
+                    <a href="?{% if search_query %}search={{ search_query }}{% endif %}">All</a>
+
+                    <a href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}">
                         Pending
-                        {% if pending_count %}
-                            <span class="badge bg-warning text-dark">{{ pending_count }}</span>
-                        {% endif %}
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'Approved' %}active{% endif %}"
-                       href="?status=Approved{% if search_query %}&search={{ search_query }}{% endif %}">
+
+                    <a href="?status=Approved{% if search_query %}&search={{ search_query }}{% endif %}">
                         Approved
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'Rejected' %}active{% endif %}"
-                       href="?status=Rejected{% if search_query %}&search={{ search_query }}{% endif %}">
+
+                    <a href="?status=Rejected{% if search_query %}&search={{ search_query }}{% endif %}">
                         Rejected
                     </a>
-                </li>
-            </ul>             {# ← END filter tabs #}
+                </div>
+            </div>
         </div>
 
         <div class="resident-stats">
-            <div>
+            <div class="resident-stat-item">
                 <p>Total Residents</p>
-                <h3>{{ records|length }}</h3>
+                <h3>{{ total_residents }}</h3>
             </div>
 
-            <div>
+            <div class="resident-stat-item">
                 <p>Pending Verifications</p>
-                <h3 class="stat-warning">{{ pending_count }}</h3>   {# ← was hardcoded 34 #}
+                <h3 class="stat-warning">{{ pending_count }}</h3>
             </div>
 
-            <div>
+            <div class="resident-stat-item">
                 <p>Verified Accounts</p>
-                <h3 class="stat-success">{{ verified_count }}</h3>  {# ← was hardcoded 980 #}
+                <h3 class="stat-success">{{ verified_count }}</h3>
             </div>
 
-            <div>
+            <div class="resident-stat-item">
                 <p>SMS Subscriber</p>
-                <h3>{{ sms_count }}</h3>                             {# ← was hardcoded 785 #}
+                <h3>{{ sms_count }}</h3>
             </div>
         </div>
 
@@ -78,10 +75,10 @@
         <table class="resident-table">
             <thead>
                 <tr>
-                    <th>FULL NAME</th>
-                    <th>VERIFICATION STATUS</th>
-                    <th>SMS SUBSCRIBER</th>
-                    <th>ACTIONS</th>
+                    <th>Full Name</th>
+                    <th>Verification Status</th>
+                    <th>SMS Subscriber</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
 
@@ -117,14 +114,51 @@
         </table>
 
         <div class="resident-table-footer">
-            <p>Showing 1–{{ records|length }} residents</p>
-            <div>
-                <button>Previous</button>
-                <button class="active">Next</button>
+            <p>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                of {{ page_obj.paginator.count }} residents
+            </p>
+
+            <div class="resident-pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
+                        Previous
+                    </a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="current">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="next" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
+                        Next
+                    </a>
+                {% else %}
+                    <span class="disabled next">Next</span>
+                {% endif %}
             </div>
         </div>
     </div>
 
 </div>
+
+<script>
+document.addEventListener('click', function(e) {
+    const filter = document.querySelector('.resident-filter-wrap');
+
+    if (filter && !filter.contains(e.target)) {
+        filter.classList.remove('open');
+    }
+});
+</script>
 
 {% endblock %}

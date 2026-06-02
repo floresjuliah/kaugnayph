@@ -937,38 +937,40 @@ body {
 }
 
 /* =========================
- RESIDENT RECORDS PAGE
+RESIDENT RECORDS PAGE
 ========================= */
 
 .resident-page {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
 }
 
 .resident-page h1 {
-    font-size: 34px;
-    font-weight: 800;
+    font-size: 32px;
+    font-weight: 650;
     color: #1e293b;
     margin-bottom: 28px;
+    letter-spacing: -0.5px;
 }
 
 .resident-top-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     gap: 28px;
-    margin-bottom: 34px;
+    margin-bottom: 28px;
 }
 
 .resident-controls {
     display: flex;
     align-items: center;
     gap: 14px;
+    flex-shrink: 0;
 }
 
 .resident-search {
-    width: 360px;
-    height: 48px;
+    width: 350px;
+    height: 46px;
     background: white;
     border: 1px solid #d9e4ef;
     border-radius: 8px;
@@ -980,15 +982,16 @@ body {
 
 .resident-search span {
     color: #8aa0bd;
-    font-size: 22px;
+    font-size: 21px;
 }
 
 .resident-search input {
     border: none;
     outline: none;
     width: 100%;
-    font-size: 15px;
+    font-size: 14px;
     color: #334155;
+    font-weight: 400;
 }
 
 .resident-search input::placeholder {
@@ -1000,76 +1003,92 @@ body {
 }
 
 .resident-filter-btn {
-    height: 48px;
-    padding: 0 22px;
+    height: 46px;
+    min-width: 120px;
+    padding: 0 20px;
     border: 2px solid #0066ff;
     background: white;
     color: #0066ff;
     border-radius: 8px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    transition: 0.2s;
+}
+
+.resident-filter-btn:hover {
+    background: #f8fbff;
 }
 
 .resident-filter-dropdown {
     display: none;
     position: absolute;
-    top: 58px;
+    top: 54px;
     left: 0;
-    width: 210px;
+    width: 170px;
     background: white;
-    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-    z-index: 50;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+    z-index: 999;
 }
 
-.resident-filter-wrap:hover .resident-filter-dropdown {
+.resident-filter-wrap.open .resident-filter-dropdown {
     display: block;
 }
 
 .resident-filter-dropdown a {
-    display: flex;
-    justify-content: space-between;
-    padding: 18px 24px;
-    color: #1e293b;
+    display: block;
+    padding: 14px 18px;
+    color: #52698a;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.resident-filter-dropdown a:first-child {
+.resident-filter-dropdown a:hover {
+    background: #f1f7ff;
     color: #0066ff;
-    background: #f8fbff;
 }
 
 .resident-stats {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     background: white;
     border-radius: 16px;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
     overflow: hidden;
+    min-width: 700px;
+    height: 80px;
 }
 
-.resident-stats div {
-    min-width: 145px;
-    padding: 16px 20px;
+.resident-stat-item {
+    padding: 18px 24px;
     border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.resident-stats div:last-child {
+.resident-stat-item:last-child {
     border-right: none;
 }
 
-.resident-stats p {
+.resident-stat-item p {
     margin: 0 0 8px;
-    color: #52698a;
-    font-size: 14px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
 }
 
-.resident-stats h3 {
+.resident-stat-item h3 {
     margin: 0;
     color: #1e293b;
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .stat-warning {
@@ -1096,18 +1115,20 @@ body {
 }
 
 .resident-table th {
-    padding: 17px;
+    padding: 15px 17px;
     color: #53677f;
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 700;
     text-align: left;
+    text-transform: uppercase;
 }
 
 .resident-table td {
-    padding: 16px 17px;
+    padding: 13px 17px;
     border-bottom: 1px solid #e2e8f0;
     color: #1e293b;
     font-size: 14px;
+    font-weight: 400;
 }
 
 .resident-table td:last-child,
@@ -1117,7 +1138,7 @@ body {
 
 .resident-table a {
     color: #0066ff;
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -1125,7 +1146,7 @@ body {
     display: inline-block;
     padding: 7px 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -1159,31 +1180,64 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px;
+    padding: 16px 18px;
 }
 
 .resident-table-footer p {
     margin: 0;
     color: #52698a;
+    font-size: 14px;
 }
 
-.resident-table-footer div {
+.resident-pagination {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
 }
 
-.resident-table-footer button {
-    border: none;
-    background: #f8fafc;
-    padding: 10px 18px;
+.resident-pagination a,
+.resident-pagination span {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
     border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.resident-table-footer button.active {
+.resident-pagination a {
+    color: #0066ff;
+    background: white;
+}
+
+.resident-pagination .current {
+    background: #dbeafe;
+    color: #0066ff;
+}
+
+.resident-pagination .next {
     background: #0066ff;
     color: white;
+}
+
+.resident-pagination .disabled {
+    color: #94a3b8;
+    background: #f8fafc;
+}
+
+@media (max-width: 1180px) {
+    .resident-top-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .resident-stats {
+        min-width: 100%;
+    }
 }
 
 /* =========================
@@ -1457,7 +1511,19 @@ RESIDENT PROFILE PAGE
 .admin-main {
     flex: 1;
     height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-topbar {
+    flex-shrink: 0;
+}
+
+.admin-content {
+    flex: 1;
     overflow-y: auto;
+    padding: 40px;
 }
 
 /* =========================
@@ -1481,7 +1547,7 @@ EDIT RESIDENT PROFILE PAGE
     display: grid;
     grid-template-columns: 1.6fr 1fr;
     gap: 30px;
-    align-items: start;
+    align-items: stretch;
 }
 
 .resident-edit-card {
@@ -1489,6 +1555,8 @@ EDIT RESIDENT PROFILE PAGE
     border-radius: 14px;
     padding: 32px;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    height: 100%;
+
 }
 
 .resident-edit-card h2 {
@@ -1505,7 +1573,7 @@ EDIT RESIDENT PROFILE PAGE
 }
 
 .edit-form-group {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .edit-form-group label {
@@ -1519,7 +1587,7 @@ EDIT RESIDENT PROFILE PAGE
 .edit-form-group input,
 .edit-form-group select {
     width: 100%;
-    height: 42px;
+    height: 44px;
     border: 1px solid #d9e4ef;
     border-radius: 8px;
     padding: 0 14px;
@@ -1550,7 +1618,7 @@ EDIT RESIDENT PROFILE PAGE
 
 .resident-edit-actions {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 14px;
     margin-top: 32px;
     padding-top: 24px;

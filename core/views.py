@@ -868,48 +868,58 @@ def admin_register(request):
 @admin_login_required
 @permission_required('view_residents')
 def resident_records_view(request):
-    status_filter = request.GET.get("status", "").strip()   # ← ADD
-    search_query  = request.GET.get("search", "").strip()   # ← ADD
+    from django.core.paginator import Paginator
+
+    status_filter = request.GET.get("status", "All").strip()
+    search_query = request.GET.get("search", "").strip()
 
     residents = Users.objects.filter(
         user_type__type_name="Resident"
     ).order_by("lastname", "firstname")
 
-    #search filtering
     if search_query:
-        from django.db.models import Q
         residents = residents.filter(
             Q(firstname__icontains=search_query) |
-            Q(lastname__icontains=search_query)  |
+            Q(lastname__icontains=search_query) |
             Q(contactno__icontains=search_query) |
             Q(username__icontains=search_query)
         )
 
     records = []
+
     for u in residents:
-        rv     = ResidentVerification.objects.filter(user=u).first()
-        s      = Settings.objects.filter(user=u).first()
+        rv = ResidentVerification.objects.filter(user=u).first()
+        s = Settings.objects.filter(user=u).first()
         status = rv.status if rv else "No Submission"
 
-        #status filtering
-        if status_filter and status != status_filter:
+        if status_filter != "All" and status != status_filter:
             continue
 
         records.append({
-            "user":    u,
-            "rv":      rv,
-            "status":  status,
+            "user": u,
+            "rv": rv,
+            "status": status,
             "sms_sub": s.receive_sms if s else False,
         })
 
+    paginator = Paginator(records, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    total_residents = Users.objects.filter(
+        user_type__type_name="Resident"
+    ).count()
+
     return render(request, "adminpanel/resident_records.html", {
-        "records":        records,
-        "user":           get_current_user(request),
-        "status_filter":  status_filter,
-        "search_query":   search_query,
-        "pending_count":  ResidentVerification.objects.filter(status="Pending").count(),
+        "records": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+        "status_filter": status_filter,
+        "search_query": search_query,
+        "total_residents": total_residents,
+        "pending_count": ResidentVerification.objects.filter(status="Pending").count(),
         "verified_count": ResidentVerification.objects.filter(status="Approved").count(),
-        "sms_count":      Settings.objects.filter(receive_sms=True).count(),
+        "sms_count": Settings.objects.filter(receive_sms=True).count(),
     })
 
 
