@@ -603,30 +603,43 @@ def resend_otp_view(request):
 
 def _validate_register_form(data, files):
     errors = []
+
     if not data['firstname'] or not data['lastname']:
         errors.append("First name and last name are required.")
+
+    if not data['email']:
+        errors.append("Email address is required.")
+    elif Users.objects.filter(email=data['email']).exists():
+        errors.append("Email address is already registered.")
+
     if not data['contact_no'].startswith("09") or len(data['contact_no']) != 11:
         errors.append("Enter a valid 11-digit PH mobile number.")
     elif Users.objects.filter(contactno=data['contact_no']).exists():
         errors.append("Mobile number is already registered.")
-    elif Users.objects.filter(username=data['contact_no']).exists():  # ← ADD THIS
+    elif Users.objects.filter(username=data['contact_no']).exists():
         errors.append("An account with this mobile number already exists.")
+
     if len(data['password']) < 8:
         errors.append("Password must be at least 8 characters.")
+
     if not data['toid']:
         errors.append("Please select a type of ID.")
+
     allowed_types = {'image/jpeg', 'image/png', 'image/jpg'}
+
     for label, f in [("ID Photo", files['id_image']), ("Selfie", files['selfie'])]:
         if not f:
             errors.append(f"Please upload a {label}.")
         else:
             ok, err = validate_upload(f)
+
             if not ok:
                 errors.append(f"{label}: {err}")
             elif f.content_type not in allowed_types:
                 errors.append(f"{label} must be JPG or PNG.")
             elif f.size > 5 * 1024 * 1024:
                 errors.append(f"{label} must be less than 5MB.")
+
     return errors
 
 
@@ -643,7 +656,7 @@ def resident_register_view(request):
         'password':    request.POST.get("password", "").strip(),
         'toid':        request.POST.get("type_of_id", "").strip(),
         'receive_sms': request.POST.get("receive_sms") == "on",
-        'email': request.POST.get("email", "").strip(),
+        'email': request.POST.get("email_address", "").strip(),
     }
     files = {
         'id_image': request.FILES.get("id_image"),
