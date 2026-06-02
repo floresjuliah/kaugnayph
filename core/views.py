@@ -943,6 +943,13 @@ def resident_record_view(request, user_id):
             rv.save()
             resident.is_verified = True
             resident.save()
+            s = Settings.objects.filter(user=resident).first()
+
+            if s and s.receive_sms:
+                SMSSubscriptions.objects.update_or_create(
+                    user=resident,
+                    defaults={"is_active": True}
+                )
             send_sms(resident.contactno,
                 "KaugnayPH: Your account has been verified! You can now log in.",
                 sent_by=admin)
@@ -965,6 +972,7 @@ def resident_record_view(request, user_id):
             rv.save()
             resident.is_verified = False
             resident.save()
+            SMSSubscriptions.objects.filter(user=resident).update(is_active=False)
             send_sms(resident.contactno,
                 "KaugnayPH: Your registration was not approved. "
                 "Please visit the barangay office.",
