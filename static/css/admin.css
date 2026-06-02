@@ -1655,3 +1655,27 @@ EDIT RESIDENT PROFILE PAGE
 .btn-cancel:hover {
     background: #f8fafc;
 }
+
+.otp-email-option {
+    text-align: center;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.otp-email-option p {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.otp-email-option a {
+    color: #0066ff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.otp-email-option a:hover {
+    text-decoration: underline;
+}

@@ -88,6 +88,12 @@ urlpatterns = [
         views.resend_otp_view, 
         name='resend_otp' 
     ),
+    
+    path(
+        'otp/send-email/',
+        views.send_email_otp_view,
+        name='send_email_otp'
+    ),
 
     path('login/', views.login_view, name='login'),
     path('register/', views.resident_register_view, name='register'),

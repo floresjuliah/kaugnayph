@@ -20,6 +20,7 @@ from .models import (
     Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
+    OTP,
 )
 
 from .auth_utils import (
@@ -596,6 +597,64 @@ def resend_otp_view(request):
         request.session["otp_method"] = "sms"
 
     messages.success(request, "New OTP sent.")
+    return redirect("otp_verify")
+
+# IF EMAIL OTP
+def send_email_otp_view(request):
+    pending_id = request.session.get("pending_user_id")
+
+    if not pending_id:
+        return redirect("admin_login")
+
+    try:
+        user = Users.objects.get(userid=pending_id)
+    except Users.DoesNotExist:
+        return redirect("admin_login")
+
+    if not user.email:
+        messages.error(
+            request,
+            "No email address is registered for this account."
+        )
+        return redirect("otp_verify")
+
+    purpose = "first_login" if request.session.get("from_first_login") else "login"
+
+    otp = OTP.objects.filter(
+        user=user,
+        purpose=purpose,
+        is_used=False,
+        expires_at__gt=timezone.now()
+    ).order_by("-created_at").first()
+
+    if not otp:
+        otp, cooldown = generate_otp(
+            user,
+            purpose=purpose
+        )
+
+        if cooldown:
+            mins = cooldown // 60
+            secs = cooldown % 60
+
+            messages.error(
+                request,
+                f"Please wait {mins}m {secs}s before requesting another OTP."
+            )
+            return redirect("otp_verify")
+
+    send_email_otp(
+        user.email,
+        otp.code
+    )
+
+    request.session["otp_method"] = "email"
+
+    messages.success(
+        request,
+        "OTP has been sent to your registered email address."
+    )
+
     return redirect("otp_verify")
 
 

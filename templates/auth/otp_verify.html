@@ -58,6 +58,13 @@
             <a href="{% url 'resend_otp' %}">Resend OTP</a>
         </div>
 
+        {% if request.session.otp_method == "sms" %}
+            <div class="otp-email-option">
+                <p>Having trouble receiving the SMS OTP?</p>
+                <a href="{% url 'send_email_otp' %}">Send OTP to Email</a>
+            </div>
+        {% endif %}
+
     </div>
 </div>
 
