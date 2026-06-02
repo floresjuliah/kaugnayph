@@ -85,45 +85,45 @@
 
         </div>
 
-<div class="resident-photo-column">
+        <div class="resident-photo-column">
 
-    <div class="resident-profile-card">
+            <div class="resident-profile-card">
 
-        <h2>Provided ID Photo</h2>
-        <div class="resident-profile-divider"></div>
+                <h2>Provided ID Photo</h2>
+                <div class="resident-profile-divider"></div>
 
-        {% if rv and rv.id_image_path %}
-            <img
-                src="{% url 'verification_file' rv.rv_id 'id' %}"
-                alt="ID Photo"
-                class="resident-id-photo"
-            >
-        {% else %}
-            <p class="no-id-text">No ID submitted.</p>
-        {% endif %}
+                {% if rv and rv.id_image_path %}
+                    <img
+                        src="{% url 'verification_file' rv.rv_id 'id' %}"
+                        alt="ID Photo"
+                        class="resident-id-photo"
+                    >
+                {% else %}
+                    <p class="no-id-text">No ID submitted.</p>
+                {% endif %}
+
+            </div>
+
+            <div class="resident-profile-card">
+
+                <h2>Selfie with ID</h2>
+                <div class="resident-profile-divider"></div>
+
+                {% if rv and rv.selfie_image_path %}
+                    <img
+                        src="{% url 'verification_file' rv.rv_id 'selfie' %}"
+                        alt="Selfie with ID"
+                        class="resident-id-photo"
+                    >
+                {% else %}
+                    <p class="no-id-text">No selfie with ID submitted.</p>
+                {% endif %}
+
+            </div>
+
+        </div>
 
     </div>
-
-    <div class="resident-profile-card">
-
-        <h2>Selfie with ID</h2>
-        <div class="resident-profile-divider"></div>
-
-        {% if rv and rv.selfie_image_path %}
-            <img
-                src="{% url 'verification_file' rv.rv_id 'selfie' %}"
-                alt="Selfie with ID"
-                class="resident-id-photo"
-            >
-        {% else %}
-            <p class="no-id-text">No selfie with ID submitted.</p>
-        {% endif %}
-
-    </div>
-
-</div>
-
-</div>
 
     <div class="profile-actions">
 
@@ -138,14 +138,14 @@
             </button>
         </form>
 
-        <form method="POST">
+        <form method="POST" id="rejectResidentForm">
             {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+
             <button
-                type="submit"
-                name="action"
-                value="reject"
+                type="button"
                 class="btn-reject"
-                onclick="return confirm('Reject this resident?')">
+                onclick="openRejectModal()">
                 Reject
             </button>
         </form>
@@ -159,5 +159,46 @@
     </div>
 
 </div>
+
+<div id="rejectModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3>Reject Registration</h3>
+
+        <p>
+            This resident's verification status will be changed to Rejected.
+            Do you want to continue?
+        </p>
+
+        <div class="modal-actions">
+            <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeRejectModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn-reject"
+                onclick="submitRejectForm()">
+                Reject Registration
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRejectModal() {
+    document.getElementById("rejectModal").style.display = "flex";
+}
+
+function closeRejectModal() {
+    document.getElementById("rejectModal").style.display = "none";
+}
+
+function submitRejectForm() {
+    document.getElementById("rejectResidentForm").submit();
+}
+</script>
 
 {% endblock %}
