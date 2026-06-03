@@ -120,6 +120,8 @@
 
     <div class="profile-actions">
 
+    {% if rv and rv.status == "Pending" %}
+
         <form method="POST">
             {% csrf_token %}
             <button
@@ -143,13 +145,15 @@
             </button>
         </form>
 
-        <a
-            href="{% url 'resident_record_edit' resident.userid %}"
-            class="btn-edit">
-            Edit
-        </a>
+    {% endif %}
 
-    </div>
+    <a
+        href="{% url 'resident_record_edit' resident.userid %}"
+        class="btn-edit">
+        Edit
+    </a>
+
+</div>
 
 </div>
 
