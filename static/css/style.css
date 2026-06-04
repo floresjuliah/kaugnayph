@@ -1171,8 +1171,8 @@ footer ul li a:hover {
 }
 
 .ann-hero-divider {
-  width: 60px;
-  height: 4px;
+  width: 250px;
+  height: 5px;
   background: var(--yellow);
   border-radius: 99px;
   margin: 0 auto 18px;
@@ -2135,6 +2135,157 @@ footer ul li a:hover {
     border-radius: 10px;
     font-weight: 700;
     margin-bottom: 20px;
+}
+
+/* ── AVAILABLE DOCUMENTS SECTION ── */
+.available-docs {
+  padding: 60px 20px;
+  background-color: #fff;
+}
+
+.available-docs__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.available-docs__header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  margin-bottom: 8px;
+}
+
+.available-docs__header p {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+/* ── GRID ── */
+.available-docs__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+/* ── CARD ── */
+.doc-card {
+  background: #fff;
+  border: 1px solid #e0e4ee;
+  border-radius: 12px;
+  padding: 28px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.doc-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.doc-card__divider {
+  width: 100px;
+  height: 4px;
+  background-color: #f5a623;
+  border-radius: 2px;
+}
+
+.doc-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── BUTTONS ── */
+.doc-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.doc-card__btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.doc-card__btn--primary {
+  background-color: #3b6fd4;
+  color: #fff;
+}
+
+.doc-card__btn--primary:hover {
+  background-color: #2f5bb5;
+}
+
+/* ── ETA ── */
+.doc-card__eta {
+  font-size: 0.78rem;
+  color: #888;
+  margin: 0;
+}
+
+/* ── NOTICE ── */
+.available-docs__notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff8f0;
+  border: 1px solid #f5a623;
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+}
+
+.notice-icon {
+  font-size: 1.1rem;
+  color: #f5a623;
+  flex-shrink: 0;
+}
+
+.available-docs__notice p {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+  text-align: left;
+}
+
+/* ── TRACK LINK ── */
+.available-docs__track {
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.available-docs__track a {
+  color: #3b6fd4;
+  text-decoration: underline;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .available-docs__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .available-docs__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
