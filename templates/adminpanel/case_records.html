@@ -1,0 +1,128 @@
+{% extends 'admin_base.html' %}
+
+{% block admin_title %}Cases{% endblock %}
+
+{% block admin_content %}
+
+<div class="case-page">
+
+    <h1 class="case-title">Cases</h1>
+
+    <div class="case-top-row">
+
+        <form method="GET" class="case-search-box">
+            <span>⌕</span>
+            <input 
+                type="text"
+                name="search"
+                value="{{ search_query|default:'' }}"
+                placeholder="Search Case ID"
+            >
+        </form>
+
+        <div class="case-stats">
+
+            <div class="case-stat">
+                <p>Total Cases</p>
+                <h3>{{ total_cases|default:"0" }}</h3>
+            </div>
+
+            <div class="case-stat">
+                <p>Pending</p>
+                <h3>{{ pending_cases|default:"0" }}</h3>
+            </div>
+
+            <div class="case-stat">
+                <p>Processing</p>
+                <h3>{{ processing_cases|default:"0" }}</h3>
+            </div>
+
+            <div class="case-stat">
+                <p>Completed</p>
+                <h3>{{ completed_cases|default:"0" }}</h3>
+            </div>
+
+            <div class="case-stat">
+                <p>Avg Processing Time</p>
+                <h3>{{ avg_processing_time|default:"0%" }}</h3>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="case-table-card">
+
+        <table class="case-table">
+            <thead>
+                <tr>
+                    <th>Case ID</th>
+                    <th>Case Type</th>
+                    <th>Title</th>
+                    <th>Date Submitted</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for case in cases %}
+                <tr>
+                    <td>{{ case.case_id }}</td>
+
+                    <td>
+                        <span class="case-type {{ case.type_class }}">
+                            {{ case.case_type }}
+                        </span>
+                    </td>
+
+                    <td>{{ case.title }}</td>
+                    <td>{{ case.date_submitted }}</td>
+
+                    <td>
+                        <span class="case-status {{ case.status_class }}">
+                            {{ case.status }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <a href="#" class="case-view-link">View</a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-row">
+                        No case records found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="case-table-footer">
+
+            <p>
+                Showing 
+                {{ page_obj.start_index|default:"0" }}–
+                {{ page_obj.end_index|default:"0" }}
+                of 
+                {{ page_obj.paginator.count|default:"0" }}
+                concerns
+            </p>
+
+            <div class="case-pagination">
+                <button type="button">Previous</button>
+                <button type="button" class="active">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
+                <button type="button" class="next">Next</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

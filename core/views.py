@@ -1588,3 +1588,7 @@ def admin_announcement_create_view(request):
             "user": current_admin,
         }
     )
+
+# ADMIN CASE RECORDS
+def case_records_view(request):
+    return render(request, "adminpanel/case_records.html")

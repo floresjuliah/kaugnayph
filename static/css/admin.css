@@ -1812,3 +1812,154 @@ EDIT RESIDENT PROFILE PAGE
 .otp-email-option a:hover {
     text-decoration: underline;
 }
+
+/* =========================
+   CASE RECORDS PAGE
+========================= */
+
+.case-page {
+    width: 100%;
+}
+
+.case-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 24px;
+}
+
+.case-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 36px;
+}
+
+.case-search-box {
+    width: 340px;
+    height: 46px;
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+}
+
+.case-search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    background: transparent;
+}
+
+.case-stats {
+    display: flex;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.case-stat {
+    padding: 16px 26px;
+    min-width: 135px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.case-stat:last-child {
+    border-right: none;
+}
+
+.case-stat p {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.case-stat h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* TABLE */
+
+.case-table-card {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.case-page table.case-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 0 !important;
+}
+
+.case-page table.case-table thead {
+    background: #dfe6ef !important;
+}
+
+.case-page table.case-table th {
+    padding: 18px 24px !important;
+    text-align: left !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    white-space: nowrap;
+}
+
+.case-page table.case-table td {
+    padding: 16px 24px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    font-size: 15px !important;
+    color: #334155 !important;
+}
+
+.empty-row {
+    text-align: center !important;
+    padding: 42px !important;
+    color: #64748b !important;
+}
+
+.case-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
+}
+
+.case-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.case-pagination button {
+    border: 1px solid #dbe3ef;
+    background: #ffffff;
+    padding: 8px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.case-pagination .active {
+    background: #dbeafe;
+    color: #2563eb;
+    border: none;
+}
+
+.case-pagination .next {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+}

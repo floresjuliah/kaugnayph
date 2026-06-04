@@ -107,6 +107,12 @@ urlpatterns = [
 
     path('admin/residents/<int:user_id>/', views.resident_record_view, name='resident_record_view'),
     path('admin/residents/<int:user_id>/edit/', views.resident_record_edit, name='resident_record_edit'),
-    path('admin/verification/<int:rv_id>/<str:file_type>/', views.serve_verification_file, name='verification_file')
+    path('admin/verification/<int:rv_id>/<str:file_type>/', views.serve_verification_file, name='verification_file'),
+
+    path(
+        'admin/cases/',
+        views.case_records_view,
+         name='case_records'
+    ),
 
 ]

@@ -74,7 +74,8 @@ window.addEventListener("click", function(e){
                 Requests
             </a>
 
-            <a href="#">
+            <a href="{% url 'case_records' %}"
+                class="{% if request.resolver_match.url_name == 'case_records' %}active{% endif %}">
                 <span class="menu-icon"></span>
                 Cases
             </a>
