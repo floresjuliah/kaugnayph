@@ -20,7 +20,7 @@ from .models import (
     Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
-    OTP,
+    OTP, Complaints, ComplaintType
 )
 
 from .auth_utils import (
@@ -44,14 +44,108 @@ from .decorators import (
 def landing_page(request):
     return render(request, 'public/landing.html')
 
+@login_required
+@resident_required
 def filecomplaint(request):
-    return render(request, 'filecomplaint.html')
+    complaint_types = ComplaintType.objects.all()
+
+    if request.method == "POST":
+        complaint_type_id = request.POST.get("complaint_type", "").strip()
+        incident_date = request.POST.get("incident_date")
+        complainee = request.POST.get("complainee", "").strip()
+        complainee_address = request.POST.get("complainee_address", "").strip()
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        evidence = request.FILES.get("evidence")
+
+        if not complaint_type_id:
+            messages.error(request, "Please select a complaint type.")
+            return render(request, "filecomplaint.html", {
+                "complaint_types": complaint_types
+            })
+
+        if not complainee:
+            messages.error(request, "Name of complainee is required.")
+            return render(request, "filecomplaint.html", {
+                "complaint_types": complaint_types
+            })
+
+        if not title:
+            messages.error(request, "Title is required.")
+            return render(request, "filecomplaint.html", {
+                "complaint_types": complaint_types
+            })
+
+        if not description:
+            messages.error(request, "Description is required.")
+            return render(request, "filecomplaint.html", {
+                "complaint_types": complaint_types
+            })
+
+        try:
+            complaint_type = ComplaintType.objects.get(ctid=complaint_type_id)
+        except ComplaintType.DoesNotExist:
+            messages.error(request, "Invalid complaint type selected.")
+            return render(request, "filecomplaint.html", {
+                "complaint_types": complaint_types
+            })
+
+        current_user = get_current_user(request)
+
+        file_path = None
+
+        if evidence:
+            ok, err = validate_upload(evidence)
+
+            if not ok:
+                messages.error(request, err)
+                return render(request, "filecomplaint.html", {
+                    "complaint_types": complaint_types
+                })
+
+            file_path = default_storage.save(
+                "complaints/" + evidence.name,
+                ContentFile(evidence.read())
+            )
+
+        Complaints.objects.create(
+            complaint_type=complaint_type,
+            complainant_user=current_user,
+            complainee=complainee,
+            complainee_address=complainee_address,
+            title=title,
+            description=description,
+            incident_date=incident_date or None,
+            file_path=file_path,
+            status="Pending"
+        )
+
+        messages.success(
+            request,
+            "Complaint submitted successfully. You can track its status through Track Submissions."
+        )
+
+        return redirect("tracksub")
+
+    return render(request, "filecomplaint.html", {
+        "complaint_types": complaint_types
+    })
 
 def aboutus(request):
     return render(request, 'aboutus.html')
 
+@login_required
+@resident_required
 def tracksub(request):
-    return render(request, 'tracksub.html')
+    current_user = get_current_user(request)
+
+    complaints = Complaints.objects.filter(
+        complainant_user=current_user
+    ).order_by("-dateadded")
+
+    return render(request, "tracksub.html", {
+        "complaints": complaints
+    })
 
 def documents(request):
     return render(request, 'documents.html')

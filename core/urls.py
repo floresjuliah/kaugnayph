@@ -95,6 +95,12 @@ urlpatterns = [
         name='send_email_otp'
     ),
 
+    path(
+        'file-complaint/',
+        views.filecomplaint,
+        name='filecomplaint'
+    ),
+
     path('login/', views.login_view, name='login'),
     path('register/', views.resident_register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),

@@ -270,13 +270,21 @@ class Complaints(models.Model):
     complaint_type = models.ForeignKey(ComplaintType, models.CASCADE, db_column='complaint_type_id', blank=True, null=True)
     complainant_user = models.ForeignKey(Users, models.CASCADE, db_column='complainant_user_id', blank=True, null=True)
     complainee = models.CharField(max_length=255, blank=True, null=True)
+    complainee_address = models.CharField(max_length=255, blank=True, null=True)
     title = models.CharField(db_column='Title', max_length=255, blank=True, null=True)
     description = models.TextField(db_column='Description', blank=True, null=True)
     file = models.BinaryField(db_column='File', blank=True, null=True)
     file_path = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
+
+    incident_date = models.DateField(
+        blank=True,
+        null=True
+    )
+
     dateadded = models.DateTimeField(db_column='DateAdded', auto_now_add=True)
     datefinish = models.DateTimeField(db_column='DateFinish', blank=True, null=True)
+
     handled_by = models.ForeignKey(
         Users,
         models.CASCADE,

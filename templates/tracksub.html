@@ -3,6 +3,80 @@
 
 {% block content %}
 
-  <!-- file complaint content here -->
+<section class="track-hero">
+    <div class="track-hero-overlay">
+        <h1>Track Submissions</h1>
+        <div class="track-underline"></div>
+        <p>
+            For submitted complaints, requests, or registrations, please use this feature
+            to track their status and stay updated on their progress.
+        </p>
+    </div>
+</section>
+
+<section class="track-section">
+
+    <div class="track-container">
+
+        <h2>My Submissions</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="track-alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="track-layout">
+
+            <div class="track-sidebar">
+                <h3>Case Type</h3>
+                <a class="active" href="#">All</a>
+                <a href="#">Complaints</a>
+                <a href="#">Documents/Requirements</a>
+            </div>
+
+            <div class="track-card">
+                <table class="track-table">
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Type</th>
+                            <th>Title</th>
+                            <th>Date Submitted</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for complaint in complaints %}
+                            <tr>
+                                <td>CMP-2026-{{ complaint.complaintsid|stringformat:"04d" }}</td>
+                                <td>{{ complaint.complaint_type.type }}</td>
+                                <td>{{ complaint.title }}</td>
+                                <td>{{ complaint.dateadded|date:"Y-m-d" }}</td>
+                                <td>
+                                    <span class="track-status {{ complaint.status|lower }}">
+                                        {{ complaint.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="track-empty">
+                                    No submissions found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
 {% endblock %}
