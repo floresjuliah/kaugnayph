@@ -115,4 +115,6 @@ urlpatterns = [
          name='case_records'
     ),
 
+    path('admin/cases/<int:complaint_id>/', views.case_detail_view, name='case_detail'),
+
 ]

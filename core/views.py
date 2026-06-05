@@ -1590,5 +1590,144 @@ def admin_announcement_create_view(request):
     )
 
 # ADMIN CASE RECORDS
+@admin_login_required
 def case_records_view(request):
-    return render(request, "adminpanel/case_records.html")
+    from django.core.paginator import Paginator
+
+    search_query = request.GET.get("search", "").strip()
+
+    complaints = Complaints.objects.select_related(
+        "complaint_type",
+        "complainant_user"
+    ).all()
+
+    if search_query:
+        complaints = complaints.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(complainee__icontains=search_query) |
+            Q(complaintsid__icontains=search_query)
+        )
+
+    complaints = complaints.order_by("-dateadded")
+
+    case_records = []
+
+    for complaint in complaints:
+        status = complaint.status or "Pending"
+
+        case_records.append({
+            "complaint_id": complaint.complaintsid,
+            "case_id": f"CMP-2026-{complaint.complaintsid:04d}",
+            "case_type": complaint.complaint_type.type if complaint.complaint_type else "Complaint",
+            "type_class": "complaint",
+            "title": complaint.title,
+            "date_submitted": complaint.dateadded.strftime("%b %d, %Y") if complaint.dateadded else "",
+            "status": status,
+            "status_class": status.lower().replace(" ", "-"),
+        })
+
+    paginator = Paginator(case_records, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    total_cases = complaints.count()
+    pending_cases = complaints.filter(status="Pending").count()
+    under_review_cases = complaints.filter(status="Under Review").count()
+    completed_cases = complaints.filter(status="Resolved").count()
+
+    return render(request, "adminpanel/case_records.html", {
+        "cases": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+        "search_query": search_query,
+        "total_cases": total_cases,
+        "pending_cases": pending_cases,
+        "under_review_cases": under_review_cases,
+        "completed_cases": completed_cases,
+        "avg_processing_time": "0%",
+    })
+
+# ADMIN CASE DETAIL
+@admin_login_required
+def case_detail_view(request, complaint_id):
+    complaint = Complaints.objects.select_related(
+        "complaint_type",
+        "complainant_user",
+        "handled_by"
+    ).get(complaintsid=complaint_id)
+
+    current_admin = get_current_user(request)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        old_status = complaint.status
+
+        if action == "resolve":
+            complaint.status = "Resolved"
+            log_action = "Resolve Case"
+
+        elif action == "review":
+            complaint.status = "Under Review"
+            log_action = "Mark Case Under Review"
+
+        elif action == "dismiss":
+            complaint.status = "Dismissed"
+            log_action = "Dismiss Case"
+
+        else:
+            messages.error(request, "Invalid action.")
+            return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+        complaint.handled_by = current_admin
+        complaint.save()
+
+        case_number = f"CMP-2026-{complaint.complaintsid:04d}"
+
+        if complaint.complainant_user and complaint.complainant_user.contactno:
+            if complaint.status == "Under Review":
+                sms_message = (
+                    f"KaugnayPH: Your complaint {case_number} is now Under Review."
+                )
+
+            elif complaint.status == "Resolved":
+                sms_message = (
+                    f"KaugnayPH: Your complaint {case_number} has been resolved."
+                )
+
+            elif complaint.status == "Dismissed":
+                sms_message = (
+                    f"KaugnayPH: Your complaint {case_number} has been dismissed. "
+                    "Please contact the barangay office for more information."
+                )
+
+            else:
+                sms_message = None
+
+            if sms_message:
+                send_sms(
+                    complaint.complainant_user.contactno,
+                    sms_message,
+                    sent_by=current_admin
+                )
+
+        AuditLogs.objects.create(
+            user=current_admin,
+            action=log_action,
+            module_name="Cases",
+            table_name="Complaints",
+            record_id=complaint.complaintsid,
+            old_value=f"Status: {old_status}",
+            new_value=f"Status: {complaint.status}",
+            created_at=timezone.now()
+        )
+
+        messages.success(request, "Case status updated successfully.")
+
+        return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+    return render(request, "adminpanel/case_detail.html", {
+        "complaint": complaint,
+        "user": current_admin,
+        "case_id": f"CMP-2026-{complaint.complaintsid:04d}",
+    })

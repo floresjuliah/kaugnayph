@@ -33,9 +33,9 @@
             </div>
 
             <div class="case-stat">
-                <p>Processing</p>
-                <h3>{{ processing_cases|default:"0" }}</h3>
-            </div>
+                <p>Under Review</p>
+                <h3>{{ under_review_cases|default:"0" }}</h3>
+                </div>
 
             <div class="case-stat">
                 <p>Completed</p>
@@ -86,7 +86,7 @@
                     </td>
 
                     <td>
-                        <a href="#" class="case-view-link">View</a>
+                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">View</a>
                     </td>
                 </tr>
 

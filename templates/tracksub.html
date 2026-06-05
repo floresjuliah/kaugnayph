@@ -61,7 +61,14 @@
                                 <td>{{ complaint.title }}</td>
                                 <td>{{ complaint.dateadded|date:"Y-m-d" }}</td>
                                 <td>
-                                    <span class="track-status {{ complaint.status|lower }}">
+                                    <span class="track-status 
+                                        {% if complaint.status == 'Pending' %}pending
+                                        {% elif complaint.status == 'Under Review' %}under-review
+                                        {% elif complaint.status == 'Scheduled' %}scheduled
+                                        {% elif complaint.status == 'Resolved' %}resolved
+                                        {% elif complaint.status == 'Dismissed' %}dismissed
+                                        {% endif %}
+                                    ">
                                         {{ complaint.status }}
                                     </span>
                                 </td>
