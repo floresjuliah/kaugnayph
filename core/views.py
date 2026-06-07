@@ -20,7 +20,11 @@ from .models import (
     Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
-    OTP, Complaints, ComplaintType
+    OTP, Complaints, ComplaintType,
+    DocumentTypes, DocumentFields, DocumentRequests,
+    DocumentRequestFieldValues, ComplaintUpdates,
+    HearingLevel, HearingStatus, ComplaintHearing,
+    HearingOfficials,
 )
 
 from .auth_utils import (
@@ -148,7 +152,8 @@ def tracksub(request):
     })
 
 def documents(request):
-    return render(request, 'documents.html')
+    document_types = DocumentTypes.objects.filter(is_active=True)
+    return render(request, 'documents.html', {"document_types": document_types})
 
 def faqs(request):
     return render(request, 'faqs.html')
@@ -1730,4 +1735,536 @@ def case_detail_view(request, complaint_id):
         "complaint": complaint,
         "user": current_admin,
         "case_id": f"CMP-2026-{complaint.complaintsid:04d}",
+    })
+
+
+#DOCUMENT REQUEST FOR RESIDENT 
+@login_required
+@resident_required
+def document_request_view(request):
+    """
+    GET  → show available document types
+    POST → save a new document request + field values
+    """
+    document_types = DocumentTypes.objects.filter(is_active=True)
+
+    if request.method == "POST":
+        document_type_id = request.POST.get("document_type_id", "").strip()
+        purpose          = request.POST.get("purpose", "").strip()
+        uploaded_file    = request.FILES.get("uploaded_file")
+
+        #Basic validation
+        if not document_type_id:
+            messages.error(request, "Please select a document type.")
+            return render(request, "documents.html", {"document_types": document_types})
+
+        try:
+            document_type = DocumentTypes.objects.get(dtid=document_type_id, is_active=True)
+        except DocumentTypes.DoesNotExist:
+            messages.error(request, "Invalid document type selected.")
+            return render(request, "documents.html", {"document_types": document_types})
+
+        #Validate required dynamic fields
+        fields = DocumentFields.objects.filter(document_type=document_type)
+        field_errors = []
+        for field in fields:
+            if field.is_required:
+                value = request.POST.get(f"field_{field.dfid}", "").strip()
+                if not value:
+                    field_errors.append(f"'{field.field_label}' is required.")
+
+        if field_errors:
+            for err in field_errors:
+                messages.error(request, err)
+            return render(request, "documents.html", {
+                "document_types": document_types,
+                "selected_type": document_type,
+                "fields": fields,
+            })
+
+        current_user = get_current_user(request)
+
+        #Handle optional file upload
+        file_path = None
+        if uploaded_file:
+            ok, err = validate_upload(uploaded_file)
+            if not ok:
+                messages.error(request, err)
+                return render(request, "documents.html", {"document_types": document_types})
+            file_path = default_storage.save(
+                f"document_requests/{uploaded_file.name}",
+                ContentFile(uploaded_file.read())
+            )
+
+        #Create DocumentRequest
+        doc_request = DocumentRequests.objects.create(
+            user=current_user,
+            document_type=document_type,
+            purpose=purpose,
+            uploaded_file=file_path,
+            request_mode="Online",
+            status="Pending",
+        )
+
+        #Save dynamic field values
+        for field in fields:
+            value = request.POST.get(f"field_{field.dfid}", "").strip()
+            DocumentRequestFieldValues.objects.create(
+                document_request=doc_request,
+                document_field=field,
+                field_value=value,
+                created_at=timezone.now(),
+            )
+
+        #Audit log
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Submit Document Request",
+            module_name="DocumentRequests",
+            table_name="DocumentRequests",
+            record_id=doc_request.drid,
+            new_value=f"Request for '{document_type.name}' submitted.",
+            created_at=timezone.now(),
+        )
+
+        messages.success(
+            request,
+            "Document request submitted successfully. You can track its status under Track Submissions."
+        )
+        return redirect("tracksub")
+
+    return render(request, "documents.html", {"document_types": document_types})
+
+
+# DOCUMENT FIELDS API: returns fields for a selected doc type
+def get_document_fields(request, dtid):
+    """
+    AJAX endpoint: GET /documents/fields/<dtid>/
+    Returns JSON list of fields for a given DocumentType.
+    Used by the frontend to render dynamic form fields.
+    """
+    try:
+        document_type = DocumentTypes.objects.get(dtid=dtid, is_active=True)
+    except DocumentTypes.DoesNotExist:
+        return JsonResponse({"error": "Document type not found."}, status=404)
+
+    fields = DocumentFields.objects.filter(document_type=document_type).values(
+        "dfid", "field_label", "field_type", "is_required"
+    )
+
+    return JsonResponse({
+        "document_type": document_type.name,
+        "fields": list(fields),
+    })
+
+
+#TRACK SUBMISSIONS: updated to include document requests
+@login_required
+@resident_required
+def tracksub(request):
+    current_user = get_current_user(request)
+
+    complaints = Complaints.objects.filter(
+        complainant_user=current_user
+    ).order_by("-dateadded")
+
+    document_requests = DocumentRequests.objects.filter(
+        user=current_user
+    ).select_related("document_type").order_by("-requested_at")
+
+    return render(request, "tracksub.html", {
+        "complaints": complaints,
+        "document_requests": document_requests,
+    })
+
+
+# ADMIN: DOCUMENT REQUESTS LIST
+@admin_login_required
+def admin_document_requests_view(request):
+    from django.core.paginator import Paginator
+
+    search_query   = request.GET.get("search", "").strip()
+    status_filter  = request.GET.get("status", "All").strip()
+
+    doc_requests = DocumentRequests.objects.select_related(
+        "user", "document_type", "processed_by"
+    ).all()
+
+    if search_query:
+        doc_requests = doc_requests.filter(
+            Q(user__firstname__icontains=search_query) |
+            Q(user__lastname__icontains=search_query)  |
+            Q(document_type__name__icontains=search_query) |
+            Q(drid__icontains=search_query)
+        )
+
+    if status_filter != "All":
+        doc_requests = doc_requests.filter(status=status_filter)
+
+    doc_requests = doc_requests.order_by("-requested_at")
+
+    #Attach generated doc IDs
+    records = []
+    for dr in doc_requests:
+        from core.utils import generate_document_id
+        records.append({
+            "obj":      dr,
+            "doc_id":   generate_document_id(dr.drid),
+            "status":   dr.status or "Pending",
+        })
+
+    paginator   = Paginator(records, 10)
+    page_number = request.GET.get("page")
+    page_obj    = paginator.get_page(page_number)
+
+    total      = doc_requests.count()
+    pending    = doc_requests.filter(status="Pending").count()
+    processing = doc_requests.filter(status="Processing").count()
+    completed  = doc_requests.filter(status="Completed").count()
+
+    return render(request, "adminpanel/document_requests.html", {
+        "records":        page_obj,
+        "page_obj":       page_obj,
+        "user":           get_current_user(request),
+        "search_query":   search_query,
+        "status_filter":  status_filter,
+        "total":          total,
+        "pending":        pending,
+        "processing":     processing,
+        "completed":      completed,
+    })
+
+
+# ADMIN: DOCUMENT REQUEST DETAILS
+@admin_login_required
+def admin_document_request_detail_view(request, drid):
+    try:
+        doc_request = DocumentRequests.objects.select_related(
+            "user", "document_type", "processed_by"
+        ).get(drid=drid)
+    except DocumentRequests.DoesNotExist:
+        messages.error(request, "Document request not found.")
+        return redirect("admin_document_requests")
+
+    current_admin = get_current_user(request)
+
+    #Get/Fetch submitted field values with their labels
+    field_values = DocumentRequestFieldValues.objects.filter(
+        document_request=doc_request
+    ).select_related("document_field")
+
+    #Get/Fetch resident info
+    resident = doc_request.user
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "complete":
+            old_status            = doc_request.status
+            doc_request.status    = "Completed"
+            doc_request.processed_by = current_admin
+            doc_request.processed_at = timezone.now()
+            doc_request.save()
+
+            # Notify resident via SMS
+            if resident and resident.contactno:
+                from core.utils import generate_document_id
+                doc_id = generate_document_id(doc_request.drid)
+                send_sms(
+                    resident.contactno,
+                    f"KaugnayPH: Your document request {doc_id} "
+                    f"({doc_request.document_type.name}) has been completed. "
+                    "Please visit the barangay office to claim it.",
+                    sent_by=current_admin,
+                )
+
+            AuditLogs.objects.create(
+                user=current_admin,
+                action="Complete Document Request",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
+                record_id=doc_request.drid,
+                old_value=f"Status: {old_status}",
+                new_value="Status: Completed",
+                created_at=timezone.now(),
+            )
+
+            messages.success(request, "Document request marked as Completed.")
+
+        elif action == "processing":
+            old_status            = doc_request.status
+            doc_request.status    = "Processing"
+            doc_request.processed_by = current_admin
+            doc_request.save()
+
+            AuditLogs.objects.create(
+                user=current_admin,
+                action="Set Document Request Processing",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
+                record_id=doc_request.drid,
+                old_value=f"Status: {old_status}",
+                new_value="Status: Processing",
+                created_at=timezone.now(),
+            )
+
+            messages.success(request, "Document request marked as Processing.")
+
+        elif action == "reject":
+            old_status            = doc_request.status
+            doc_request.status    = "Rejected"
+            doc_request.processed_by = current_admin
+            doc_request.processed_at = timezone.now()
+            doc_request.save()
+
+            AuditLogs.objects.create(
+                user=current_admin,
+                action="Reject Document Request",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
+                record_id=doc_request.drid,
+                old_value=f"Status: {old_status}",
+                new_value="Status: Rejected",
+                created_at=timezone.now(),
+            )
+
+            messages.success(request, "Document request rejected.")
+
+        return redirect("admin_document_request_detail", drid=doc_request.drid)
+
+    from core.utils import generate_document_id
+    return render(request, "adminpanel/document_request_detail.html", {
+        "doc_request":  doc_request,
+        "doc_id":       generate_document_id(doc_request.drid),
+        "field_values": field_values,
+        "resident":     resident,
+        "user":         current_admin,
+    })
+
+
+#COMPLAINT UPDATES 
+@admin_login_required
+def case_detail_view(request, complaint_id):
+    """
+    Replaces the existing case_detail_view.
+    Now writes to ComplaintUpdates table on every status change.
+    Also handles hearing level updates and assigned official.
+    """
+    try:
+        complaint = Complaints.objects.select_related(
+            "complaint_type",
+            "complainant_user",
+            "handled_by"
+        ).get(complaintsid=complaint_id)
+    except Complaints.DoesNotExist:
+        messages.error(request, "Complaint not found.")
+        return redirect("case_records")
+
+    current_admin = get_current_user(request)
+
+    #Get/Fetch hearing levels and existing hearing record (if any)
+    hearing_levels   = HearingLevel.objects.all()
+    hearing_statuses = HearingStatus.objects.all()
+    existing_hearing = ComplaintHearing.objects.filter(
+        complaint=complaint
+    ).select_related("hearing_level", "status").first()
+
+    # Get/Fetch all update history for this complaint
+    complaint_updates = ComplaintUpdates.objects.filter(
+        complaint=complaint
+    ).select_related("updated_by").order_by("-updated_at")
+
+    #GetFetch assigned officials
+    assigned_officials = HearingOfficials.objects.filter(
+        complaint=complaint
+    ).select_related("user_officials")
+
+    #Get/Fetch all admin users for the "assign official" dropdown
+    admin_users = Users.objects.filter(
+        user_type__type_name="Admin",
+        is_active=True
+    ).select_related("position")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        #CHANGE Status
+        if action in ("resolve", "review", "dismiss"):
+            old_status = complaint.status
+            remarks    = request.POST.get("remarks", "").strip()
+
+            status_map = {
+                "resolve": "Resolved",
+                "review":  "Under Review",
+                "dismiss": "Dismissed",
+            }
+            log_action_map = {
+                "resolve": "Resolve Case",
+                "review":  "Mark Case Under Review",
+                "dismiss": "Dismiss Case",
+            }
+
+            new_status = status_map[action]
+            log_action = log_action_map[action]
+
+            complaint.status     = new_status
+            complaint.handled_by = current_admin
+            complaint.save()
+
+            # Write to ComplaintUpdates table
+            ComplaintUpdates.objects.create(
+                complaint=complaint,
+                updated_by=current_admin,
+                status=new_status,
+                remarks=remarks or None,
+                updated_at=timezone.now(),
+            )
+
+            #SMS notification (PLS CHECKK AND VERIFY THE LOGIC HERE, WE DONT WANT TO SEND SMS ON EVERY UPDATE, ONLY ON STATUS CHANGE TO UNDER REVIEW, RESOLVED, OR DISMISSED)
+            case_number = f"CMP-2026-{complaint.complaintsid:04d}"
+            sms_map = {
+                "Under Review": f"KaugnayPH: Your complaint {case_number} is now Under Review.",
+                "Resolved":     f"KaugnayPH: Your complaint {case_number} has been resolved.",
+                "Dismissed":    (
+                    f"KaugnayPH: Your complaint {case_number} has been dismissed. "
+                    "Please contact the barangay office for more information."
+                ),
+            }
+            sms_body = sms_map.get(new_status)
+            if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(
+                    complaint.complainant_user.contactno,
+                    sms_body,
+                    sent_by=current_admin,
+                )
+
+            AuditLogs.objects.create(
+                user=current_admin,
+                action=log_action,
+                module_name="Cases",
+                table_name="Complaints",
+                record_id=complaint.complaintsid,
+                old_value=f"Status: {old_status}",
+                new_value=f"Status: {new_status}",
+                created_at=timezone.now(),
+            )
+
+            messages.success(request, "Case status updated successfully.")
+
+        #Hearing Level Update
+        elif action == "update_hearing":
+            hearing_level_id = request.POST.get("hearing_level_id", "").strip()
+            hearing_date     = request.POST.get("hearing_date", "").strip()
+            hearing_status_id = request.POST.get("hearing_status_id", "").strip()
+
+            if not hearing_level_id:
+                messages.error(request, "Please select a hearing level.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            try:
+                hearing_level = HearingLevel.objects.get(hearinglevelid=hearing_level_id)
+            except HearingLevel.DoesNotExist:
+                messages.error(request, "Invalid hearing level.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            try:
+                hearing_status = HearingStatus.objects.get(statusid=hearing_status_id)
+            except HearingStatus.DoesNotExist:
+                messages.error(request, "Invalid hearing status.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            if existing_hearing:
+                # Update existing record
+                existing_hearing.hearing_level = hearing_level
+                existing_hearing.status        = hearing_status
+                if hearing_date:
+                    existing_hearing.hearing_date = hearing_date
+                existing_hearing.save()
+            else:
+                # Create new hearing record
+                ComplaintHearing.objects.create(
+                    complaint=complaint,
+                    hearing_level=hearing_level,
+                    hearing_date=hearing_date or timezone.now(),
+                    status=hearing_status,
+                    created_at=timezone.now(),
+                )
+
+            AuditLogs.objects.create(
+                user=current_admin,
+                action="Update Hearing Level",
+                module_name="Cases",
+                table_name="ComplaintHearing",
+                record_id=complaint.complaintsid,
+                new_value=f"Hearing level set to '{hearing_level.level_type}'.",
+                created_at=timezone.now(),
+            )
+
+            messages.success(request, "Hearing level updated.")
+
+        #ASSIGN OFFICIAL
+        elif action == "assign_official":
+            official_user_id = request.POST.get("official_user_id", "").strip()
+            official_role    = request.POST.get("official_role", "Mediator").strip()
+
+            if not official_user_id:
+                messages.error(request, "Please select an official to assign.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            try:
+                official_user = Users.objects.get(userid=official_user_id)
+            except Users.DoesNotExist:
+                messages.error(request, "Selected official not found.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            # Prevent duplicate assignment
+            already_assigned = HearingOfficials.objects.filter(
+                complaint=complaint,
+                user_officials=official_user
+            ).exists()
+
+            if already_assigned:
+                messages.warning(request, "This official is already assigned to this case.")
+            else:
+                HearingOfficials.objects.create(
+                    complaint=complaint,
+                    user_officials=official_user,
+                    role=official_role,
+                )
+                AuditLogs.objects.create(
+                    user=current_admin,
+                    action="Assign Official",
+                    module_name="Cases",
+                    table_name="HearingOfficials",
+                    record_id=complaint.complaintsid,
+                    new_value=f"Official '{official_user.firstname} {official_user.lastname}' assigned.",
+                    created_at=timezone.now(),
+                )
+                messages.success(request, "Official assigned successfully.")
+
+        # ---- REMOVE OFFICIAL ----
+        elif action == "remove_official":
+            hoid = request.POST.get("hoid", "").strip()
+            try:
+                ho = HearingOfficials.objects.get(hoid=hoid, complaint=complaint)
+                ho.delete()
+                messages.success(request, "Official removed.")
+            except HearingOfficials.DoesNotExist:
+                messages.error(request, "Official record not found.")
+
+        else:
+            messages.error(request, "Invalid action.")
+
+        return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+    return render(request, "adminpanel/case_detail.html", {
+        "complaint":          complaint,
+        "user":               current_admin,
+        "case_id":            f"CMP-2026-{complaint.complaintsid:04d}",
+        "complaint_updates":  complaint_updates,
+        "hearing_levels":     hearing_levels,
+        "hearing_statuses":   hearing_statuses,
+        "existing_hearing":   existing_hearing,
+        "assigned_officials": assigned_officials,
+        "admin_users":        admin_users,
     })
