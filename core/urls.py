@@ -117,4 +117,30 @@ urlpatterns = [
 
     path('admin/cases/<int:complaint_id>/', views.case_detail_view, name='case_detail'),
 
+    # Document Requests: Resident side
+    path(
+        'documents/request/',
+        views.document_request_view,
+        name='document_request'
+    ),
+
+    path(
+        'documents/fields/<int:dtid>/',
+        views.get_document_fields,
+        name='document_fields_api'
+    ),
+
+    # Admin: Document Requests
+    path(
+        'admin/document-requests/',
+        views.admin_document_requests_view,
+        name='admin_document_requests'
+    ),
+
+    path(
+        'admin/document-requests/<int:drid>/',
+        views.admin_document_request_detail_view,
+        name='admin_document_request_detail'
+    ),
+
 ]
