@@ -1963,3 +1963,19 @@ EDIT RESIDENT PROFILE PAGE
     color: #ffffff;
     border: none;
 }
+
+.case-details-grid{
+    display:flex;
+    gap:40px;
+    margin-top:20px;
+}
+
+.incident-column{
+    flex:1.2;
+}
+
+.hearing-column{
+    flex:0.8;
+    border-left:1px solid #ddd;
+    padding-left:30px;
+}
