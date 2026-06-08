@@ -192,6 +192,18 @@ body.register-page {
   font-size: 0.9rem;
 }
 
+.form-row--2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-row--3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
 .hint {
   font-size: 0.8rem;
   color: var(--gray);
@@ -2273,6 +2285,145 @@ footer ul li a:hover {
 .available-docs__track a {
   color: #3b6fd4;
   text-decoration: underline;
+}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 900;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ── MODAL ── */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 88vh;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  flex-direction: column;
+  opacity: 0;
+  transform: translate(-50%, -48%);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.modal.active {
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* ── MODAL HEADER ── */
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 24px 48px 16px;
+  border-bottom: 1px solid #eee;
+}
+.modal__header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  margin: 0;
+  text-align: center;
+}
+.modal__close {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal__close:hover {
+  color: #333;
+}
+
+/* ── MODAL BODY ── */
+.modal__body {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── FORM GROUPS ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group--full {
+  grid-column: 1 / -1;
+}
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #333;
+}
+.form-group input,
+.form-group select {
+  padding: 9px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #333;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #3b6fd4;
+}
+
+/* ── SECTION TITLE ── */
+.modal__section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+/* ── MODAL FOOTER ── */
+.modal__footer {
+  padding: 16px 32px 28px;
+  display: flex;
+  justify-content: center;
+}
+.modal__submit {
+  background-color: #3b6fd4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.modal__submit:hover {
+  background-color: #2f5bb5;
 }
 
 /* ── RESPONSIVE ── */
