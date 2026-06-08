@@ -6,7 +6,6 @@
 
 <div class="case-page">
 
-
 <a href="{% url 'case_records' %}" class="case-view-link">← Back to Cases</a>
 
 <h1 class="case-title">
@@ -23,33 +22,17 @@
         <form method="POST">
             {% csrf_token %}
 
-            <button
-                type="submit"
-                name="action"
-                value="resolve"
-                style="background: #137333; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;"
-            >
+            <button type="submit" name="action" value="resolve" style="background: #137333; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;">
                 Resolve Case
             </button>
 
-            <button
-                type="submit"
-                name="action"
-                value="review"
-                style="background: #2563eb; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;"
-            >
+            <button type="submit" name="action" value="review" style="background: #2563eb; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;">
                 Mark as Ongoing
             </button>
 
-            <button
-                type="submit"
-                name="action"
-                value="dismiss"
-                style="background: white; color: #dc2626; padding: 10px 18px; border: 1px solid #dc2626; border-radius: 6px; cursor: pointer;"
-            >
+            <button type="submit" name="action" value="dismiss" style="background: white; color: #dc2626; padding: 10px 18px; border: 1px solid #dc2626; border-radius: 6px; cursor: pointer;">
                 Reject Case
             </button>
-
         </form>
 
     </div>
@@ -62,18 +45,10 @@
 
     <h3>Incident Information</h3>
 
-    <p>
-        <strong>Resident Name:</strong>
-        {{ complaint.complainant_user.firstname }}
-        {{ complaint.complainant_user.lastname }}
-    </p>
-
+    <p><strong>Resident Name:</strong> {{ complaint.complainant_user.firstname }} {{ complaint.complainant_user.lastname }}</p>
     <p><strong>Title:</strong> {{ complaint.title }}</p>
-
     <p><strong>Primary Accused:</strong> {{ complaint.complainee }}</p>
-
     <p><strong>Complainee Address:</strong> {{ complaint.complainee_address }}</p>
-
     <p><strong>Incident Date:</strong> {{ complaint.incident_date|date:"F d, Y" }}</p>
 
     <p><strong>Full Description:</strong></p>
@@ -85,14 +60,118 @@
     {% if complaint.file_path %}
     <p style="margin-top: 20px;">
         <strong>Evidence:</strong>
-        <a href="/media/{{ complaint.file_path }}" target="_blank">
-            View Attachment
-        </a>
+        <a href="/media/{{ complaint.file_path }}" target="_blank">View Attachment</a>
     </p>
     {% endif %}
 
-</div>
+    <hr>
 
+    <h3>Assigned Barangay Official</h3>
+
+    <form method="POST" style="margin-bottom: 20px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign_official">
+
+        <select name="official_user_id" required style="padding: 10px; min-width: 300px;">
+            <option value="">-- Select Official --</option>
+            {% for admin in admin_users %}
+                <option value="{{ admin.userid }}">
+                    {{ admin.firstname }} {{ admin.lastname }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <input type="hidden" name="official_role" value="Mediator">
+
+        <button type="submit" style="padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Assign Official
+        </button>
+    </form>
+
+    {% if assigned_officials %}
+        <h4>Assigned Officials</h4>
+        <ul>
+            {% for official in assigned_officials %}
+                <li style="margin-bottom: 10px;">
+                    {{ official.user_officials.firstname }} {{ official.user_officials.lastname }}
+                    ({{ official.role }})
+
+                    <form method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_official">
+                        <input type="hidden" name="hoid" value="{{ official.hoid }}">
+
+                        <button type="submit" style="margin-left:10px; color:red; border:none; background:none; cursor:pointer;">
+                            Remove
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No official assigned yet.</p>
+    {% endif %}
+
+    <hr>
+
+    <h3>Hearing Details</h3>
+
+    <form method="POST" style="margin-bottom: 20px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_hearing">
+
+        <label>Hearing Level:</label><br>
+        <select name="hearing_level_id" required style="padding: 10px; min-width: 300px; margin-bottom: 10px;">
+            <option value="">-- Select Hearing Level --</option>
+            {% for level in hearing_levels %}
+                <option value="{{ level.hearinglevelid }}"
+                    {% if existing_hearing and existing_hearing.hearing_level.hearinglevelid == level.hearinglevelid %}selected{% endif %}
+                >
+                    {{ level.level_type }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br>
+
+        <label>Hearing Status:</label><br>
+        <select name="hearing_status_id" required style="padding: 10px; min-width: 300px; margin-bottom: 10px;">
+            <option value="">-- Select Hearing Status --</option>
+            {% for hearing_status in hearing_statuses %}
+                <option value="{{ hearing_status.statusid }}"
+                    {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}
+                >
+                    {{ hearing_status.statustype }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br>
+
+        <label>Hearing Date:</label><br>
+        <input
+            type="date"
+            name="hearing_date"
+            value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d' }}{% endif %}"
+            style="padding: 10px; min-width: 280px; margin-bottom: 10px;"
+        >
+
+        <br>
+
+        <button type="submit" style="padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Save Hearing Details
+        </button>
+    </form>
+
+    {% if existing_hearing %}
+        <p><strong>Current Hearing Level:</strong> {{ existing_hearing.hearing_level.level_type }}</p>
+        <p><strong>Current Hearing Status:</strong> {{ existing_hearing.status.statustype }}</p>
+        <p><strong>Hearing Date:</strong> {{ existing_hearing.hearing_date|date:"F d, Y" }}</p>
+    {% else %}
+        <p>No hearing details set yet.</p>
+    {% endif %}
+
+</div>
 
 </div>
 
