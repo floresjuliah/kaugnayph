@@ -166,6 +166,9 @@ def announcements_view(request):
     return render(request, "public/announcements.html", {
         "announcements": announcements
     })
+    
+def residentprofile(request):
+    return render(request, 'residentprofile.html')
 
 
 # API ENDPOINTS

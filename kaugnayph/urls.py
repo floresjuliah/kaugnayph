@@ -49,6 +49,9 @@ urlpatterns = [
     path('contactus/', views.contactus, name='contactus'),
     path('announcementslist/', views.announcements_view, name='announcementslist'),
 
+    # Resident profile
+    path('residentprofile/', views.residentprofile, name='residentprofile'),
+
    
     # App includes
     path('', include('core.urls')),

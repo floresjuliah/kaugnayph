@@ -640,10 +640,10 @@ body.landing-page .nav-links .active {
   opacity: 0;
   transform: translateX(-50%) translateY(-8px);
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-
   position: absolute;
   top: 70px;
-  left: 50%;
+  right: 70px;
+  left:-100px;
   background: var(--white);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(27,44,107,0.14);
@@ -652,6 +652,14 @@ body.landing-page .nav-links .active {
   z-index: 2000;
   list-style: none;
   margin: 0;
+}
+
+.dropdown-divider {
+  width: 250px;
+  height: 1px;
+  background: var(--border);
+  border-radius: 99px;
+  margin: 0 auto 18px;
 }
 
 /* LITTLE ARROW */
@@ -2077,6 +2085,22 @@ footer ul li a:hover {
 .track-sidebar a.active {
     background: #d7e7ff;
     color: #16447a;
+}
+
+.track-main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  flex: 1;
+}
+
+.track-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e4ee;
 }
 
 .track-card {

@@ -5,12 +5,9 @@
 
 <section class="hero">
   <div class="hero-bg"></div>
-
   <div class="hero-content">
     <h1>Track Submissions</h1>
-
     <div class="ann-hero-divider"></div>
-
     <p>
       For submitted complaints, requests, or registrations, please use this feature to track their 
       status and stay updated on their progress.
@@ -19,75 +16,167 @@
 </section>
 
 <section class="track-section">
+  <div class="track-container">
 
-    <div class="track-container">
+    <h2>My Submissions</h2>
 
-        <h2>My Submissions</h2>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="track-alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="track-alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+    <div class="track-layout">
 
-        <div class="track-layout">
-
-            <div class="track-sidebar">
-                <h3>Case Type</h3>
-                <a class="active" href="#">All</a>
-                <a href="#">Complaints</a>
-                <a href="#">Documents/Requirements</a>
-            </div>
-
-            <div class="track-card">
-                <table class="track-table">
-                    <thead>
-                        <tr>
-                            <th>Case ID</th>
-                            <th>Type</th>
-                            <th>Title</th>
-                            <th>Date Submitted</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for complaint in complaints %}
-                            <tr>
-                                <td>CMP-2026-{{ complaint.complaintsid|stringformat:"04d" }}</td>
-                                <td>{{ complaint.complaint_type.type }}</td>
-                                <td>{{ complaint.title }}</td>
-                                <td>{{ complaint.dateadded|date:"Y-m-d" }}</td>
-                                <td>
-                                    <span class="track-status 
-                                        {% if complaint.status == 'Pending' %}pending
-                                        {% elif complaint.status == 'Under Review' %}under-review
-                                        {% elif complaint.status == 'Scheduled' %}scheduled
-                                        {% elif complaint.status == 'Resolved' %}resolved
-                                        {% elif complaint.status == 'Dismissed' %}dismissed
-                                        {% endif %}
-                                    ">
-                                        {{ complaint.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5" class="track-empty">
-                                    No submissions found.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-
+      <div class="track-sidebar">
+        <h3>Case Overview</h3>
+        <a href="#" onclick="event.preventDefault(); showSection('complaints')" class="sidebar-link active">Complaints</a>
+        <a href="#" onclick="event.preventDefault(); showSection('documents')" class="sidebar-link">Documents / Requirements</a>
+        <a href="#" onclick="event.preventDefault(); showSection('hearings')" class="sidebar-link">Hearing Status</a>
     </div>
 
+      <div class="track-main">
+
+        <!-- ── COMPLAINTS ── -->
+        <div class="track-card" id="complaints">
+          <h3 class="track-card__title">Complaints</h3>
+          <table class="track-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Date Submitted</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for complaint in complaints %}
+                <tr>
+                  <td>CMP-2026-{{ complaint.complaintsid|stringformat:"04d" }}</td>
+                  <td>{{ complaint.complaint_type.type }}</td>
+                  <td>{{ complaint.title }}</td>
+                  <td>{{ complaint.dateadded|date:"Y-m-d" }}</td>
+                  <td>
+                    <span class="track-status 
+                      {% if complaint.status == 'Pending' %}pending
+                      {% elif complaint.status == 'Under Review' %}under-review
+                      {% elif complaint.status == 'Scheduled' %}scheduled
+                      {% elif complaint.status == 'Resolved' %}resolved
+                      {% elif complaint.status == 'Dismissed' %}dismissed
+                      {% endif %}">
+                      {{ complaint.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="track-empty">No complaints found.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ── DOCUMENTS ── -->
+        <div class="track-card" id="documents" style="display:none">
+          <h3 class="track-card__title">Documents / Requirements</h3>
+          <table class="track-table">
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Document Type</th>
+                <th>Date Submitted</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in document_requests %}
+                <tr>
+                  <td>DOC-2026-{{ doc.id|stringformat:"04d" }}</td>
+                  <td>{{ doc.document_type }}</td>
+                  <td>{{ doc.dateadded|date:"Y-m-d" }}</td>
+                  <td>
+                    <span class="track-status 
+                      {% if doc.status == 'Pending' %}pending
+                      {% elif doc.status == 'Processing' %}under-review
+                      {% elif doc.status == 'Ready' %}scheduled
+                      {% elif doc.status == 'Released' %}resolved
+                      {% endif %}">
+                      {{ doc.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="track-empty">No document requests found.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ── HEARING STATUS ── -->
+        <div class="track-card" id="hearings" style="display:none">
+          <h3 class="track-card__title">Hearing Status</h3>
+          <table class="track-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Complaint Title</th>
+                <th>Hearing Date</th>
+                <th>Hearing Level</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for hearing in hearings %}
+                <tr>
+                  <td>CMP-2026-{{ hearing.complaint.complaintsid|stringformat:"04d" }}</td>
+                  <td>{{ hearing.complaint.title }}</td>
+                  <td>{{ hearing.hearing_date|date:"Y-m-d" }}</td>
+                  <td>{{ hearing.hearing_level }}</td>
+                  <td>
+                    <span class="track-status 
+                      {% if hearing.status == 'Scheduled' %}scheduled
+                      {% elif hearing.status == 'Ongoing' %}under-review
+                      {% elif hearing.status == 'Completed' %}resolved
+                      {% elif hearing.status == 'Cancelled' %}dismissed
+                      {% endif %}">
+                      {{ hearing.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="track-empty">No hearing records found.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /.track-main -->
+    </div><!-- /.track-layout -->
+  </div>
 </section>
+
+<script>
+  function showSection(id) {
+    // Hide all
+    document.querySelectorAll('.track-card').forEach(card => {
+      card.style.display = 'none';
+    });
+
+    // Show selected
+    document.getElementById(id).style.display = 'block';
+
+    // Update active link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.classList.remove('active');
+    });
+    document.querySelector(`[href="#${id}"]`).classList.add('active');
+  }
+</script>
 
 {% endblock %}
