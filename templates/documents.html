@@ -36,7 +36,7 @@
         <h3 class="doc-card__title">Barangay Clearance</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Barangay Clearance')">Online Application</button>
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
@@ -47,7 +47,8 @@
         <h3 class="doc-card__title">Certificate of Indigency</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate of Indigency')">Online Application</button>
+
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
@@ -58,7 +59,7 @@
         <h3 class="doc-card__title">Certificate for First Time Job Seeker</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate for First Time Job Seeker')">Online Application</button>
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
@@ -70,7 +71,7 @@
         <h3 class="doc-card__title">Certificate of Solo Parent</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate of Solo Parent')">Online Application</button>
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
@@ -82,7 +83,7 @@
         <h3 class="doc-card__title">Business Clearance</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Business Clearance')">Online Application</button>
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
@@ -94,13 +95,13 @@
         <h3 class="doc-card__title">Barangay ID</h3>
         <div class="doc-card__divider"></div>
         <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary">Online Application</button>
+          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Barangay ID')">Online Application</button>
           <button class="doc-card__btn doc-card__btn--primary">Downloadable Form</button>
         </div>
         <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
       </div>
 
-    </div><!-- /.available-docs__grid -->
+    </div>
 
     <!-- Notice -->
     <div class="available-docs__notice">
@@ -116,4 +117,352 @@
   </div>
 </section>
 
-{% endblock %}
+<!-- ── SINGLE MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+
+<div class="modal" id="doc-modal">
+  <div class="modal__header">
+    <h2 id="modal-title">Document Title</h2>
+    <button class="modal__close" onclick="closeModal()">&times;</button>
+  </div>
+  <div class="modal__body" id="modal-body">
+    <!-- Fields injected by JS -->
+  </div>
+  <div class="modal__footer">
+    <button class="modal__submit">Submit</button>
+  </div>
+</div>
+
+
+<!-- ── MODAL SCRIPT ── -->
+<script>
+  const docForms = {
+    'Barangay Clearance': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Place of Birth', type: 'text', col: 'half' },
+            { label: 'Precinct Number', type: 'text', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+        { sectionTitle: 'Contact Person in Case of Emergency' },
+        {
+          fields: [
+            { label: 'Name of Parents / Guardian', type: 'text', col: 'half' },
+            { label: 'Contact Number of Parents / Guardian / Tagapag-alaga', type: 'text', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+            { label: 'Relationship', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+
+    'Certificate of Indigency': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+
+    'Certificate for First Time Job Seeker': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Educational Attainment', type: 'select', options: ['High School Graduate', 'College Undergraduate', 'College Graduate', 'Vocational'], col: 'full' },
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+
+    'Certificate of Solo Parent': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Number of Children', type: 'number', col: 'half' },
+            { label: 'Reason for Solo Parenthood', type: 'select', options: ['Death of spouse', 'Legally separated', 'Abandoned by spouse', 'Unmarried mother/father'], col: 'half' },
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+
+    'Business Clearance': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+            { label: 'Business Name', type: 'text', col: 'full' },
+            { label: 'Business Address', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Type of Business', type: 'select', options: ['Sole Proprietorship', 'Partnership', 'Corporation', 'Cooperative'], col: 'half' },
+            { label: 'Nature of Business', type: 'text', col: 'half' },
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+
+    'Barangay ID': {
+      sections: [
+        {
+          fields: [
+            { label: 'First Name', type: 'text', col: 'third' },
+            { label: 'Middle Name', type: 'text', col: 'third' },
+            { label: 'Last Name', type: 'text', col: 'third' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Mobile Number', type: 'text', col: 'half' },
+            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Place of Birth', type: 'text', col: 'half' },
+            { label: 'Precinct Number', type: 'text', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Purpose', type: 'text', col: 'full' },
+          ]
+        },
+        { sectionTitle: 'Contact Person in Case of Emergency' },
+        {
+          fields: [
+            { label: 'Name of Parents / Guardian', type: 'text', col: 'half' },
+            { label: 'Contact Number of Parents / Guardian / Tagapag-alaga', type: 'text', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Address / Tirahan', type: 'text', col: 'full' },
+            { label: 'Relationship', type: 'text', col: 'full' },
+          ]
+        },
+      ]
+    },
+  };
+
+function openModal(docTitle) {
+    const form = docForms[docTitle];
+    if (!form) return;
+
+
+    document.getElementById('modal-title').textContent = docTitle;
+
+    const body = document.getElementById('modal-body');
+    body.innerHTML = '';
+
+    form.sections.forEach(section => {
+      if (section.sectionTitle) {
+        const div = document.createElement('div');
+        div.className = 'modal__section-title';
+        div.textContent = section.sectionTitle;
+        body.appendChild(div);
+        return;
+      }
+
+      const cols = section.fields.map(f => f.col);
+      const allThirds = cols.every(c => c === 'third');
+      const allHalves = cols.every(c => c === 'half');
+
+      const row = document.createElement('div');
+      row.className = allThirds ? 'form-row form-row--3' : allHalves ? 'form-row form-row--2' : 'form-row form-row--mixed';
+
+      section.fields.forEach(field => {
+        const group = document.createElement('div');
+        group.className = 'form-group' + (field.col === 'full' ? ' form-group--full' : '');
+
+        const label = document.createElement('label');
+        label.textContent = field.label;
+        group.appendChild(label);
+
+        let input;
+        if (field.type === 'select') {
+          input = document.createElement('select');
+          field.options.forEach(opt => {
+            const option = document.createElement('option');
+            option.textContent = opt;
+            input.appendChild(option);
+          });
+        } else {
+          input = document.createElement('input');
+          input.type = field.type;
+        }
+        group.appendChild(input);
+        row.appendChild(group);
+      });
+
+      body.appendChild(row);
+    });
+
+
+    const overlay = document.getElementById('modal-overlay');
+    const modal = document.getElementById('doc-modal');
+    overlay.style.display = 'block';
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        overlay.classList.add('active');
+        modal.classList.add('active');
+      });
+    });
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    const modal = document.getElementById('doc-modal');
+    overlay.classList.remove('active');
+    modal.classList.remove('active');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      modal.style.display = 'none';
+    }, 250);
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script> 
+
+{% endblock %}  
