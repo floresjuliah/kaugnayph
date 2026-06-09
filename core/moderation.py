@@ -45,7 +45,6 @@ def contains_bad_words(text: str) -> bool:
 ALLOWED_IMAGE_TYPES = [
     "image/jpeg",
     "image/png",
-    "image/webp",
 ]
 
 
@@ -72,7 +71,7 @@ def moderate_text(text: str) -> dict:
 
     try:
 
-        # LOCAL PROFANITY CHECK FIRST
+        #LOCAL PROFANITY CHECK
 
         if contains_bad_words(text):
 
