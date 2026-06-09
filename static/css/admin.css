@@ -1838,14 +1838,19 @@ EDIT RESIDENT PROFILE PAGE
 
 .case-search-box {
     width: 340px;
-    height: 46px;
+    height: 48px;
     background: #ffffff;
     border: 1px solid #dbe3ef;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     padding: 0 16px;
-    gap: 10px;
+    gap: 12px;
+}
+
+.case-search-box span {
+    color: #94a3b8;
+    font-size: 16px;
 }
 
 .case-search-box input {
@@ -1853,8 +1858,10 @@ EDIT RESIDENT PROFILE PAGE
     outline: none;
     width: 100%;
     font-size: 14px;
+    color: #334155;
     background: transparent;
 }
+
 
 .case-stats {
     display: flex;
@@ -1921,6 +1928,58 @@ EDIT RESIDENT PROFILE PAGE
     border-bottom: 1px solid #e2e8f0 !important;
     font-size: 15px !important;
     color: #334155 !important;
+}
+
+/* CASE STATUS BADGES */
+
+.case-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.status-pending {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.status-review {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.status-resolved {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.status-dismissed {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+/* CASE TYPE BADGES */
+
+.case-type {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.case-type-blotter {
+    background: #F3E8FF;
+    color: #7E22CE;
+}
+
+.case-type-incident {
+    background: #DBEAFE;
+    color: #1D4ED8;
 }
 
 .empty-row {

@@ -138,18 +138,30 @@ def filecomplaint(request):
 def aboutus(request):
     return render(request, 'aboutus.html')
 
-@login_required
-@resident_required
-def tracksub(request):
-    current_user = get_current_user(request)
+# @login_required
+# @resident_required
+# def tracksub(request):
+#     current_user = get_current_user(request)
 
-    complaints = Complaints.objects.filter(
-        complainant_user=current_user
-    ).order_by("-dateadded")
+#     complaints = Complaints.objects.filter(
+#         complainant_user=current_user
+#     ).order_by("-dateadded")
 
-    return render(request, "tracksub.html", {
-        "complaints": complaints
-    })
+#     hearings = ComplaintHearing.objects.select_related(
+#         "complaint",
+#         "hearing_level",
+#         "status"
+#     ).filter(
+#         complaint__complainant_user=current_user
+#     ).order_by("-hearing_date")
+
+#     print("CURRENT USER:", current_user.userid)
+#     print("HEARINGS FOUND:", hearings.count())
+
+#     return render(request, "tracksub.html", {
+#         "complaints": complaints,
+#         "hearings": hearings,
+#     })
 
 def documents(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
@@ -1885,9 +1897,21 @@ def tracksub(request):
         user=current_user
     ).select_related("document_type").order_by("-requested_at")
 
+    hearings = ComplaintHearing.objects.select_related(
+        "complaint",
+        "hearing_level",
+        "status"
+    ).filter(
+        complaint__complainant_user=current_user
+    ).order_by("-hearing_date")
+
+    print("CURRENT USER:", current_user.userid)
+    print("HEARINGS FOUND:", hearings.count())
+
     return render(request, "tracksub.html", {
         "complaints": complaints,
         "document_requests": document_requests,
+        "hearings": hearings,
     })
 
 
