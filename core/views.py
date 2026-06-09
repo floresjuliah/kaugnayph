@@ -1601,6 +1601,7 @@ def admin_announcement_create_view(request):
 @admin_login_required
 def case_records_view(request):
     from django.core.paginator import Paginator
+    import re
 
     search_query = request.GET.get("search", "").strip()
 
@@ -1610,12 +1611,21 @@ def case_records_view(request):
     ).all()
 
     if search_query:
-        complaints = complaints.filter(
+        case_id_match = re.search(r"(\d+)$", search_query)
+        case_id_number = int(case_id_match.group(1)) if case_id_match else None
+
+        search_filter = (
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query) |
             Q(complainee__icontains=search_query) |
-            Q(complaintsid__icontains=search_query)
+            Q(status__icontains=search_query) |
+            Q(complaint_type__type__icontains=search_query)
         )
+
+        if case_id_number is not None:
+            search_filter |= Q(complaintsid=case_id_number)
+
+        complaints = complaints.filter(search_filter)
 
     complaints = complaints.order_by("-dateadded")
 

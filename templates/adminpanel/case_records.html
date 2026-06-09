@@ -35,10 +35,10 @@
             <div class="case-stat">
                 <p>Under Review</p>
                 <h3>{{ under_review_cases|default:"0" }}</h3>
-                </div>
+            </div>
 
             <div class="case-stat">
-                <p>Completed</p>
+                <p>Resolved</p>
                 <h3>{{ completed_cases|default:"0" }}</h3>
             </div>
 
@@ -71,7 +71,15 @@
                     <td>{{ case.case_id }}</td>
 
                     <td>
-                        <span class="case-type {{ case.type_class }}">
+                        <span class="case-type 
+                            {% if case.case_type == 'Blotter Report' %}
+                                case-type-blotter
+                            {% elif case.case_type == 'Incident Report' %}
+                                case-type-incident
+                            {% else %}
+                                {{ case.type_class }}
+                            {% endif %}
+                        ">
                             {{ case.case_type }}
                         </span>
                     </td>
@@ -80,7 +88,19 @@
                     <td>{{ case.date_submitted }}</td>
 
                     <td>
-                        <span class="case-status {{ case.status_class }}">
+                        <span class="case-status 
+                            {% if case.status == 'Pending' %}
+                                status-pending
+                            {% elif case.status == 'Under Review' %}
+                                status-review
+                            {% elif case.status == 'Resolved' %}
+                                status-resolved
+                            {% elif case.status == 'Dismissed' %}
+                                status-dismissed
+                            {% else %}
+                                {{ case.status_class }}
+                            {% endif %}
+                        ">
                             {{ case.status }}
                         </span>
                     </td>
