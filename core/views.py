@@ -183,23 +183,28 @@ def faqs(request):
 
 def contactus(request):
     if request.method == "POST":
-        firstname   = request.POST.get("firstname", "").strip()
-        lastname    = request.POST.get("lastname", "").strip()
-        contactno   = request.POST.get("contactno", "").strip()
-        address     = request.POST.get("address", "").strip()
-        subject     = request.POST.get("messagesubject", "").strip()
-        message     = request.POST.get("message", "").strip()
+        firstname = request.POST.get("firstname", "").strip()
+        lastname  = request.POST.get("lastname", "").strip()
+        contactno = request.POST.get("contactno", "").strip()
+        address   = request.POST.get("address", "").strip()
+        subject   = request.POST.get("messagesubject", "").strip()
+        message   = request.POST.get("message", "").strip()
 
         if not firstname or not lastname or not contactno or not message:
             messages.error(request, "Please fill in all required fields.")
             return render(request, "contactus.html")
 
-        # --- CONTENT MODERATION ---
-        text_to_check = f"{subject} {message}"
-        check = moderate_text(text_to_check)
+        # CONTENT MODERATION 
+        check = moderate_text(f"{subject} {message}")
+        if check["flagged"]:
+            messages.error(
+                request,
+                "Your message contains inappropriate content and could not be submitted. "
+                "Please revise and try again."
+            )
+            return render(request, "contactus.html")
 
         current_user = get_current_user(request)
-
         inquiry = Inquiry.objects.create(
             user=current_user,
             firstname=firstname,
@@ -209,20 +214,13 @@ def contactus(request):
             messagesubject=subject,
             message=message,
             status="New",
-            is_flagged=check["flagged"],
-            flagged_reason=check["reason"],
             created_at=timezone.now(),
         )
 
-        if check["flagged"]:
-            messages.error(
-                request,
-                "Your message contains inappropriate content and could not be submitted. "
-                "Please revise and try again."
-            )
-            return render(request, "contactus.html")
+        # SLA
+        #create_sla("Inquiry", inquiry.cuid)
 
-        messages.success(request, "Your inquiry has been submitted successfully!")
+        messages.success(request, "Your inquiry has been submitted. We will get back to you within 24 hours.")
         return redirect("contactus")
 
     return render(request, "contactus.html")
@@ -1624,19 +1622,10 @@ def admin_announcement_create_view(request):
             created_at=timezone.now()
         )
 
-        messages.success(
-            request,
-            "Announcement created successfully."
-        )
-    
+        messages.success(request, "Announcement created successfully.")
+        return redirect("announcements")   # ← ADD THIS, it's missing
 
-    return render(
-        request,
-        "adminpanel/announcement_create.html",
-        {
-            "user": current_admin,
-        }
-    )
+    return render(request, "adminpanel/announcement_create.html", {"user": current_admin})
 
 # ADMIN CASE RECORDS
 @admin_login_required
