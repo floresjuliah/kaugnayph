@@ -1,4 +1,3 @@
-# core/moderation.py
 import base64
 import openai
 from django.conf import settings
