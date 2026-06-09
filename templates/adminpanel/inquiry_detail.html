@@ -1,0 +1,94 @@
+{% extends "admin_base.html" %}
+
+{% block admin_title %}Inquiry Details{% endblock %}
+
+{% block admin_content %}
+
+<a href="{% url 'admin_inquiries' %}" class="back-link">← Back to Inquiries</a>
+
+<h1 class="detail-title">Inquiry Details</h1>
+
+<div class="inquiry-detail-card">
+    <h2>Resident Information</h2>
+
+    <div class="detail-group">
+        <label>First Name</label>
+        <p>{{ inquiry.firstname|title }}</p>
+    </div>
+
+    <div class="detail-group">
+        <label>Last Name</label>
+        <p>{{ inquiry.lastname|title }}</p>
+    </div>
+
+    <div class="detail-group">
+        <label>Contact Number</label>
+        <p>{{ inquiry.contactno }}</p>
+    </div>
+
+    <div class="detail-group">
+        <label>Address</label>
+        <p>{{ inquiry.address|default:"No address provided" }}</p>
+    </div>
+
+    <div class="detail-group">
+        <label>Subject</label>
+        <p>{{ inquiry.messagesubject|default:"No subject" }}</p>
+    </div>
+
+    <div class="detail-group">
+        <label>Message</label>
+        <div class="message-box">
+            {{ inquiry.message|default:"No message provided." }}
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="detail-group">
+        <label>Status</label>
+        <p>{{ inquiry.status }}</p>
+    </div>
+
+    {% if inquiry.admin_reply %}
+        <div class="detail-group">
+            <label>Saved Reply</label>
+            <div class="message-box">
+                {{ inquiry.admin_reply }}
+            </div>
+        </div>
+
+        {% if inquiry.replied_at %}
+            <div class="detail-group">
+                <label>Replied At</label>
+                <p>{{ inquiry.replied_at|date:"M d, Y, g:i A" }}</p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if inquiry.status != "Replied" %}
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="reply-box-wrapper">
+                <textarea
+                    name="admin_reply"
+                    maxlength="160"
+                    placeholder="Type your reply..."
+                ></textarea>
+
+                <span class="char-count">0/160</span>
+            </div>
+
+            <div class="reply-footer">
+                <p>ⓘ This reply will be saved first. SMS sending can be added after testing.</p>
+
+                <button type="submit" name="action" value="reply">
+                    Save Reply
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+{% endblock %}

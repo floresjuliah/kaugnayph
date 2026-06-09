@@ -2338,3 +2338,57 @@ def case_detail_view(request, complaint_id):
         "admin_users":        admin_users,
     })
 
+#admin inquiry view
+@admin_login_required
+def admin_inquiries_view(request):
+
+    inquiries = Inquiry.objects.all().order_by("-created_at")
+
+    return render(
+        request,
+        "adminpanel/inquiries_list.html",
+        {
+            "inquiries": inquiries,
+            "user": get_current_user(request),
+        }
+    )
+
+#admin inquiry detail
+@admin_login_required
+def admin_inquiry_detail_view(request, cuid):
+
+    try:
+        inquiry = Inquiry.objects.get(cuid=cuid)
+
+    except Inquiry.DoesNotExist:
+        messages.error(request, "Inquiry not found.")
+        return redirect("admin_inquiries")
+
+    current_admin = get_current_user(request)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        admin_reply = request.POST.get("admin_reply", "").strip()
+
+        if action == "reply":
+            if not admin_reply:
+                messages.error(request, "Reply cannot be empty.")
+                return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
+
+            inquiry.admin_reply = admin_reply
+            inquiry.replied_at = timezone.now()
+            inquiry.replied_byuser = current_admin
+            inquiry.status = "Replied"
+            inquiry.save()
+
+            messages.success(request, "Reply saved successfully.")
+            return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
+
+    return render(
+        request,
+        "adminpanel/inquiry_detail.html",
+        {
+            "inquiry": inquiry,
+            "user": current_admin,
+        }
+    )

@@ -2432,3 +2432,182 @@ EDIT RESIDENT PROFILE PAGE
     color: #94a3b8;
     margin-top: 4px;
 }
+
+.admin-page-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 32px;
+}
+
+.admin-table-card {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #d9e2ef;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background: #e8eef9;
+}
+
+.admin-table th {
+    padding: 16px 18px;
+    text-align: left;
+    color: #52657f;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.admin-table td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5ebf3;
+    color: #1f2937;
+}
+
+.table-action-link {
+    color: #006bff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.table-action-link:hover {
+    text-decoration: underline;
+}
+
+.empty-table-message {
+    text-align: center;
+    color: #6b7280;
+    padding: 28px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #64748b;
+    text-decoration: none;
+    margin-bottom: 14px;
+    font-size: 16px;
+}
+
+.detail-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 24px;
+}
+
+.inquiry-detail-card {
+    background: #ffffff;
+    border: 1px solid #d9e2ef;
+    border-radius: 12px;
+    padding: 36px 40px;
+}
+
+.inquiry-detail-card h2 {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: #111827;
+}
+
+.detail-group {
+    margin-bottom: 24px;
+}
+
+.detail-group label {
+    display: block;
+    color: #52657f;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.detail-group p {
+    margin: 0;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.message-box {
+    border: 1px solid #d9e2ef;
+    border-radius: 8px;
+    padding: 16px;
+    color: #1f2937;
+    line-height: 1.6;
+    background: #fbfdff;
+}
+
+.inquiry-detail-card hr {
+    border: none;
+    border-top: 1px solid #e5ebf3;
+    margin: 34px 0;
+}
+
+.reply-box-wrapper {
+    position: relative;
+}
+
+.reply-box-wrapper textarea {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid #d9e2ef;
+    border-radius: 8px;
+    padding: 14px 70px 14px 16px;
+    resize: vertical;
+    font-size: 15px;
+    outline: none;
+}
+
+.char-count {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    color: #94a3b8;
+}
+
+.reply-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+}
+
+.reply-footer p {
+    margin: 0;
+    color: #52657f;
+}
+
+.reply-footer button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.status-badge{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.status-pending{
+    background:#fff3cd;
+    color:#856404;
+}
+
+.status-resolved{
+    background:#d4edda;
+    color:#155724;
+}

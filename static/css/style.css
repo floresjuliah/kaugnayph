@@ -2563,3 +2563,137 @@ footer ul li a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.contact-hero {
+    height: 280px;
+    background: linear-gradient(rgba(20, 35, 55, 0.45), rgba(20, 35, 55, 0.45)),
+                url("/static/images/barangay-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact-hero-overlay {
+    text-align: center;
+    color: white;
+    max-width: 850px;
+    padding: 20px;
+}
+
+.contact-hero-overlay h1 {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.hero-line {
+    width: 170px;
+    height: 4px;
+    background: #f6b828;
+    margin: 0 auto 18px;
+    border-radius: 10px;
+}
+
+.contact-hero-overlay p {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.contact-section {
+    background: #eef8ff;
+    padding: 70px 0 90px;
+}
+
+.contact-card {
+    width: 82%;
+    max-width: 1050px;
+    margin: 0 auto;
+    background: white;
+    padding: 36px;
+    border-radius: 2px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.contact-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    color: #153a73;
+}
+
+.contact-title h2 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.contact-icon {
+    font-size: 34px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    border: 1px solid #7d7d7d;
+    padding: 13px 14px;
+    font-size: 14px;
+    outline: none;
+}
+
+.contact-form textarea {
+    height: 150px;
+    resize: vertical;
+}
+
+.submit-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.submit-row button {
+    background: #2f7de1;
+    color: white;
+    border: none;
+    padding: 12px 42px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.contact-alert {
+    background: #e8f3ff;
+    color: #153a73;
+    padding: 12px 14px;
+    border-left: 4px solid #2f7de1;
+    margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-hero-overlay h1 {
+        font-size: 32px;
+    }
+
+    .contact-card {
+        width: 90%;
+        padding: 24px;
+    }
+}

@@ -143,4 +143,16 @@ urlpatterns = [
         name='admin_document_request_detail'
     ),
 
+    path(
+        'admin/inquiries/',
+        views.admin_inquiries_view,
+        name='admin_inquiries'
+    ),
+
+    path(
+        'admin/inquiries/<int:cuid>/',
+        views.admin_inquiry_detail_view,
+        name='admin_inquiry_detail'
+    ),
+
 ]

@@ -1,0 +1,66 @@
+{% extends "admin_base.html" %}
+
+{% block admin_title %}Inquiries{% endblock %}
+
+{% block admin_content %}
+
+<div class="admin-page-header">
+    <h1>Inquiries</h1>
+</div>
+
+<div class="admin-table-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Resident</th>
+                <th>Contact Number</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Received At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for inquiry in inquiries %}
+            <tr>
+                <td>{{ inquiry.firstname }} {{ inquiry.lastname }}</td>
+
+                <td>{{ inquiry.contactno }}</td>
+
+                <td>{{ inquiry.messagesubject|default:"No subject" }}</td>
+
+                <td>
+                    {% if inquiry.status == "Replied" %}
+                        <span class="status-badge status-resolved">
+                            Replied
+                        </span>
+                    {% else %}
+                        <span class="status-badge status-pending">
+                            New
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>{{ inquiry.created_at|date:"M d, g:i A" }}</td>
+
+                <td>
+                    <a href="{% url 'admin_inquiry_detail' inquiry.cuid %}"
+                       class="table-action-link">
+                        View
+                    </a>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="6" class="empty-table-message">
+                    No inquiries found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
