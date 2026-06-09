@@ -42,6 +42,8 @@ from .decorators import (
     chairman_required,
 )
 
+from core.moderation import moderate_text, moderate_image
+
 
 # PUBLIC PAGES
 
@@ -64,54 +66,61 @@ def filecomplaint(request):
 
         if not complaint_type_id:
             messages.error(request, "Please select a complaint type.")
-            return render(request, "filecomplaint.html", {
-                "complaint_types": complaint_types
-            })
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
         if not complainee:
             messages.error(request, "Name of complainee is required.")
-            return render(request, "filecomplaint.html", {
-                "complaint_types": complaint_types
-            })
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
         if not title:
             messages.error(request, "Title is required.")
-            return render(request, "filecomplaint.html", {
-                "complaint_types": complaint_types
-            })
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
         if not description:
             messages.error(request, "Description is required.")
-            return render(request, "filecomplaint.html", {
-                "complaint_types": complaint_types
-            })
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
         try:
             complaint_type = ComplaintType.objects.get(ctid=complaint_type_id)
         except ComplaintType.DoesNotExist:
             messages.error(request, "Invalid complaint type selected.")
-            return render(request, "filecomplaint.html", {
-                "complaint_types": complaint_types
-            })
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
         current_user = get_current_user(request)
 
+        #FILE VALIDATION & SAVE
         file_path = None
-
         if evidence:
             ok, err = validate_upload(evidence)
-
             if not ok:
                 messages.error(request, err)
-                return render(request, "filecomplaint.html", {
-                    "complaint_types": complaint_types
-                })
+                return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
             file_path = default_storage.save(
                 "complaints/" + evidence.name,
                 ContentFile(evidence.read())
             )
 
+        #CONTENT MODERATION
+        text_check = moderate_text(f"{title} {description} {complainee}")
+
+        image_check = {"flagged": False, "reason": None}
+        if evidence and evidence.content_type.startswith("image/"):
+            evidence.seek(0)  # Reset since evidence.read() was already called above
+            image_check = moderate_image(evidence)
+
+        is_flagged = text_check["flagged"] or image_check["flagged"]
+        flag_reason = text_check["reason"] or image_check["reason"]
+
+        if is_flagged:
+            messages.error(
+                request,
+                "Your complaint contains inappropriate content and could not be submitted. "
+                "Please revise and try again."
+            )
+            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+
+        # --- SAVE (only reaches here if clean) ---
         Complaints.objects.create(
             complaint_type=complaint_type,
             complainant_user=current_user,
@@ -121,19 +130,21 @@ def filecomplaint(request):
             description=description,
             incident_date=incident_date or None,
             file_path=file_path,
-            status="Pending"
+            status="Pending",
+            is_flagged=False,
+            flagged_reason=None,
         )
 
         messages.success(
             request,
             "Complaint submitted successfully. You can track its status through Track Submissions."
         )
-
         return redirect("tracksub")
 
     return render(request, "filecomplaint.html", {
         "complaint_types": complaint_types
     })
+
 
 def aboutus(request):
     return render(request, 'aboutus.html')
@@ -171,7 +182,50 @@ def faqs(request):
     return render(request, 'faqs.html')
 
 def contactus(request):
-    return render(request, 'contactus.html')
+    if request.method == "POST":
+        firstname   = request.POST.get("firstname", "").strip()
+        lastname    = request.POST.get("lastname", "").strip()
+        contactno   = request.POST.get("contactno", "").strip()
+        address     = request.POST.get("address", "").strip()
+        subject     = request.POST.get("messagesubject", "").strip()
+        message     = request.POST.get("message", "").strip()
+
+        if not firstname or not lastname or not contactno or not message:
+            messages.error(request, "Please fill in all required fields.")
+            return render(request, "contactus.html")
+
+        # --- CONTENT MODERATION ---
+        text_to_check = f"{subject} {message}"
+        check = moderate_text(text_to_check)
+
+        current_user = get_current_user(request)
+
+        inquiry = Inquiry.objects.create(
+            user=current_user,
+            firstname=firstname,
+            lastname=lastname,
+            contactno=contactno,
+            address=address,
+            messagesubject=subject,
+            message=message,
+            status="New",
+            is_flagged=check["flagged"],
+            flagged_reason=check["reason"],
+            created_at=timezone.now(),
+        )
+
+        if check["flagged"]:
+            messages.error(
+                request,
+                "Your message contains inappropriate content and could not be submitted. "
+                "Please revise and try again."
+            )
+            return render(request, "contactus.html")
+
+        messages.success(request, "Your inquiry has been submitted successfully!")
+        return redirect("contactus")
+
+    return render(request, "contactus.html")
 
 def announcements_view(request):
     announcements = Announcements.objects.all().order_by("-announcement_id")
@@ -1374,93 +1428,59 @@ def admin_announcement_edit_view(request, announcement_id):
 
     if request.method == "POST":
 
-        announcement.title = request.POST.get(
-            "title",
-            ""
-        ).strip()
-
-        announcement.content = request.POST.get(
-            "content",
-            ""
-        ).strip()
-
-        announcement.send_sms = (
-            request.POST.get("send_sms") == "on"
-        )
+        announcement.title = request.POST.get("title", "").strip()
+        announcement.content = request.POST.get("content", "").strip()
+        announcement.send_sms = (request.POST.get("send_sms") == "on")
 
         if not announcement.title:
-
-            messages.error(
-                request,
-                "Title is required."
-            )
-
-            return render(
-                request,
-                "adminpanel/announcement_edit.html",
-                {
-                    "announcement": announcement,
-                    "user": get_current_user(request),
-                }
-            )
+            messages.error(request, "Title is required.")
+            return render(request, "adminpanel/announcement_edit.html", {
+                "announcement": announcement,
+                "user": get_current_user(request),
+            })
 
         if not announcement.content:
-
-            messages.error(
-                request,
-                "Content is required."
-            )
-
-            return render(
-                request,
-                "adminpanel/announcement_edit.html",
-                {
-                    "announcement": announcement,
-                    "user": get_current_user(request),
-                }
-            )
+            messages.error(request, "Content is required.")
+            return render(request, "adminpanel/announcement_edit.html", {
+                "announcement": announcement,
+                "user": get_current_user(request),
+            })
 
         # FILE UPLOAD
-        uploaded_file = request.FILES.get(
-            "attachment"
-        )
+        uploaded_file = request.FILES.get("attachment")
 
         if uploaded_file:
-
-            ok, err = validate_upload(
-                uploaded_file
-            )
+            ok, err = validate_upload(uploaded_file)
 
             if not ok:
-
-                messages.error(
-                    request,
-                    err
-                )
-
-                return render(
-                    request,
-                    "adminpanel/announcement_edit.html",
-                    {
-                        "announcement": announcement,
-                        "user": get_current_user(request),
-                    }
-                )
+                messages.error(request, err)
+                return render(request, "adminpanel/announcement_edit.html", {
+                    "announcement": announcement,
+                    "user": get_current_user(request),
+                })
 
             file_path = default_storage.save(
                 "announcements/" + uploaded_file.name,
                 ContentFile(uploaded_file.read())
             )
-
             announcement.file_path = file_path
+
+        # --- CONTENT MODERATION ---
+        text_check = moderate_text(f"{announcement.title} {announcement.content}")
+        if text_check["flagged"]:
+            messages.error(
+                request,
+                f"Announcement content was flagged for: {text_check['reason']}. "
+                "Please review and revise before saving."
+            )
+            return render(request, "adminpanel/announcement_edit.html", {
+                "announcement": announcement,
+                "user": get_current_user(request),
+            })
 
         announcement.save()
 
-        messages.success(
-            request,
-            "Announcement updated successfully."
-        )
-
+        messages.success(request, "Announcement updated successfully.")
         return redirect(
             "admin_announcement_detail",
             announcement_id=announcement.announcement_id
@@ -1560,6 +1580,16 @@ def admin_announcement_create_view(request):
                 ContentFile(uploaded_file.read())
             )
 
+        #CONTENT MODERATION
+        text_check = moderate_text(f"{title} {content}")
+        if text_check["flagged"]:
+            messages.error(
+                request,
+                f"Announcement content was flagged for: {text_check['reason']}. "
+                "Please review and revise before posting."
+            )
+            return render(request, "adminpanel/announcement_create.html", {"user": current_admin})
+
         announcement = Announcements.objects.create(
             title=title,
             content=content,
@@ -1598,8 +1628,7 @@ def admin_announcement_create_view(request):
             request,
             "Announcement created successfully."
         )
-
-        return redirect("announcements")
+    
 
     return render(
         request,
@@ -1821,6 +1850,17 @@ def document_request_view(request):
                 ContentFile(uploaded_file.read())
             )
 
+        #CONTENT MODERATION
+        text_to_check = purpose  # purpose is the main free-text field
+        text_check = moderate_text(text_to_check)
+
+        if text_check["flagged"]:
+            messages.error(
+                request,
+                "Your request contains inappropriate content and could not be submitted."
+            )
+            return render(request, "documents.html", {"document_types": document_types})
+
         #Create DocumentRequest
         doc_request = DocumentRequests.objects.create(
             user=current_user,
@@ -1857,6 +1897,7 @@ def document_request_view(request):
             "Document request submitted successfully. You can track its status under Track Submissions."
         )
         return redirect("tracksub")
+    
 
     return render(request, "documents.html", {"document_types": document_types})
 
