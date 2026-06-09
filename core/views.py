@@ -17,7 +17,7 @@ from django.db.models import Q
 from core.utils import validate_upload
 
 from .models import (
-    Users, UserTypes, Settings, Roles, Positions,
+    Inquiry, Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
     OTP, Complaints, ComplaintType,
