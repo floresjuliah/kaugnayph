@@ -229,6 +229,8 @@ class DocumentRequests(models.Model):
         blank=True,
         null=True
     )
+    is_flagged = models.BooleanField(default=False)
+    flagged_reason = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'DocumentRequests'
@@ -293,6 +295,8 @@ class Complaints(models.Model):
         blank=True,
         null=True
     )
+    is_flagged = models.BooleanField(default=False)
+    flagged_reason = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'Complaints'
@@ -413,6 +417,8 @@ class Announcements(models.Model):
     posted_by = models.ForeignKey(Users, models.CASCADE, db_column='posted_by', blank=True, null=True)
     send_sms = models.BooleanField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=False)
+    flagged_reason = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'Announcements'
@@ -451,6 +457,8 @@ class Inquiry(models.Model):
         null=True
     )
     created_at = models.DateTimeField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=False)
+    flagged_reason = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'Inquiry'
