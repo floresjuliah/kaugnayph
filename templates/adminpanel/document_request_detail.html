@@ -1,0 +1,132 @@
+{% extends 'admin_base.html' %}
+
+{% block admin_title %}Document Request Detail{% endblock %}
+
+{% block admin_content %}
+
+<div class="doc-detail-page">
+
+    <a href="{% url 'admin_document_requests' %}" class="doc-back-link">
+        ← Back to Requests
+    </a>
+
+    <h1 class="doc-detail-title">
+        Document Request:<br>
+        {{ doc_id }}
+    </h1>
+
+    <div class="doc-detail-card">
+
+        <div class="doc-detail-header">
+            <h2>Request Details: {{ doc_id }}</h2>
+
+            {% if doc_request.status != "Completed" %}
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit"
+                        name="action"
+                        value="complete"
+                        class="mark-complete-btn">
+                    Mark as Completed
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="doc-detail-info">
+            <p>
+                <strong>Document Type:</strong>
+                {{ doc_request.document_type.name }}
+            </p>
+
+            <p>
+                <strong>Request Date:</strong>
+                {{ doc_request.requested_at|date:"F d, Y" }}
+            </p>
+
+            <span class="application-badge">
+                Application Type: {{ doc_request.request_mode }} Application
+            </span>
+        </div>
+
+        <hr>
+
+        <h3 class="section-title">Resident Information</h3>
+
+        <div class="resident-info-grid">
+
+            <div class="resident-info-left">
+
+                <div class="info-item">
+                    <label>Full Name</label>
+                    <p>{{ resident.firstname }} {{ resident.lastname }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Address</label>
+                    <p>{{ resident.address|default:"Not provided" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Birthday</label>
+                    <p>{{ resident.birthdate|date:"m/d/Y"|default:"Not provided" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Place of Birth</label>
+                    <p>{{ resident.place_of_birth|default:"Not provided" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Sex</label>
+                    <p>{{ resident.sex|default:"Not provided" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Contact Number</label>
+                    <p>{{ resident.contactno|default:"Not provided" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>Purpose</label>
+                    <p>{{ doc_request.purpose|default:"Not provided" }}</p>
+                </div>
+
+            </div>
+
+            <div class="resident-info-right">
+
+                {% for value in field_values %}
+                    <div class="info-item">
+                        <label>{{ value.document_field.field_label }}</label>
+                        <p>{{ value.field_value|default:"Not provided" }}</p>
+                    </div>
+                {% empty %}
+                    <div class="info-item">
+                        <label>Additional Details</label>
+                        <p>No additional fields submitted.</p>
+                    </div>
+                {% endfor %}
+
+                <div class="file-box">
+                    <div class="file-icon">▱</div>
+
+                    {% if doc_request.uploaded_file %}
+                        <a href="{{ doc_request.uploaded_file.url }}" target="_blank">
+                            Click to view/download attached files
+                        </a>
+                    {% else %}
+                        <p>Click to view/download attached files</p>
+                        <small>No attached file</small>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
