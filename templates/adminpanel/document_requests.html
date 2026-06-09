@@ -1,0 +1,165 @@
+{% extends 'admin_base.html' %}
+
+{% block admin_title %}Document Requests{% endblock %}
+
+{% block admin_content %}
+
+<div class="doc-page">
+
+    <h1 class="doc-title">Document Requests</h1>
+
+    <div class="doc-top-row">
+
+        <form method="GET" class="doc-search-box">
+            <span>⌕</span>
+            <input
+                type="text"
+                name="search"
+                value="{{ search_query }}"
+                placeholder="Search resident, document, or request ID"
+            >
+            <input type="hidden" name="status" value="{{ status_filter }}">
+        </form>
+
+        <form method="GET" class="doc-filter-form">
+
+            <input type="hidden"
+                name="search"
+                value="{{ search_query }}">
+
+            <select name="document_type"
+                    class="doc-filter-select"
+                    onchange="this.form.submit()">
+
+                <option value="All"
+                    {% if document_type_filter == "All" %}selected{% endif %}>
+                    All Documents
+                </option>
+
+                {% for document_type in document_types %}
+                    <option value="{{ document_type.dtid }}"
+                        {% if document_type_filter == document_type.dtid|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ document_type.name }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+        <div class="doc-stats">
+            <div class="doc-stat">
+                <p>Online Applications</p>
+                <h3>{{ total|default:"0" }}</h3>
+            </div>
+
+            <div class="doc-stat">
+                <p>Pending</p>
+                <h3>{{ pending|default:"0" }}</h3>
+            </div>
+
+            <div class="doc-stat">
+                <p>Processing</p>
+                <h3>{{ processing|default:"0" }}</h3>
+            </div>
+
+            <div class="doc-stat">
+                <p>Completed</p>
+                <h3>{{ completed|default:"0" }}</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="doc-table-card">
+
+        <table class="doc-table">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Name</th>
+                    <th>Document Type</th>
+                    <th>Date Requested</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.doc_id }}</td>
+
+                    <td>
+                        {{ record.obj.user.firstname }}
+                        {{ record.obj.user.lastname }}
+                    </td>
+
+                    <td>{{ record.obj.document_type.name }}</td>
+
+                    <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
+
+                    <td>
+                        <span class="doc-status {{ record.status|lower }}">
+                            {{ record.status }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'admin_document_request_detail' record.obj.drid %}" class="doc-view-link">
+                            View
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-row">
+                        No document requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="doc-pagination">
+            <p>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                of {{ page_obj.paginator.count }} requests
+            </p>
+
+            <div class="doc-pages">
+
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                        Previous
+                    </a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <a class="active">{{ num }}</a>
+                    {% else %}
+                        <a href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="next" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                        Next
+                    </a>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

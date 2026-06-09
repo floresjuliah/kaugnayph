@@ -1914,6 +1914,8 @@ def admin_document_requests_view(request):
     if status_filter != "All":
         doc_requests = doc_requests.filter(status=status_filter)
 
+    document_type_filter = request.GET.get("document_type", "All").strip()
+    
     doc_requests = doc_requests.order_by("-requested_at")
 
     #Attach generated doc IDs
@@ -2281,3 +2283,4 @@ def case_detail_view(request, complaint_id):
         "assigned_officials": assigned_officials,
         "admin_users":        admin_users,
     })
+
