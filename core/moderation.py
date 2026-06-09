@@ -1,95 +1,251 @@
 import base64
-import openai
+import logging
+
+from openai import OpenAI
 from django.conf import settings
 
-openai.api_key = settings.OPENAI_API_KEY
 
+# LOGGER
+
+logger = logging.getLogger(__name__)
+
+
+# OPENAI CLIENT
+
+client = OpenAI(
+    api_key=settings.OPENAI_API_KEY
+)
+
+
+# LOCAL FILIPINO PROFANITY FILTER
+
+BAD_WORDS = [
+    "putangina",
+    "gago",
+    "bobo",
+    "ulol",
+    "tanga",
+    "bwisit",
+]
+
+
+def contains_bad_words(text: str) -> bool:
+
+    text = text.lower()
+
+    for word in BAD_WORDS:
+        if word in text:
+            return True
+
+    return False
+
+
+# ALLOWED IMAGE TYPES
+
+ALLOWED_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+]
+
+
+# TEXT MODERATION
 
 def moderate_text(text: str) -> dict:
     """
-    Moderate a text string.
-    Returns: { "flagged": bool, "reason": str | None }
+    Moderate text content.
+
+    Returns:
+    {
+        "flagged": bool,
+        "reason": str | None
+    }
     """
+
     if not text or not text.strip():
-        return {"flagged": False, "reason": None}
+        return {
+            "flagged": False,
+            "reason": None
+        }
+
+    text = text.strip()
 
     try:
-        response = openai.moderations.create(
+
+        # LOCAL PROFANITY CHECK FIRST
+
+        if contains_bad_words(text):
+
+            return {
+                "flagged": True,
+                "reason": "Filipino profanity detected"
+            }
+
+        # OPENAI MODERATION
+        response = client.moderations.create(
             model="omni-moderation-latest",
-            input=text.strip()
+            input=text
         )
+
         result = response.results[0]
 
         if result.flagged:
-            cats = result.categories
-            triggered = []
+
+            categories = result.categories
+
             checks = {
-                "harassment":           getattr(cats, "harassment",           False),
-                "harassment/threatening": getattr(cats, "harassment_threatening", False),
-                "hate":                 getattr(cats, "hate",                 False),
-                "hate/threatening":     getattr(cats, "hate_threatening",     False),
-                "self-harm":            getattr(cats, "self_harm",            False),
-                "self-harm/intent":     getattr(cats, "self_harm_intent",     False),
-                "sexual":               getattr(cats, "sexual",               False),
-                "violence":             getattr(cats, "violence",             False),
-                "violence/graphic":     getattr(cats, "violence_graphic",     False),
+                "harassment":
+                    getattr(categories, "harassment", False),
+
+                "harassment/threatening":
+                    getattr(categories, "harassment_threatening", False),
+
+                "hate":
+                    getattr(categories, "hate", False),
+
+                "hate/threatening":
+                    getattr(categories, "hate_threatening", False),
+
+                "self-harm":
+                    getattr(categories, "self_harm", False),
+
+                "self-harm/intent":
+                    getattr(categories, "self_harm_intent", False),
+
+                "sexual":
+                    getattr(categories, "sexual", False),
+
+                "violence":
+                    getattr(categories, "violence", False),
+
+                "violence/graphic":
+                    getattr(categories, "violence_graphic", False),
             }
-            triggered = [k for k, v in checks.items() if v]
+
+            triggered = [
+                key for key, value in checks.items()
+                if value
+            ]
+
             return {
                 "flagged": True,
-                "reason": ", ".join(triggered) if triggered else "policy violation"
+                "reason":
+                    ", ".join(triggered)
+                    if triggered
+                    else "policy violation"
             }
 
-        return {"flagged": False, "reason": None}
+        return {
+            "flagged": False,
+            "reason": None
+        }
 
     except Exception as e:
-        # If OpenAI is down, fail OPEN (don't block the user)
-        print(f"[MODERATION ERROR - text] {e}")
-        return {"flagged": False, "reason": None}
+
+        logger.error(f"[TEXT MODERATION ERROR] {e}")
+
+        # FAIL OPEN
+        # Allow the user if moderation fails
+
+        return {
+            "flagged": False,
+            "reason": None
+        }
 
 
+# IMAGE MODERATION
 def moderate_image(image_file) -> dict:
     """
-    Moderate an uploaded image file (Django InMemoryUploadedFile).
-    Returns: { "flagged": bool, "reason": str | None }
-    """
-    try:
-        image_data = image_file.read()
-        image_file.seek(0)  # Reset so it can still be saved afterward
-        b64 = base64.standard_b64encode(image_data).decode("utf-8")
-        mime = image_file.content_type  # e.g. "image/jpeg"
+    Moderate uploaded image files.
 
-        response = openai.moderations.create(
+    Returns:
+    {
+        "flagged": bool,
+        "reason": str | None
+    }
+    """
+
+    try:
+
+        # VALIDATE IMAGE TYPE
+        if image_file.content_type not in ALLOWED_IMAGE_TYPES:
+
+            return {
+                "flagged": True,
+                "reason": "Unsupported image type"
+            }
+
+        # READ IMAGE
+        image_data = image_file.read()
+
+        # IMPORTANT:
+        # Reset pointer so Django can still save it later
+
+        image_file.seek(0)
+
+        # CONVERT TO BASE64
+        b64 = base64.b64encode(image_data).decode("utf-8")
+
+        # OPENAI IMAGE MODERATION
+        response = client.moderations.create(
             model="omni-moderation-latest",
-            input=[{
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:{mime};base64,{b64}"
+            input=[
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url":
+                            f"data:{image_file.content_type};base64,{b64}"
+                    }
                 }
-            }]
+            ]
         )
+
         result = response.results[0]
 
         if result.flagged:
-            cats = result.categories
+
+            categories = result.categories
+
             checks = {
-                "harassment":           getattr(cats, "harassment",           False),
-                "harassment/threatening": getattr(cats, "harassment_threatening", False),
-                "hate":                 getattr(cats, "hate",                 False),
-                "hate/threatening":     getattr(cats, "hate_threatening",     False),
-                "self-harm":            getattr(cats, "self_harm",            False),
-                "sexual":               getattr(cats, "sexual",               False),
-                "violence":             getattr(cats, "violence",             False),
-                "violence/graphic":     getattr(cats, "violence_graphic",     False),
+                "sexual":
+                    getattr(categories, "sexual", False),
+
+                "violence":
+                    getattr(categories, "violence", False),
+
+                "violence/graphic":
+                    getattr(categories, "violence_graphic", False),
+
+                "hate":
+                    getattr(categories, "hate", False),
             }
-            triggered = [k for k, v in checks.items() if v]
+
+            triggered = [
+                key for key, value in checks.items()
+                if value
+            ]
+
             return {
                 "flagged": True,
-                "reason": ", ".join(triggered) if triggered else "policy violation"
+                "reason":
+                    ", ".join(triggered)
+                    if triggered
+                    else "inappropriate image detected"
             }
 
-        return {"flagged": False, "reason": None}
+        return {
+            "flagged": False,
+            "reason": None
+        }
 
     except Exception as e:
-        print(f"[MODERATION ERROR - image] {e}")
-        return {"flagged": False, "reason": None}
+
+        logger.error(f"[IMAGE MODERATION ERROR] {e}")
+
+        # FAIL OPEN
+        # Allow upload if moderation API fails
+
+        return {
+            "flagged": False,
+            "reason": None
+        }
