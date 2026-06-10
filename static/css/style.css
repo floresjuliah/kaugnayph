@@ -2697,3 +2697,110 @@ footer ul li a:hover {
         padding: 24px;
     }
 }
+
+/* ── INFO SECTION ── */
+.info-section {
+  background: linear-gradient(to top, #ffffff, #F1F9FF);  
+  padding: 60px 20px;
+}
+
+.info-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  align-items: stretch;
+}
+
+/* ── INFO CARD BASE ── */
+.info-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  border: 1px solid #e0e4ee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ── DIRECTORY CARD ── */
+.info-card--directory {
+  min-width: 380px;
+  flex-shrink: 0;
+}
+
+.info-card--directory h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.directory-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.directory-role {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.directory-name {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 4px 8px;
+}
+
+.directory-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 8px;
+}
+
+.directory-list li {
+  font-size: 0.85rem;
+  color: #555;
+  padding: 2px 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  flex: 1;
+}
+
+.info-card--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.info-card--center h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2e5a;
+  margin: 4px 0 0;
+}
+
+.info-card--center p {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .info-container {
+    flex-direction: column;
+  }
+  .info-card--directory {
+    width: 100%;
+  }
+}
