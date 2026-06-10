@@ -29,4 +29,140 @@
   <div class="profile-header__divider"></div>
 </section>
 
+<!-- PROFILE CONTENT -->
+<section class="profile-content">
+  <div class="profile-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="profile-left">
+
+      <!-- RECENT COMPLAINTS -->
+      <div class="profile-card">
+        <div class="profile-card__header">
+          <h2>Recent Complaints</h2>
+          <a href="{% url 'tracksub' %}" class="profile-card__link">View all →</a>
+        </div>
+
+        {% if recent_complaints %}
+          {% for complaint in recent_complaints %}
+          <div class="profile-item">
+            <div class="profile-item__icon profile-item__icon--complaint">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+              </svg>
+            </div>
+            <div class="profile-item__info">
+              <p class="profile-item__title">{{ complaint.title }}</p>
+              <p class="profile-item__date">{{ complaint.created_at|timesince }} ago</p>
+            </div>
+            <span class="profile-status profile-status--{{ complaint.status|lower }}">
+              {{ complaint.status }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="profile-empty">
+            <p>No complaints filed yet.</p>
+            <a href="{% url 'filecomplaint' %}">File your first complaint →</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- RECENT REQUESTS -->
+      <div class="profile-card">
+        <div class="profile-card__header">
+          <h2>Recent Document Requests</h2>
+          <a href="{% url 'tracksub' %}" class="profile-card__link">View all →</a>
+        </div>
+
+        {% if recent_requests %}
+          {% for req in recent_requests %}
+          <div class="profile-item">
+            <div class="profile-item__icon profile-item__icon--doc">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="profile-item__info">
+              <p class="profile-item__title">{{ req.document_type }}</p>
+              <p class="profile-item__date">{{ req.requested_at|timesince }} ago</p>
+            </div>
+            <span class="profile-status profile-status--{{ req.status|lower }}">
+              {{ req.status }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="profile-empty">
+            <p>No document requests yet.</p>
+            <a href="{% url 'documents' %}">Request a document →</a>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="profile-right">
+
+      <!-- MOST RECENT ANNOUNCEMENT -->
+      <div class="profile-card">
+        <div class="profile-card__header">
+          <h2>Latest Announcement</h2>
+          <a href="{% url 'announcementslist' %}" class="profile-card__link">View all →</a>
+        </div>
+
+        {% if latest_announcement %}
+        <div class="profile-announcement">
+          <span class="profile-announcement__badge">
+            {{ latest_announcement.category.name|default:"General" }}
+          </span>
+          <h3 class="profile-announcement__title">{{ latest_announcement.title }}</h3>
+          <p class="profile-announcement__text">{{ latest_announcement.content|truncatewords:25 }}</p>
+          <p class="profile-announcement__time">{{ latest_announcement.created_at|timesince }} ago</p>
+        </div>
+        {% else %}
+          <div class="profile-empty">
+            <p>No announcements yet.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ACTIVE COMPLAINTS -->
+      <div class="profile-card">
+        <div class="profile-card__header">
+          <h2>Active Complaints</h2>
+        </div>
+
+        {% if active_complaints %}
+          {% for complaint in active_complaints %}
+          <div class="profile-item">
+            <div class="profile-item__icon profile-item__icon--complaint">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4m0 4h.01"/>
+              </svg>
+            </div>
+            <div class="profile-item__info">
+              <p class="profile-item__title">{{ complaint.title }}</p>
+              <p class="profile-item__date">{{ complaint.dateadded|timesince }} ago</p>
+            </div>
+            <span class="profile-status profile-status--{{ complaint.status|lower }}">
+              {{ complaint.status }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="profile-empty">
+            <p>No active complaints.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

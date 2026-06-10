@@ -1147,6 +1147,34 @@ def resident_records_view(request):
         "sms_count": Settings.objects.filter(receive_sms=True).count(),
     })
 
+# RESIDENT PROFILE
+@login_required
+@resident_required
+def residentprofile(request):
+    current_user = get_current_user(request)
+
+    recent_complaints = Complaints.objects.filter(
+        complainant_user=current_user
+    ).order_by('-dateadded')[:3]
+
+    active_complaints = Complaints.objects.filter(
+        complainant_user=current_user
+    ).exclude(
+        status__in=['Resolved', 'Dismissed']
+    ).order_by('-dateadded')[:3]
+
+    recent_requests = DocumentRequests.objects.filter(
+        user=current_user
+    ).select_related('document_type').order_by('-requested_at')[:3]
+
+    latest_announcement = Announcements.objects.order_by('-announcement_id').first()
+
+    return render(request, 'residentprofile.html', {
+        'recent_complaints': recent_complaints,
+        'active_complaints': active_complaints,
+        'recent_requests': recent_requests,
+        'latest_announcement': latest_announcement,
+    })
 
 @admin_login_required
 @permission_required('view_residents')
