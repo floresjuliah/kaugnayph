@@ -60,6 +60,8 @@
     <article
       class="ann-card"
       style="cursor:pointer;"
+      data-id="{{ announcement.announcement_id }}"
+      data-my-rating="{{ announcement.my_rating|default:0 }}"
       data-category="{{ announcement.category.name|default:'general'|lower }}"
       data-title="{{ announcement.title|escapejs }}"
       data-content="{{ announcement.content|escapejs }}"
@@ -147,10 +149,15 @@
       <div class="ann-card-footer">
 
         <div class="ann-actions">
-          
-          <button class="ann-action-btn" title="Feedback" onclick="event.stopPropagation(); openFeedback(this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13.7299 3.50989L15.4899 7.02989C15.7299 7.51989 16.3699 7.98989 16.9099 8.07989L20.0999 8.60989C22.1399 8.94989 22.6199 10.4299 21.1499 11.8899L18.6699 14.3699C18.2499 14.7899 18.0199 15.5999 18.1499 16.1799L18.8599 19.2499C19.4199 21.6799 18.1299 22.6199 15.9799 21.3499L12.9899 19.5799C12.4499 19.2599 11.5599 19.2599 11.0099 19.5799L8.01991 21.3499C5.87991 22.6199 4.57991 21.6699 5.13991 19.2499L5.84991 16.1799C5.97991 15.5999 5.74991 14.7899 5.32991 14.3699L2.84991 11.8899C1.38991 10.4299 1.85991 8.94989 3.89991 8.60989L7.08991 8.07989C7.61991 7.98989 8.25991 7.51989 8.49991 7.02989L10.2599 3.50989C11.2199 1.59989 12.7799 1.59989 13.7299 3.50989Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <button class="ann-action-btn" title="Feedback"
+            onclick="event.stopPropagation();
+            {% if is_resident %}openFeedback(this){% else %}alert('Please log in as a resident to leave feedback.'){% endif %}">
+
+            <svg width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </button>
 
@@ -323,11 +330,27 @@ document.querySelectorAll('.ann-tab').forEach(tab => {
 });
 
 // FEEDBACK MODAL
+let currentAnnouncementId = null;
+
 function openFeedback(btn) {
+  const card = btn.closest('.ann-card');
+  currentAnnouncementId = card.dataset.id;
+  const existingRating = parseInt(card.dataset.myRating) || 0;
+
+  // Reset modal state
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('feedbackLabel').textContent = '\u00a0';
   document.getElementById('emojiRow').style.display = 'flex';
   document.getElementById('thankYouMsg').style.display = 'none';
+
+  // Pre-select emoji if resident already rated
+  if (existingRating > 0) {
+    const btns = document.querySelectorAll('.emoji-btn');
+    if (btns[existingRating - 1]) {
+      btns[existingRating - 1].classList.add('selected');
+    }
+  }
+
   document.getElementById('feedbackModal').classList.add('active');
 }
 
@@ -344,13 +367,50 @@ function closeFeedbackOnOverlay(e) {
 function selectEmoji(btn, rating) {
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('emojiRow').style.display = 'none';
-  document.getElementById('thankYouMsg').style.display = 'block';
-  setTimeout(() => {
-    closeFeedback();
-    document.getElementById('emojiRow').style.display = 'flex';
-    document.getElementById('thankYouMsg').style.display = 'none';
-  }, 2000);
+
+  // Send to backend
+  fetch(`/announcements/${currentAnnouncementId}/feedback/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify({ rating: rating }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // Update the card's stored rating so re-opening the modal pre-selects correctly
+      const card = document.querySelector(`.ann-card[data-id="${currentAnnouncementId}"]`);
+      if (card) card.dataset.myRating = rating;
+
+      document.getElementById('emojiRow').style.display = 'none';
+      document.getElementById('thankYouMsg').style.display = 'block';
+      setTimeout(() => {
+        closeFeedback();
+        document.getElementById('emojiRow').style.display = 'flex';
+        document.getElementById('thankYouMsg').style.display = 'none';
+      }, 2000);
+    } else {
+      alert(data.error || 'Something went wrong. Please try again.');
+    }
+  })
+  .catch(() => {
+    alert('Network error. Please try again.');
+  });
+}
+
+function getCookie(name) {
+  let value = null;
+  if (document.cookie) {
+    document.cookie.split(';').forEach(function(c) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) {
+        value = decodeURIComponent(c.substring(name.length + 1));
+      }
+    });
+  }
+  return value;
 }
 
 function toggleMoreMenu(btn) {
@@ -403,6 +463,8 @@ function saveAsPDF(btn) {
   win.print(); // triggers Save as PDF thru browser print dialog
   win.close();
 }
+
+getCookie
 </script>
 
 {% endblock %}

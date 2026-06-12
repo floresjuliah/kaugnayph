@@ -1,0 +1,90 @@
+{% extends "admin_base.html" %}
+{% block title %}Feedback Monitoring{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 1.5rem;">
+  <h2 style="margin: 0 0 0.25rem;">Announcement Feedback</h2>
+  <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Resident Likert ratings per announcement.</p>
+</div>
+
+<div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid #e5e7eb; text-align: left; background: #f9fafb;">
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">#</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Announcement</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Date Posted</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Responses</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Avg. Rating</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Distribution</th>
+        <th style="padding: 0.75rem 1rem; color: #6b7280; font-weight: 600;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ann in announcements %}
+      <tr style="border-bottom: 1px solid #f3f4f6;">
+        <td style="padding: 0.7rem 1rem; color: #9ca3af;">{{ forloop.counter }}</td>
+        <td style="padding: 0.7rem 1rem; font-weight: 500; max-width: 260px;">
+          {{ ann.title|truncatechars:55 }}
+        </td>
+        <td style="padding: 0.7rem 1rem; color: #6b7280;">{{ ann.created_at|date:"M d, Y" }}</td>
+        <td style="padding: 0.7rem 1rem;">{{ ann.feedback_count }}</td>
+        <td style="padding: 0.7rem 1rem;">
+          {% if ann.avg_rating %}
+            <span style="font-weight: 600;">{{ ann.avg_rating|floatformat:1 }}</span>
+            <span style="color: #9ca3af; font-size: 0.8rem;"> / 5</span>
+          {% else %}
+            <span style="color: #9ca3af;">—</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.7rem 1rem;">
+          <!-- Mini sparkbar — rendered via inline canvas -->
+          <canvas
+            class="sparkbar"
+            width="90"
+            height="28"
+            data-counts="{{ ann.r1 }},{{ ann.r2 }},{{ ann.r3 }},{{ ann.r4 }},{{ ann.r5 }}"
+          ></canvas>
+        </td>
+        <td style="padding: 0.7rem 1rem;">
+          <a href="{% url 'admin_feedback_detail' ann.announcement_id %}"
+             style="background: #2563eb; color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 0.82rem;">
+            View
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center; padding: 2rem; color: #9ca3af;">No announcements found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  document.querySelectorAll('.sparkbar').forEach(canvas => {
+    const counts = canvas.dataset.counts.split(',').map(Number);
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['1','2','3','4','5'],
+        datasets: [{ data: counts, backgroundColor: colors, borderRadius: 2, borderSkipped: false }]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false, beginAtZero: true }
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "admin_base.html" %}
+{% block title %}Feedback — {{ announcement.title }}{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% url 'admin_feedback' %}" style="color: var(--primary, #2563eb); text-decoration: none; font-size: 0.9rem;">
+    ← Back to Feedback Overview
+  </a>
+</div>
+
+<div style="margin-bottom: 1.5rem;">
+  <h2 style="margin: 0 0 0.25rem;">{{ announcement.title }}</h2>
+  <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">
+    Posted {{ announcement.created_at|date:"M d, Y" }}
+  </p>
+</div>
+
+<!-- ── SUMMARY CARDS ── -->
+<div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.25rem 1.75rem; min-width: 140px;">
+    <div style="font-size: 2rem; font-weight: 700; color: #1e3a5f;">
+      {{ stats.total|default:"0" }}
+    </div>
+    <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">Total Responses</div>
+  </div>
+
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.25rem 1.75rem; min-width: 140px;">
+    <div style="font-size: 2rem; font-weight: 700; color: #1e3a5f;">
+      {% if stats.avg_rating %}{{ stats.avg_rating|floatformat:1 }}{% else %}—{% endif %}
+    </div>
+    <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">Average Rating</div>
+  </div>
+
+  <!-- Majority sentiment pill -->
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.25rem 1.75rem; min-width: 160px;">
+    <div style="font-size: 1.1rem; font-weight: 700; color: #1e3a5f;" id="sentimentLabel">—</div>
+    <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">Majority Sentiment</div>
+  </div>
+
+</div>
+
+<!-- ── CHARTS ROW ── -->
+{% if stats.total %}
+<div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+
+  <!-- Bar Chart -->
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem; flex: 1; min-width: 300px;">
+    <h4 style="margin: 0 0 1rem; font-size: 0.95rem; color: #374151;">Response Distribution</h4>
+    <canvas id="barChart" height="220"></canvas>
+  </div>
+
+  <!-- Doughnut Chart -->
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem; width: 260px; display: flex; flex-direction: column; align-items: center;">
+    <h4 style="margin: 0 0 1rem; font-size: 0.95rem; color: #374151; align-self: flex-start;">Share by Rating</h4>
+    <canvas id="doughnutChart" width="200" height="200"></canvas>
+    <div id="doughnutLegend" style="margin-top: 1rem; font-size: 0.8rem; color: #374151; width: 100%;"></div>
+  </div>
+
+</div>
+{% endif %}
+
+<!-- ── INDIVIDUAL RESPONSES TABLE ── -->
+<div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem;">
+
+  <h4 style="margin: 0 0 1rem; font-size: 0.95rem; color: #374151;">Individual Responses</h4>
+
+  {% if feedbacks %}
+  <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid #e5e7eb; text-align: left;">
+        <th style="padding: 0.6rem 0.75rem; color: #6b7280; font-weight: 600;">Resident</th>
+        <th style="padding: 0.6rem 0.75rem; color: #6b7280; font-weight: 600;">Rating</th>
+        <th style="padding: 0.6rem 0.75rem; color: #6b7280; font-weight: 600;">Sentiment</th>
+        <th style="padding: 0.6rem 0.75rem; color: #6b7280; font-weight: 600;">Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fb in feedbacks %}
+      <tr style="border-bottom: 1px solid #f3f4f6;">
+        <td style="padding: 0.65rem 0.75rem;">
+          {{ fb.user.firstname }} {{ fb.user.lastname }}
+        </td>
+        <td style="padding: 0.65rem 0.75rem;">
+          <span style="display: inline-flex; gap: 2px;">
+            {% for i in "12345" %}
+              {% if forloop.counter <= fb.rating %}
+                <span style="color: #f59e0b;">★</span>
+              {% else %}
+                <span style="color: #d1d5db;">★</span>
+              {% endif %}
+            {% endfor %}
+          </span>
+          <span style="color: #6b7280; font-size: 0.8rem; margin-left: 4px;">({{ fb.rating }}/5)</span>
+        </td>
+        <td style="padding: 0.65rem 0.75rem;">
+          {% if fb.rating == 1 %}
+            <span style="background:#fee2e2; color:#b91c1c; padding: 2px 8px; border-radius: 99px; font-size: 0.78rem;">Strongly Disagree</span>
+          {% elif fb.rating == 2 %}
+            <span style="background:#ffedd5; color:#c2410c; padding: 2px 8px; border-radius: 99px; font-size: 0.78rem;">Disagree</span>
+          {% elif fb.rating == 3 %}
+            <span style="background:#fef9c3; color:#a16207; padding: 2px 8px; border-radius: 99px; font-size: 0.78rem;">Neutral</span>
+          {% elif fb.rating == 4 %}
+            <span style="background:#dcfce7; color:#15803d; padding: 2px 8px; border-radius: 99px; font-size: 0.78rem;">Agree</span>
+          {% elif fb.rating == 5 %}
+            <span style="background:#d1fae5; color:#065f46; padding: 2px 8px; border-radius: 99px; font-size: 0.78rem;">Strongly Agree</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.65rem 0.75rem; color: #6b7280;">
+          {{ fb.created_at|date:"M d, Y H:i" }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <p style="color: #9ca3af; text-align: center; padding: 2rem 0;">No feedback submitted yet for this announcement.</p>
+  {% endif %}
+
+</div>
+
+<!-- ── CHART.JS ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  // Data passed from Django
+  const distribution = {
+    1: {{ distribution.1 }},
+    2: {{ distribution.2 }},
+    3: {{ distribution.3 }},
+    4: {{ distribution.4 }},
+    5: {{ distribution.5 }},
+  };
+
+  const labels    = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+  const counts    = [distribution[1], distribution[2], distribution[3], distribution[4], distribution[5]];
+  const colors    = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+  const colorsLight = ['#fee2e2', '#ffedd5', '#fef9c3', '#dcfce7', '#d1fae5'];
+
+  // ── BAR CHART ──
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Responses',
+        data: counts,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} response${ctx.parsed.y !== 1 ? 's' : ''}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0 },
+          grid: { color: '#f3f4f6' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // ── DOUGHNUT CHART ──
+  const total = counts.reduce((a, b) => a + b, 0);
+
+  new Chart(document.getElementById('doughnutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: counts,
+        backgroundColor: colors,
+        borderWidth: 2,
+        borderColor: '#fff',
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+              return ` ${ctx.parsed} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Custom doughnut legend
+  const legendEl = document.getElementById('doughnutLegend');
+  labels.forEach((label, i) => {
+    const pct = total > 0 ? ((counts[i] / total) * 100).toFixed(1) : '0.0';
+    legendEl.innerHTML += `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:${colors[i]}; display:inline-block;"></span>
+          ${label}
+        </span>
+        <span style="color:#6b7280;">${pct}%</span>
+      </div>`;
+  });
+
+  // ── MAJORITY SENTIMENT ──
+  const sentimentMap = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+  const maxCount = Math.max(...counts);
+  const majority = maxCount > 0 ? sentimentMap[counts.indexOf(maxCount)] : '—';
+  document.getElementById('sentimentLabel').textContent = majority;
+</script>
+
+{% endblock %}
