@@ -3,6 +3,137 @@
 
 {% block content %}
 
-  <!-- file complaint content here -->
+<!--HERO SECTION-->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <h1>Frequently Asked Questions</h1>
+    <div class="ann-hero-divider"></div>
+
+    <div class="ann-search-wrap">
+      <svg class="ann-search-icon" width="16" height="16" fill="none"
+           stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        class="ann-search"
+        placeholder="How can we help? Search for FAQs..."
+        id="faqSearch"
+      />
+    </div>
+
+    <p>
+      For quick answers to common concerns and inquiries, please use this feature to 
+      browse frequently asked questions.
+    </p>
+  </div>
+</section>
+
+<!-- FAQ GRID -->
+<section class="faq-section">
+  <div class="faq-grid">
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        What is the SMS Alerts purpose?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>SMS Alerts notify residents of important barangay announcements, events, and updates directly to their mobile phones.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        How do I register for SMS?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>You can register for SMS alerts by creating an account and enabling SMS notifications in your profile settings.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        How do I unsubscribe from SMS alerts?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>You can unsubscribe by going to your profile settings and toggling off the SMS subscription option.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        What is KaugnayPH all about?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>KaugnayPH is a barangay management system that connects residents with their local barangay office for complaints, documents, and announcements.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        How do I file a complaint?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>Log in to your account, go to File a Complaint, fill out the form with the required details, and submit.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        How do I track my complaint status?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>Go to Track Submissions in your account to view the current status of all your filed complaints and document requests.</p>
+      </div>
+    </div>
+    
+    </div>
+
+    <p class="contact-link">Can't find what you're looking for? <a href="{% url 'contactus' %}">Contact us</a></p>
+
+  </div>
+</section>
+
+
+<script>
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const answer = item.querySelector('.faq-answer');
+    const arrow = btn.querySelector('.faq-arrow');
+    const isOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      const a = i.querySelector('.faq-answer');
+      a.style.maxHeight = '0';       // ← explicit 0, not null
+      a.style.overflow = 'hidden';   // ← ensure hidden
+      i.querySelector('.faq-arrow').style.transform = '';
+    });
+
+    // Open clicked if it was closed
+    if (!isOpen) {
+      item.classList.add('open');
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+      arrow.style.transform = 'rotate(180deg)';
+    }
+  }
+
+  document.getElementById('faqSearch').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+</script>
 
 {% endblock %}
