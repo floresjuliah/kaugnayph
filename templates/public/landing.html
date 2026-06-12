@@ -3,6 +3,8 @@
 
 {% block content %}
 
+<link rel="stylesheet" href="{% static 'css/announcements.css' %}">
+
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-bg"></div>
@@ -36,117 +38,47 @@
 
   <div class="section-divider"></div>
 
-  <!-- Event cards -->
-  <div class="events-row">
-
-    <div class="event-card">
-      <div class="event-card-header">Today's Events</div>
-
-      <div class="event-card-body">
-
-        <div class="event-item">
-          <span class="event-dot dot-green"></span>
-
-          <div>
-            <div class="event-name">Barangay Assembly</div>
-            <div class="event-date">March 15, 2026</div>
-          </div>
-        </div>
-
-        <div class="event-item">
-          <span class="event-dot dot-yellow"></span>
-
-          <div>
-            <div class="event-name">Community Zumba</div>
-            <div class="event-date">March 15, 2026</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="event-card">
-      <div class="event-card-header">Upcoming Events</div>
-
-      <div class="event-card-body">
-
-        <div class="event-item">
-          <span class="event-dot dot-green"></span>
-
-          <div>
-            <div class="event-name">Clean Up Drive</div>
-            <div class="event-date">March 22, 2026</div>
-          </div>
-        </div>
-
-        <div class="event-item">
-          <span class="event-dot dot-yellow"></span>
-
-          <div>
-            <div class="event-name">Reading Program</div>
-            <div class="event-date">March 29, 2026</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Notice cards -->
   <div class="notices-row">
 
+    {% for announcement in announcements %}
     <div class="notice-card">
 
       <div class="notice-header">
-        <span class="notice-title">Water Interruption Notice!</span>
-
-        <span class="badge badge-red">
-          🔴 Emergency
+        <span class="notice-title">
+          {{ announcement.title }}
         </span>
+
+        {% if announcement.category %}
+        <span class="ann-badge badge-{{ announcement.category.name|lower }}">
+          <svg width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4m0 4h.01"/>
+          </svg>
+
+          {{ announcement.category.name }}
+        </span>
+        {% endif %}
       </div>
 
       <p class="notice-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        Donec in fistibulum leo. Cum sociis natoque penatibus
-        et magnis dis parturient montes, nascetur ridiculus mus.
+        {{ announcement.content|truncatewords:25 }}
       </p>
 
       <div class="notice-footer">
-        <span>January 5, 2026</span>
+        <span>
+          {{ announcement.created_at|date:"F j, Y" }}
+        </span>
 
-        <a href="#" class="read-more">
+        <a href="{% url 'announcementslist' %}" class="read-more">
           Read More →
         </a>
       </div>
 
     </div>
-
-    <div class="notice-card">
-
-      <div class="notice-header">
-        <span class="notice-title">Nutrition Month</span>
-
-        <span class="badge badge-yellow">
-          🟡 Community Events
-        </span>
-      </div>
-
-      <p class="notice-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        Donec in fistibulum leo. Cum sociis natoque penatibus
-        et magnis dis parturient montes, nascetur ridiculus mus.
-      </p>
-
-      <div class="notice-footer">
-        <span>January 5, 2026</span>
-
-        <a href="#" class="read-more">
-          Read More →
-        </a>
-      </div>
-
-    </div>
+    {% empty %}
+    <p>No announcements available.</p>
+    {% endfor %}
 
   </div>
 

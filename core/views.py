@@ -48,7 +48,14 @@ from core.moderation import moderate_text, moderate_image
 # PUBLIC PAGES
 
 def landing_page(request):
-    return render(request, 'public/landing.html')
+    announcements = Announcements.objects.select_related(
+        "category",
+        "posted_by"
+    ).order_by("-created_at")[:4]
+
+    return render(request, "public/landing.html", {
+        "announcements": announcements
+    })
 
 @login_required
 @resident_required
@@ -230,6 +237,7 @@ def announcements_view(request):
     return render(request, "public/announcements.html", {
         "announcements": announcements
     })
+
     
 def residentprofile(request):
     return render(request, 'residentprofile.html')

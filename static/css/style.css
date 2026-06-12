@@ -2993,3 +2993,13 @@ footer ul li a:hover {
     width: 100%;
   }
 }
+
+.notice-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.notice-body {
+    flex-grow: 1;
+}
