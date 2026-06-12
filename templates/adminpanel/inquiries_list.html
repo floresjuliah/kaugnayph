@@ -21,14 +21,14 @@
             </thead>
 
             <tbody>
-                {% for inquiry in inquiries %}
+                {% for record in records %}
                 <tr>
-                    <td>{{ inquiry.firstname }} {{ inquiry.lastname }}</td>
-                    <td>{{ inquiry.contactno }}</td>
-                    <td>{{ inquiry.messagesubject|default:"No subject" }}</td>
-                    <td>{{ inquiry.created_at|date:"M d, g:i A" }}</td>
+                    <td>{{ record.obj.firstname }} {{ record.obj.lastname }}</td>
+                    <td>{{ record.obj.contactno }}</td>
+                    <td>{{ record.obj.messagesubject|default:"No subject" }}</td>
+                    <td>{{ record.obj.created_at|date:"M d, g:i A" }}</td>
                     <td>
-                        <a href="{% url 'admin_inquiry_detail' inquiry.cuid %}" class="inquiry-view-link">
+                        <a href="{% url 'admin_inquiry_detail' record.obj.cuid %}" class="inquiry-view-link">
                             View
                         </a>
                     </td>
@@ -44,12 +44,24 @@
         </table>
 
         <div class="inquiry-table-footer">
-            <p>Showing 1–{{ inquiries|length }} of {{ inquiries|length }}</p>
+            <p>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total }}
+            </p>
 
             <div class="inquiry-pagination">
-                <span class="disabled">Previous</span>
-                <span class="current">1</span>
-                <span class="disabled">Next</span>
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
+
+                <span class="current">{{ page_obj.number }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                {% else %}
+                    <span class="disabled">Next</span>
+                {% endif %}
             </div>
         </div>
     </div>
