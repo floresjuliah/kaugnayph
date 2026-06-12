@@ -3,7 +3,7 @@ import random
 import string as _string
 import requests
 import os
-
+ 
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
@@ -13,9 +13,17 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Q
-
+ 
 from core.utils import validate_upload
-
+from core.moderation import moderate_text, moderate_image
+from core.sla_utils import (
+    create_sla,
+    record_first_response,
+    resolve_sla,
+    get_sla_for_record,
+    get_sla_status_live,
+)
+ 
 from .models import (
     Inquiry, Users, UserTypes, Settings, Roles, Positions,
     Announcements, SMSOutbox, SMSSubscriptions,
@@ -26,14 +34,14 @@ from .models import (
     HearingLevel, HearingStatus, ComplaintHearing,
     HearingOfficials,
 )
-
+ 
 from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, send_email_otp,
     set_user_session, get_current_user,
     has_permission,
 )
-
+ 
 from .decorators import (
     login_required,
     admin_login_required,
@@ -61,40 +69,40 @@ def landing_page(request):
 @resident_required
 def filecomplaint(request):
     complaint_types = ComplaintType.objects.all()
-
+ 
     if request.method == "POST":
         complaint_type_id = request.POST.get("complaint_type", "").strip()
-        incident_date = request.POST.get("incident_date")
-        complainee = request.POST.get("complainee", "").strip()
+        incident_date     = request.POST.get("incident_date")
+        complainee        = request.POST.get("complainee", "").strip()
         complainee_address = request.POST.get("complainee_address", "").strip()
-        title = request.POST.get("title", "").strip()
-        description = request.POST.get("description", "").strip()
-        evidence = request.FILES.get("evidence")
-
+        title             = request.POST.get("title", "").strip()
+        description       = request.POST.get("description", "").strip()
+        evidence          = request.FILES.get("evidence")
+ 
         if not complaint_type_id:
             messages.error(request, "Please select a complaint type.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
         if not complainee:
             messages.error(request, "Name of complainee is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
         if not title:
             messages.error(request, "Title is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
         if not description:
             messages.error(request, "Description is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
         try:
             complaint_type = ComplaintType.objects.get(ctid=complaint_type_id)
         except ComplaintType.DoesNotExist:
             messages.error(request, "Invalid complaint type selected.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
         current_user = get_current_user(request)
-
+ 
         #FILE VALIDATION & SAVE
         file_path = None
         if evidence:
@@ -102,23 +110,24 @@ def filecomplaint(request):
             if not ok:
                 messages.error(request, err)
                 return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
+ 
             file_path = default_storage.save(
                 "complaints/" + evidence.name,
                 ContentFile(evidence.read())
             )
-
+ 
         #CONTENT MODERATION
         text_check = moderate_text(f"{title} {description} {complainee}")
-
+ 
+        #CONTENT MODERATION — image (ONLY if file is an image)
         image_check = {"flagged": False, "reason": None}
         if evidence and evidence.content_type.startswith("image/"):
-            evidence.seek(0)  # Reset since evidence.read() was already called above
+            evidence.seek(0)
             image_check = moderate_image(evidence)
-
-        is_flagged = text_check["flagged"] or image_check["flagged"]
+ 
+        is_flagged  = text_check["flagged"] or image_check["flagged"]
         flag_reason = text_check["reason"] or image_check["reason"]
-
+ 
         if is_flagged:
             messages.error(
                 request,
@@ -126,8 +135,8 @@ def filecomplaint(request):
                 "Please revise and try again."
             )
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
-        # --- SAVE (only reaches here if clean) ---
+ 
+        # SAVE — only reaches here if clean
         Complaints.objects.create(
             complaint_type=complaint_type,
             complainant_user=current_user,
@@ -141,45 +150,20 @@ def filecomplaint(request):
             is_flagged=False,
             flagged_reason=None,
         )
-
+ 
+        #NOTE: SLA for Complaints is ON HOLD! NEED TO CLARFIY TO BARANGAY
+ 
         messages.success(
             request,
             "Complaint submitted successfully. You can track its status through Track Submissions."
         )
         return redirect("tracksub")
-
-    return render(request, "filecomplaint.html", {
-        "complaint_types": complaint_types
-    })
+ 
+    return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
 
 
 def aboutus(request):
     return render(request, 'aboutus.html')
-
-# @login_required
-# @resident_required
-# def tracksub(request):
-#     current_user = get_current_user(request)
-
-#     complaints = Complaints.objects.filter(
-#         complainant_user=current_user
-#     ).order_by("-dateadded")
-
-#     hearings = ComplaintHearing.objects.select_related(
-#         "complaint",
-#         "hearing_level",
-#         "status"
-#     ).filter(
-#         complaint__complainant_user=current_user
-#     ).order_by("-hearing_date")
-
-#     print("CURRENT USER:", current_user.userid)
-#     print("HEARINGS FOUND:", hearings.count())
-
-#     return render(request, "tracksub.html", {
-#         "complaints": complaints,
-#         "hearings": hearings,
-#     })
 
 def documents(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
@@ -196,12 +180,12 @@ def contactus(request):
         address   = request.POST.get("address", "").strip()
         subject   = request.POST.get("messagesubject", "").strip()
         message   = request.POST.get("message", "").strip()
-
+ 
         if not firstname or not lastname or not contactno or not message:
             messages.error(request, "Please fill in all required fields.")
             return render(request, "contactus.html")
-
-        # CONTENT MODERATION 
+ 
+        # CONTENT MODERATION — check before saving
         check = moderate_text(f"{subject} {message}")
         if check["flagged"]:
             messages.error(
@@ -210,7 +194,8 @@ def contactus(request):
                 "Please revise and try again."
             )
             return render(request, "contactus.html")
-
+ 
+        # SAVE
         current_user = get_current_user(request)
         inquiry = Inquiry.objects.create(
             user=current_user,
@@ -223,13 +208,16 @@ def contactus(request):
             status="New",
             created_at=timezone.now(),
         )
-
-        # SLA
-        #create_sla("Inquiry", inquiry.cuid)
-
-        messages.success(request, "Your inquiry has been submitted. We will get back to you within 24 hours.")
+ 
+        # SLA — start the 24-hour clock
+        create_sla("Inquiry", inquiry.cuid, priority="Medium")
+ 
+        messages.success(
+            request,
+            "Your inquiry has been submitted. We will get back to you within 24 hours."
+        )
         return redirect("contactus")
-
+ 
     return render(request, "contactus.html")
 
 def announcements_view(request):
@@ -1821,29 +1809,23 @@ def case_detail_view(request, complaint_id):
 @login_required
 @resident_required
 def document_request_view(request):
-    """
-    GET  → show available document types
-    POST → save a new document request + field values
-    """
     document_types = DocumentTypes.objects.filter(is_active=True)
-
+ 
     if request.method == "POST":
         document_type_id = request.POST.get("document_type_id", "").strip()
         purpose          = request.POST.get("purpose", "").strip()
         uploaded_file    = request.FILES.get("uploaded_file")
-
-        #Basic validation
+ 
         if not document_type_id:
             messages.error(request, "Please select a document type.")
             return render(request, "documents.html", {"document_types": document_types})
-
+ 
         try:
             document_type = DocumentTypes.objects.get(dtid=document_type_id, is_active=True)
         except DocumentTypes.DoesNotExist:
             messages.error(request, "Invalid document type selected.")
             return render(request, "documents.html", {"document_types": document_types})
-
-        #Validate required dynamic fields
+ 
         fields = DocumentFields.objects.filter(document_type=document_type)
         field_errors = []
         for field in fields:
@@ -1851,7 +1833,7 @@ def document_request_view(request):
                 value = request.POST.get(f"field_{field.dfid}", "").strip()
                 if not value:
                     field_errors.append(f"'{field.field_label}' is required.")
-
+ 
         if field_errors:
             for err in field_errors:
                 messages.error(request, err)
@@ -1860,10 +1842,9 @@ def document_request_view(request):
                 "selected_type": document_type,
                 "fields": fields,
             })
-
+ 
         current_user = get_current_user(request)
-
-        #Handle optional file upload
+ 
         file_path = None
         if uploaded_file:
             ok, err = validate_upload(uploaded_file)
@@ -1874,56 +1855,41 @@ def document_request_view(request):
                 f"document_requests/{uploaded_file.name}",
                 ContentFile(uploaded_file.read())
             )
-
-        #CONTENT MODERATION
-        text_to_check = purpose  # purpose is the main free-text field
-        text_check = moderate_text(text_to_check)
-
+ 
+        # CONTENT MODERATION
+        text_check = moderate_text(purpose)
         if text_check["flagged"]:
-            messages.error(
-                request,
-                "Your request contains inappropriate content and could not be submitted."
-            )
+            messages.error(request, "Your request contains inappropriate content and could not be submitted.")
             return render(request, "documents.html", {"document_types": document_types})
-
-        #Create DocumentRequest
+ 
+        # SAVE
         doc_request = DocumentRequests.objects.create(
-            user=current_user,
-            document_type=document_type,
-            purpose=purpose,
-            uploaded_file=file_path,
-            request_mode="Online",
-            status="Pending",
+            user=current_user, document_type=document_type,
+            purpose=purpose, uploaded_file=file_path,
+            request_mode="Online", status="Pending",
         )
-
-        #Save dynamic field values
+ 
         for field in fields:
             value = request.POST.get(f"field_{field.dfid}", "").strip()
             DocumentRequestFieldValues.objects.create(
-                document_request=doc_request,
-                document_field=field,
-                field_value=value,
-                created_at=timezone.now(),
+                document_request=doc_request, document_field=field,
+                field_value=value, created_at=timezone.now(),
             )
-
-        #Audit log
+ 
         AuditLogs.objects.create(
-            user=current_user,
-            action="Submit Document Request",
-            module_name="DocumentRequests",
-            table_name="DocumentRequests",
+            user=current_user, action="Submit Document Request",
+            module_name="DocumentRequests", table_name="DocumentRequests",
             record_id=doc_request.drid,
             new_value=f"Request for '{document_type.name}' submitted.",
             created_at=timezone.now(),
         )
-
-        messages.success(
-            request,
-            "Document request submitted successfully. You can track its status under Track Submissions."
-        )
+ 
+        # SLA — start the 3-day clock
+        create_sla("DocumentRequest", doc_request.drid, priority="Medium")
+ 
+        messages.success(request, "Document request submitted successfully. You can track its status under Track Submissions.")
         return redirect("tracksub")
-    
-
+ 
     return render(request, "documents.html", {"document_types": document_types})
 
 
@@ -1985,14 +1951,12 @@ def tracksub(request):
 @admin_login_required
 def admin_document_requests_view(request):
     from django.core.paginator import Paginator
-
-    search_query   = request.GET.get("search", "").strip()
-    status_filter  = request.GET.get("status", "All").strip()
-
-    doc_requests = DocumentRequests.objects.select_related(
-        "user", "document_type", "processed_by"
-    ).all()
-
+ 
+    search_query  = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "All").strip()
+ 
+    doc_requests = DocumentRequests.objects.select_related("user", "document_type", "processed_by").all()
+ 
     if search_query:
         doc_requests = doc_requests.filter(
             Q(user__firstname__icontains=search_query) |
@@ -2000,43 +1964,37 @@ def admin_document_requests_view(request):
             Q(document_type__name__icontains=search_query) |
             Q(drid__icontains=search_query)
         )
-
+ 
     if status_filter != "All":
         doc_requests = doc_requests.filter(status=status_filter)
-
-    document_type_filter = request.GET.get("document_type", "All").strip()
-    
+ 
     doc_requests = doc_requests.order_by("-requested_at")
-
-    #Attach generated doc IDs
+ 
     records = []
     for dr in doc_requests:
         from core.utils import generate_document_id
+        sla        = get_sla_for_record("DocumentRequest", dr.drid)
         records.append({
-            "obj":      dr,
-            "doc_id":   generate_document_id(dr.drid),
-            "status":   dr.status or "Pending",
+            "obj":        dr,
+            "doc_id":     generate_document_id(dr.drid),
+            "status":     dr.status or "Pending",
+            "sla":        sla,
+            "sla_status": get_sla_status_live(sla),
         })
-
+ 
     paginator   = Paginator(records, 10)
-    page_number = request.GET.get("page")
-    page_obj    = paginator.get_page(page_number)
-
-    total      = doc_requests.count()
-    pending    = doc_requests.filter(status="Pending").count()
-    processing = doc_requests.filter(status="Processing").count()
-    completed  = doc_requests.filter(status="Completed").count()
-
+    page_obj    = paginator.get_page(request.GET.get("page"))
+ 
     return render(request, "adminpanel/document_requests.html", {
-        "records":        page_obj,
-        "page_obj":       page_obj,
-        "user":           get_current_user(request),
-        "search_query":   search_query,
-        "status_filter":  status_filter,
-        "total":          total,
-        "pending":        pending,
-        "processing":     processing,
-        "completed":      completed,
+        "records":       page_obj,
+        "page_obj":      page_obj,
+        "user":          get_current_user(request),
+        "search_query":  search_query,
+        "status_filter": status_filter,
+        "total":         doc_requests.count(),
+        "pending":       doc_requests.filter(status="Pending").count(),
+        "processing":    doc_requests.filter(status="Processing").count(),
+        "completed":     doc_requests.filter(status="Completed").count(),
     })
 
 
@@ -2050,100 +2008,97 @@ def admin_document_request_detail_view(request, drid):
     except DocumentRequests.DoesNotExist:
         messages.error(request, "Document request not found.")
         return redirect("admin_document_requests")
-
+ 
     current_admin = get_current_user(request)
-
-    #Get/Fetch submitted field values with their labels
-    field_values = DocumentRequestFieldValues.objects.filter(
+    field_values  = DocumentRequestFieldValues.objects.filter(
         document_request=doc_request
     ).select_related("document_field")
-
-    #Get/Fetch resident info
     resident = doc_request.user
-
+ 
     if request.method == "POST":
         action = request.POST.get("action")
-
+ 
         if action == "complete":
             old_status            = doc_request.status
             doc_request.status    = "Completed"
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
-
-            # Notify resident via SMS
+ 
+            # SLA — mark first response + resolve
+            record_first_response("DocumentRequest", doc_request.drid)
+            resolve_sla("DocumentRequest", doc_request.drid)
+ 
             if resident and resident.contactno:
                 from core.utils import generate_document_id
                 doc_id = generate_document_id(doc_request.drid)
                 send_sms(
                     resident.contactno,
-                    f"KaugnayPH: Your document request {doc_id} "
-                    f"({doc_request.document_type.name}) has been completed. "
-                    "Please visit the barangay office to claim it.",
+                    f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
+                    "has been completed. Please visit the barangay office to claim it.",
                     sent_by=current_admin,
                 )
-
+ 
             AuditLogs.objects.create(
-                user=current_admin,
-                action="Complete Document Request",
-                module_name="DocumentRequests",
-                table_name="DocumentRequests",
+                user=current_admin, action="Complete Document Request",
+                module_name="DocumentRequests", table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Completed",
+                old_value=f"Status: {old_status}", new_value="Status: Completed",
                 created_at=timezone.now(),
             )
-
             messages.success(request, "Document request marked as Completed.")
-
+ 
         elif action == "processing":
             old_status            = doc_request.status
             doc_request.status    = "Processing"
             doc_request.processed_by = current_admin
             doc_request.save()
-
+ 
+            # SLA — mark first touch only (not resolved yet)
+            record_first_response("DocumentRequest", doc_request.drid)
+ 
             AuditLogs.objects.create(
-                user=current_admin,
-                action="Set Document Request Processing",
-                module_name="DocumentRequests",
-                table_name="DocumentRequests",
+                user=current_admin, action="Set Document Request Processing",
+                module_name="DocumentRequests", table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Processing",
+                old_value=f"Status: {old_status}", new_value="Status: Processing",
                 created_at=timezone.now(),
             )
-
             messages.success(request, "Document request marked as Processing.")
-
+ 
         elif action == "reject":
             old_status            = doc_request.status
             doc_request.status    = "Rejected"
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
-
+ 
+            # SLA — mark first response + resolve
+            record_first_response("DocumentRequest", doc_request.drid)
+            resolve_sla("DocumentRequest", doc_request.drid)
+ 
             AuditLogs.objects.create(
-                user=current_admin,
-                action="Reject Document Request",
-                module_name="DocumentRequests",
-                table_name="DocumentRequests",
+                user=current_admin, action="Reject Document Request",
+                module_name="DocumentRequests", table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Rejected",
+                old_value=f"Status: {old_status}", new_value="Status: Rejected",
                 created_at=timezone.now(),
             )
-
             messages.success(request, "Document request rejected.")
-
+ 
         return redirect("admin_document_request_detail", drid=doc_request.drid)
-
+ 
     from core.utils import generate_document_id
+    sla = get_sla_for_record("DocumentRequest", drid)
+ 
     return render(request, "adminpanel/document_request_detail.html", {
         "doc_request":  doc_request,
         "doc_id":       generate_document_id(doc_request.drid),
         "field_values": field_values,
         "resident":     resident,
         "user":         current_admin,
+        "sla":          sla,
+        "sla_status":   get_sla_status_live(sla),
     })
 
 
@@ -2377,54 +2332,115 @@ def case_detail_view(request, complaint_id):
 #admin inquiry view
 @admin_login_required
 def admin_inquiries_view(request):
-
-    inquiries = Inquiry.objects.all().order_by("-created_at")
-
-    return render(
-        request,
-        "adminpanel/inquiries_list.html",
-        {
-            "inquiries": inquiries,
-            "user": get_current_user(request),
-        }
-    )
+    from django.core.paginator import Paginator
+ 
+    search_query  = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "All").strip()
+ 
+    inquiries = Inquiry.objects.all()
+ 
+    if search_query:
+        inquiries = inquiries.filter(
+            Q(firstname__icontains=search_query) |
+            Q(lastname__icontains=search_query)  |
+            Q(messagesubject__icontains=search_query) |
+            Q(contactno__icontains=search_query)
+        )
+ 
+    if status_filter != "All":
+        inquiries = inquiries.filter(status=status_filter)
+ 
+    inquiries = inquiries.order_by("-created_at")
+ 
+    records = []
+    for inq in inquiries:
+        sla = get_sla_for_record("Inquiry", inq.cuid)
+        records.append({
+            "obj":        inq,
+            "sla":        sla,
+            "sla_status": get_sla_status_live(sla),
+        })
+ 
+    paginator = Paginator(records, 10)
+    page_obj  = paginator.get_page(request.GET.get("page"))
+ 
+    return render(request, "adminpanel/inquiries_list.html", {
+        "records":       page_obj,
+        "page_obj":      page_obj,
+        "user":          get_current_user(request),
+        "search_query":  search_query,
+        "status_filter": status_filter,
+        "total":         inquiries.count(),
+        "new_count":     Inquiry.objects.filter(status="New").count(),
+        "pending_count": Inquiry.objects.filter(status="Pending").count(),
+        "replied_count": Inquiry.objects.filter(status="Replied").count(),
+    })
 
 #admin inquiry detail
 @admin_login_required
 def admin_inquiry_detail_view(request, cuid):
-
     try:
-        inquiry = Inquiry.objects.get(cuid=cuid)
-
+        inquiry = Inquiry.objects.select_related("user", "replied_byuser").get(cuid=cuid)
     except Inquiry.DoesNotExist:
         messages.error(request, "Inquiry not found.")
         return redirect("admin_inquiries")
-
+ 
     current_admin = get_current_user(request)
-
+    sla           = get_sla_for_record("Inquiry", cuid)
+ 
     if request.method == "POST":
-        action = request.POST.get("action")
+        action      = request.POST.get("action")
         admin_reply = request.POST.get("admin_reply", "").strip()
-
+ 
         if action == "reply":
             if not admin_reply:
                 messages.error(request, "Reply cannot be empty.")
                 return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
-
-            inquiry.admin_reply = admin_reply
-            inquiry.replied_at = timezone.now()
+ 
+            inquiry.admin_reply    = admin_reply
+            inquiry.replied_at     = timezone.now()
             inquiry.replied_byuser = current_admin
-            inquiry.status = "Replied"
+            inquiry.status         = "Replied"
             inquiry.save()
-
-            messages.success(request, "Reply saved successfully.")
-            return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
-
-    return render(
-        request,
-        "adminpanel/inquiry_detail.html",
-        {
-            "inquiry": inquiry,
-            "user": current_admin,
-        }
-    )
+ 
+            # SLA — mark first response + resolve
+            record_first_response("Inquiry", inquiry.cuid)
+            resolve_sla("Inquiry", inquiry.cuid)
+ 
+            # Notify resident via SMS
+            send_sms(
+                inquiry.contactno,
+                f"KaugnayPH: Your inquiry has been replied to. "
+                f"Subject: {inquiry.messagesubject or 'General Inquiry'}.",
+                sent_by=current_admin,
+            )
+ 
+            AuditLogs.objects.create(
+                user=current_admin, action="Reply to Inquiry",
+                module_name="Inquiry", table_name="Inquiry",
+                record_id=inquiry.cuid,
+                new_value=f"Replied by {current_admin.username}.",
+                created_at=timezone.now(),
+            )
+ 
+            messages.success(request, "Reply sent successfully.")
+ 
+        elif action == "close":
+            inquiry.status = "Closed"
+            inquiry.save()
+            resolve_sla("Inquiry", inquiry.cuid)
+            messages.success(request, "Inquiry closed.")
+ 
+        elif action == "pending":
+            inquiry.status = "Pending"
+            inquiry.save()
+            messages.success(request, "Inquiry marked as Pending.")
+ 
+        return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
+ 
+    return render(request, "adminpanel/inquiry_detail.html", {
+        "inquiry":    inquiry,
+        "sla":        sla,
+        "sla_status": get_sla_status_live(sla),
+        "user":       current_admin,
+    })
