@@ -33,6 +33,8 @@ from .models import (
     DocumentRequestFieldValues, ComplaintUpdates,
     HearingLevel, HearingStatus, ComplaintHearing,
     HearingOfficials,
+    AnnouncementFeedback,
+    AnnouncementCategories,
 )
  
 from .auth_utils import (
@@ -222,14 +224,70 @@ def contactus(request):
 
 def announcements_view(request):
     announcements = Announcements.objects.all().order_by("-announcement_id")
+
+    current_user = get_current_user(request)
+    feedback_map = {}
+    if current_user and hasattr(current_user, 'user_type') and current_user.user_type.type_name == "Resident":
+        for fb in AnnouncementFeedback.objects.filter(user=current_user):
+            feedback_map[fb.announcement_id] = fb.rating
+
+    for ann in announcements:
+        ann.my_rating = feedback_map.get(ann.announcement_id)  # None if not rated, 1-5 if rated
+
     return render(request, "public/announcements.html", {
-        "announcements": announcements
+    "announcements":  announcements,
+    "is_resident":    bool(current_user and current_user.user_type.type_name == "Resident"),
     })
 
-    
-def residentprofile(request):
+def profile(request):
     return render(request, 'residentprofile.html')
 
+@login_required
+@resident_required
+def submit_announcement_feedback(request, announcement_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required."}, status=405)
+
+    try:
+        announcement = Announcements.objects.get(announcement_id=announcement_id)
+    except Announcements.DoesNotExist:
+        return JsonResponse({"error": "Announcement not found."}, status=404)
+
+    current_user = get_current_user(request)
+
+    try:
+        data   = json.loads(request.body)
+        rating = int(data.get("rating", 0))
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({"error": "Invalid data."}, status=400)
+
+    if rating < 1 or rating > 5:
+        return JsonResponse({"error": "Rating must be between 1 and 5."}, status=400)
+
+    feedback, created = AnnouncementFeedback.objects.update_or_create(
+        announcement=announcement,
+        user=current_user,
+        defaults={
+            "rating":     rating,
+            "created_at": timezone.now(),
+        }
+    )
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Submit Announcement Feedback" if created else "Update Announcement Feedback",
+        module_name="Announcements",
+        table_name="AnnouncementFeedback",
+        record_id=feedback.afid,
+        new_value=f"Rating: {rating} for Announcement #{announcement_id}",
+        created_at=timezone.now(),
+    )
+
+    return JsonResponse({
+        "success": True,
+        "message": "Feedback submitted!" if created else "Feedback updated!",
+        "rating":  rating,
+    })
 
 # API ENDPOINTS
 
@@ -1646,6 +1704,59 @@ def admin_announcement_create_view(request):
         return redirect("announcements")   # ← ADD THIS, it's missing
 
     return render(request, "adminpanel/announcement_create.html", {"user": current_admin})
+
+#ADMIN: Feedback View (rating)
+@admin_login_required
+def admin_feedback_view(request):
+    from django.db.models import Avg, Count, Q
+
+    announcements = Announcements.objects.annotate(
+        avg_rating    = Avg("announcementfeedback__rating"),
+        feedback_count= Count("announcementfeedback"),
+        r1 = Count("announcementfeedback", filter=Q(announcementfeedback__rating=1)),
+        r2 = Count("announcementfeedback", filter=Q(announcementfeedback__rating=2)),
+        r3 = Count("announcementfeedback", filter=Q(announcementfeedback__rating=3)),
+        r4 = Count("announcementfeedback", filter=Q(announcementfeedback__rating=4)),
+        r5 = Count("announcementfeedback", filter=Q(announcementfeedback__rating=5)),
+    ).order_by("-announcement_id")
+
+    return render(request, "adminpanel/feedback_monitoring.html", {
+        "announcements": announcements,
+        "user":          get_current_user(request),
+    })
+
+
+@admin_login_required
+def admin_feedback_detail_view(request, announcement_id):
+    from django.db.models import Avg, Count
+
+    try:
+        announcement = Announcements.objects.get(announcement_id=announcement_id)
+    except Announcements.DoesNotExist:
+        messages.error(request, "Announcement not found.")
+        return redirect("admin_feedback")
+
+    feedbacks = AnnouncementFeedback.objects.filter(
+        announcement=announcement
+    ).select_related("user").order_by("-created_at")
+
+    stats = feedbacks.aggregate(
+        avg_rating=Avg("rating"),
+        total=Count("afid"),
+    )
+
+    distribution = {}
+    for i in range(1, 6):
+        distribution[i] = feedbacks.filter(rating=i).count()
+
+    return render(request, "adminpanel/feedback_detail.html", {
+        "announcement": announcement,
+        "feedbacks":    feedbacks,
+        "stats":        stats,
+        "distribution": distribution,
+        "user":         get_current_user(request),
+    })
+
 
 # ADMIN CASE RECORDS
 @admin_login_required

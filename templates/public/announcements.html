@@ -60,6 +60,8 @@
     <article
       class="ann-card"
       style="cursor:pointer;"
+      data-id="{{ announcement.announcement_id }}"
+      data-my-rating="{{ announcement.my_rating|default:0 }}"
       data-category="{{ announcement.category.name|default:'general'|lower }}"
       data-title="{{ announcement.title|escapejs }}"
       data-content="{{ announcement.content|escapejs }}"
@@ -160,7 +162,10 @@
 
         <div class="ann-actions">
 
-          <button class="ann-action-btn" title="Feedback" onclick="event.stopPropagation(); openFeedback(this)">
+          <button class="ann-action-btn" title="Feedback"
+            onclick="event.stopPropagation();
+            {% if is_resident %}openFeedback(this){% else %}alert('Please log in as a resident to leave feedback.'){% endif %}">
+
             <svg width="16" height="16" fill="none"
                  stroke="currentColor" stroke-width="2"
                  viewBox="0 0 24 24">
@@ -335,11 +340,27 @@ document.querySelectorAll('.ann-tab').forEach(tab => {
 });
 
 // FEEDBACK MODAL
+let currentAnnouncementId = null;
+
 function openFeedback(btn) {
+  const card = btn.closest('.ann-card');
+  currentAnnouncementId = card.dataset.id;
+  const existingRating = parseInt(card.dataset.myRating) || 0;
+
+  // Reset modal state
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('feedbackLabel').textContent = '\u00a0';
   document.getElementById('emojiRow').style.display = 'flex';
   document.getElementById('thankYouMsg').style.display = 'none';
+
+  // Pre-select emoji if resident already rated
+  if (existingRating > 0) {
+    const btns = document.querySelectorAll('.emoji-btn');
+    if (btns[existingRating - 1]) {
+      btns[existingRating - 1].classList.add('selected');
+    }
+  }
+
   document.getElementById('feedbackModal').classList.add('active');
 }
 
@@ -356,13 +377,50 @@ function closeFeedbackOnOverlay(e) {
 function selectEmoji(btn, rating) {
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('emojiRow').style.display = 'none';
-  document.getElementById('thankYouMsg').style.display = 'block';
-  setTimeout(() => {
-    closeFeedback();
-    document.getElementById('emojiRow').style.display = 'flex';
-    document.getElementById('thankYouMsg').style.display = 'none';
-  }, 2000);
+
+  // Send to backend
+  fetch(`/announcements/${currentAnnouncementId}/feedback/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify({ rating: rating }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // Update the card's stored rating so re-opening the modal pre-selects correctly
+      const card = document.querySelector(`.ann-card[data-id="${currentAnnouncementId}"]`);
+      if (card) card.dataset.myRating = rating;
+
+      document.getElementById('emojiRow').style.display = 'none';
+      document.getElementById('thankYouMsg').style.display = 'block';
+      setTimeout(() => {
+        closeFeedback();
+        document.getElementById('emojiRow').style.display = 'flex';
+        document.getElementById('thankYouMsg').style.display = 'none';
+      }, 2000);
+    } else {
+      alert(data.error || 'Something went wrong. Please try again.');
+    }
+  })
+  .catch(() => {
+    alert('Network error. Please try again.');
+  });
+}
+
+function getCookie(name) {
+  let value = null;
+  if (document.cookie) {
+    document.cookie.split(';').forEach(function(c) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) {
+        value = decodeURIComponent(c.substring(name.length + 1));
+      }
+    });
+  }
+  return value;
 }
 
 function toggleMoreMenu(btn) {
@@ -415,6 +473,8 @@ function saveAsPDF(btn) {
   win.print(); // triggers Save as PDF thru browser print dialog
   win.close();
 }
+
+getCookie
 </script>
 
 {% endblock %}

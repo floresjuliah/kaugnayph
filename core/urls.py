@@ -29,6 +29,7 @@ urlpatterns = [
     path('documents/request/', views.document_request_view, name='document_request'),
     path('documents/fields/<int:dtid>/', views.get_document_fields, name='document_fields_api'),
     path('track/', views.tracksub, name='tracksub'),
+    path('announcements/<int:announcement_id>/feedback/', views.submit_announcement_feedback, name='submit_feedback'),
 
     #ADMIN DASHBOARD
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
@@ -58,5 +59,9 @@ urlpatterns = [
     #ADMIN: INQUIRIES
     path('admin/inquiries/', views.admin_inquiries_view, name='admin_inquiries'),
     path('admin/inquiries/<int:cuid>/', views.admin_inquiry_detail_view, name='admin_inquiry_detail'),
+
+    # ADMIN: FEEDBACK MONITORING
+    path('admin/feedback/', views.admin_feedback_view, name='admin_feedback'),
+    path('admin/feedback/<int:announcement_id>/', views.admin_feedback_detail_view, name='admin_feedback_detail'),
 
 ]
