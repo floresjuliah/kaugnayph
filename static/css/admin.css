@@ -15,26 +15,28 @@ body {
 
 .admin-layout {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
     background: #eef4f8;
+    overflow: hidden;
 }
 
 .admin-sidebar {
-    width: 260px;
+    width: 200px;
+    height: 100vh;
     background: #1d2a3d;
     color: white;
-    padding-top: 24px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    padding-top: 18px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
 }
 
 .admin-logo {
-    font-size: 30px;
+    font-size: 22px;
     font-weight: 800;
     padding: 0 24px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
 }
 
 .admin-logo span {
@@ -44,19 +46,21 @@ body {
 .admin-menu {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0;
 }
 
 .admin-menu a {
-    position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
+    padding: 10px 24px;
+    min-height: 42px;
     color: #9fb0c7;
     text-decoration: none;
-    padding: 18px 24px;
-    font-size: 17px;
-    transition: 0.2s;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 .admin-menu a:hover,
@@ -68,40 +72,27 @@ body {
     content: "";
     position: absolute;
     left: 0;
-    top: 0;
-    width: 5px;
-    height: 100%;
+    top: 7px;
+    width: 4px;
+    height: 28px;
     background: #0066ff;
+    border-radius: 0 4px 4px 0;
 }
 
 .menu-icon {
-    width: 24px;
-    min-width: 24px;
-    text-align: center;
-    font-size: 18px;
-}
-
-.admin-menu a {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: #9fb0c7;
-    text-decoration: none;
-    padding: 18px 24px;
-    font-size: 17px;
-    transition: 0.2s;
-    min-height: 60px;
+    width: 16px;
+    min-width: 16px;
+    font-size: 14px;
 }
 
 .admin-sidebar-footer {
-    padding: 24px;
+    padding: 18px;
 }
 
 .logout-btn {
     color: #9fb0c7;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .logout-btn:hover {
@@ -252,15 +243,17 @@ body {
 ========================= */
 
 .ann-page {
-    max-width: 1240px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 10px 0;
 }
 
 .ann-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 28px;
+    margin-bottom: 26px;
 }
 
 .ann-page h1 {
@@ -273,11 +266,11 @@ body {
 .create-ann-btn {
     background: #0066ff;
     color: white;
-    padding: 13px 22px;
+    padding: 12px 20px;
     border-radius: 8px;
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .create-ann-btn:hover {
@@ -287,9 +280,9 @@ body {
 .ann-tools-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    gap: 28px;
-    margin-bottom: 28px;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 22px;
 }
 
 .ann-controls {
@@ -301,7 +294,7 @@ body {
 
 .ann-search-box {
     width: 350px;
-    height: 46px;
+    height: 44px;
     background: white;
     border: 1px solid #d9e4ef;
     border-radius: 8px;
@@ -313,7 +306,7 @@ body {
 
 .ann-search-box span {
     color: #8aa0bd;
-    font-size: 21px;
+    font-size: 18px;
 }
 
 .ann-search-box input {
@@ -322,7 +315,6 @@ body {
     width: 100%;
     font-size: 14px;
     color: #334155;
-    font-weight: 400;
 }
 
 .ann-search-box input::placeholder {
@@ -331,15 +323,15 @@ body {
 
 .ann-filter-select,
 .ann-search-btn {
-    height: 46px;
+    height: 44px;
     min-width: 120px;
-    padding: 0 20px;
+    padding: 0 18px;
     border: 2px solid #0066ff;
     background: white;
     color: #0066ff;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     outline: none;
 }
@@ -353,15 +345,15 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     background: white;
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
     overflow: hidden;
-    min-width: 600px;
-    height: 80px;
+    min-width: 560px;
+    height: 76px;
 }
 
 .ann-stat-item {
-    padding: 18px 24px;
+    padding: 14px 22px;
     border-right: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
@@ -373,30 +365,30 @@ body {
 }
 
 .ann-stat-item p {
-    margin: 0 0 8px;
+    margin: 0 0 7px;
     color: #64748b;
     font-size: 13px;
     font-weight: 500;
-    line-height: 1.3;
 }
 
 .ann-stat-item h3 {
     margin: 0;
     color: #1e293b;
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 21px;
+    font-weight: 800;
     line-height: 1;
 }
 
 .ann-table-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
 }
 
 .ann-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .ann-table thead {
@@ -404,30 +396,47 @@ body {
 }
 
 .ann-table th {
-    padding: 15px 17px;
+    padding: 14px 18px;
     color: #53677f;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
     text-align: left;
     text-transform: uppercase;
 }
 
 .ann-table td {
-    padding: 13px 17px;
+    padding: 11px 18px;
     border-bottom: 1px solid #e2e8f0;
     color: #1e293b;
     font-size: 14px;
     font-weight: 400;
+    vertical-align: middle;
 }
 
-.ann-table th:last-child,
-.ann-table td:last-child {
+.ann-table th:nth-child(1),
+.ann-table td:nth-child(1) {
+    width: 50%;
+}
+
+.ann-table th:nth-child(2),
+.ann-table td:nth-child(2) {
+    width: 18%;
+}
+
+.ann-table th:nth-child(3),
+.ann-table td:nth-child(3) {
+    width: 18%;
+}
+
+.ann-table th:nth-child(4),
+.ann-table td:nth-child(4) {
+    width: 14%;
     text-align: right;
 }
 
 .ann-badge {
     display: inline-block;
-    padding: 7px 14px;
+    padding: 6px 13px;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 700;
@@ -438,22 +447,37 @@ body {
     color: #475569;
 }
 
+.ann-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
 .ann-actions a {
     text-decoration: none;
-    margin-left: 14px;
     color: #0066ff;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ann-actions form {
+    margin: 0;
 }
 
 .ann-actions button {
+    border: none;
+    background: none;
+    padding: 0;
     cursor: pointer;
+    font-size: 13px;
 }
 
 .ann-table-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 18px;
+    padding: 14px 18px;
 }
 
 .ann-table-footer p {
@@ -470,8 +494,8 @@ body {
 
 .ann-pagination button,
 .ann-pagination span {
-    min-width: 36px;
-    height: 36px;
+    min-width: 34px;
+    height: 34px;
     padding: 0 12px;
     border-radius: 8px;
     display: inline-flex;
@@ -484,6 +508,10 @@ body {
     font-weight: 500;
 }
 
+.ann-pagination a {
+    text-decoration: none;
+}
+
 .ann-pagination .active-page {
     background: #dbeafe;
     color: #0066ff;
@@ -494,10 +522,15 @@ body {
     color: white;
 }
 
+.ann-pagination .disabled {
+    color: #94a3b8;
+    background: #f8fafc;
+}
+
 .empty-row {
     text-align: center;
     color: #64748b;
-    padding: 40px !important;
+    padding: 34px !important;
 }
 
 @media (max-width: 1180px) {
@@ -1557,22 +1590,6 @@ RESIDENT PROFILE PAGE
 }
 
 /* Keep sidebar fixed, only main page scrolls */
-.admin-layout {
-    display: flex;
-    height: 100vh;
-    background: #eef4f8;
-    overflow: hidden;
-}
-
-.admin-sidebar {
-    width: 260px;
-    height: 100vh;
-    flex-shrink: 0;
-    overflow: hidden;
-    position: sticky;
-    top: 0;
-}
-
 .admin-main {
     flex: 1;
     height: 100vh;
@@ -2610,4 +2627,109 @@ EDIT RESIDENT PROFILE PAGE
 .status-resolved{
     background:#d4edda;
     color:#155724;
+}
+
+/* INQUIRIES LIST PAGE */
+
+.inquiry-page {
+    padding: 10px 0;
+}
+
+.inquiry-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 36px;
+}
+
+.inquiry-table-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.inquiry-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.inquiry-table thead {
+    background: #dfe7f1;
+}
+
+.inquiry-table th {
+    padding: 18px 22px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 800;
+    color: #58708f;
+    text-transform: uppercase;
+}
+
+.inquiry-table td {
+    padding: 15px 22px;
+    font-size: 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.inquiry-table th:last-child,
+.inquiry-table td:last-child {
+    text-align: right;
+}
+
+.inquiry-view-link {
+    color: #0066ff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.inquiry-view-link:hover {
+    text-decoration: underline;
+}
+
+.inquiry-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 30px;
+}
+
+.inquiry-table-footer {
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inquiry-table-footer p {
+    font-size: 14px;
+    color: #58708f;
+    margin: 0;
+}
+
+.inquiry-pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.inquiry-pagination a,
+.inquiry-pagination span {
+    border: none;
+    background: white;
+    color: #0066ff;
+    padding: 9px 13px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.inquiry-pagination .current {
+    background: #e6f0ff;
+    color: #0066ff;
+}
+
+.inquiry-pagination .disabled {
+    border: 1px solid #dbe4ee;
+    color: #64748b;
 }

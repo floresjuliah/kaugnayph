@@ -53,7 +53,7 @@
     <div class="ann-stats-card">
         <div class="ann-stat-item">
             <p>Total Announcements</p>
-            <h3>{{ announcements|length }}</h3>
+            <h3>{{ total_announcements }}</h3>
         </div>
 
         <div class="ann-stat-item">
@@ -96,30 +96,32 @@
                         {{ announcement.created_at|date:"M d, Y" }}
                     </td>
 
-                    <td class="text-end ann-actions">
-                        <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}">
-                            👁
-                        </a>
+                    <td class="text-end">
+                        <div class="ann-actions">                        
+                            <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}">
+                                👁
+                            </a>
 
-                        <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}">
-                            ✎
-                        </a>
+                            <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}">
+                                ✎
+                            </a>
 
-                        <form
-                            method="POST"
-                            action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
-                            style="display:inline;"
-                            onsubmit="return openDeleteModal(event, this);"
-                        >
-                            {% csrf_token %}
-
-                            <button
-                                type="submit"
-                                style="border:none; background:none; padding:0;"
+                            <form
+                                method="POST"
+                                action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
+                                style="display:inline;"
+                                onsubmit="return openDeleteModal(event, this);"
                             >
-                                🗑
-                            </button>
-                        </form>
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    style="border:none; background:none; padding:0;"
+                                >
+                                    🗑
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
 
@@ -134,14 +136,25 @@
         </table>
 
         <div class="ann-table-footer">
-            <p>Showing 1–5 of {{ announcements|length }} announcements</p>
+            <p>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                of {{ total_announcements }} announcements
+            </p>
 
             <div class="ann-pagination">
-                <button>Previous</button>
-                <span class="active-page">1</span>
-                <span>2</span>
-                <span>3</span>
-                <button class="next-btn">Next</button>
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&category={{ selected_category }}">Previous</a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
+
+                <span class="active-page">{{ page_obj.number }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&category={{ selected_category }}" class="next-btn">Next</a>
+                {% else %}
+                    <span class="disabled">Next</span>
+                {% endif %}
             </div>
         </div>
 

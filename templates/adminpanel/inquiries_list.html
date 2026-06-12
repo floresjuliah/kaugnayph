@@ -4,63 +4,56 @@
 
 {% block admin_content %}
 
-<div class="admin-page-header">
-    <h1>Inquiries</h1>
-</div>
+<div class="inquiry-page">
 
-<div class="admin-table-card">
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Resident</th>
-                <th>Contact Number</th>
-                <th>Subject</th>
-                <th>Status</th>
-                <th>Received At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <h1 class="inquiry-title">Inquiries</h1>
 
-        <tbody>
-            {% for inquiry in inquiries %}
-            <tr>
-                <td>{{ inquiry.firstname }} {{ inquiry.lastname }}</td>
+    <div class="inquiry-table-card">
+        <table class="inquiry-table">
+            <thead>
+                <tr>
+                    <th>Resident</th>
+                    <th>Contact Number</th>
+                    <th>Subject</th>
+                    <th>Received At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 
-                <td>{{ inquiry.contactno }}</td>
+            <tbody>
+                {% for inquiry in inquiries %}
+                <tr>
+                    <td>{{ inquiry.firstname }} {{ inquiry.lastname }}</td>
+                    <td>{{ inquiry.contactno }}</td>
+                    <td>{{ inquiry.messagesubject|default:"No subject" }}</td>
+                    <td>{{ inquiry.created_at|date:"M d, g:i A" }}</td>
+                    <td>
+                        <a href="{% url 'admin_inquiry_detail' inquiry.cuid %}" class="inquiry-view-link">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="inquiry-empty">
+                        No inquiries found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-                <td>{{ inquiry.messagesubject|default:"No subject" }}</td>
+        <div class="inquiry-table-footer">
+            <p>Showing 1–{{ inquiries|length }} of {{ inquiries|length }}</p>
 
-                <td>
-                    {% if inquiry.status == "Replied" %}
-                        <span class="status-badge status-resolved">
-                            Replied
-                        </span>
-                    {% else %}
-                        <span class="status-badge status-pending">
-                            New
-                        </span>
-                    {% endif %}
-                </td>
+            <div class="inquiry-pagination">
+                <span class="disabled">Previous</span>
+                <span class="current">1</span>
+                <span class="disabled">Next</span>
+            </div>
+        </div>
+    </div>
 
-                <td>{{ inquiry.created_at|date:"M d, g:i A" }}</td>
-
-                <td>
-                    <a href="{% url 'admin_inquiry_detail' inquiry.cuid %}"
-                       class="table-action-link">
-                        View
-                    </a>
-                </td>
-            </tr>
-
-            {% empty %}
-            <tr>
-                <td colspan="6" class="empty-table-message">
-                    No inquiries found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
 
 {% endblock %}

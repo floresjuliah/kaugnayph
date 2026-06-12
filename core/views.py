@@ -1377,6 +1377,7 @@ def serve_verification_file(request, rv_id, file_type):
 # Admin Announcement List 
 @admin_login_required
 def admin_announcements_view(request):
+    from django.core.paginator import Paginator
 
     search = request.GET.get("search", "").strip()
     category = request.GET.get("category", "").strip()
@@ -1387,29 +1388,24 @@ def admin_announcements_view(request):
     ).all()
 
     if search:
-        announcements = announcements.filter(
-            title__icontains=search
-        )
+        announcements = announcements.filter(title__icontains=search)
 
     if category and category != "all":
-        announcements = announcements.filter(
-            category__name__iexact=category
-        )
+        announcements = announcements.filter(category__name__iexact=category)
 
-    announcements = announcements.order_by(
-        "-announcement_id"
-    )
+    announcements = announcements.order_by("-announcement_id")
 
-    return render(
-        request,
-        "adminpanel/announcements_list.html",
-        {
-            "announcements": announcements,
-            "user": get_current_user(request),
-            "search": search,
-            "selected_category": category,
-        }
-    )
+    paginator = Paginator(announcements, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "adminpanel/announcements_list.html", {
+        "announcements": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+        "search": search,
+        "selected_category": category,
+        "total_announcements": announcements.count(),
+    })
 
 # ADMIN ANNOUNCEMENT DETAIL
 
