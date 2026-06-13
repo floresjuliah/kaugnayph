@@ -1,14 +1,22 @@
 {% extends "admin_base.html" %}
-{% block title %}Feedback — {{ announcement.title }}{% endblock %}
 
-{% block content %}
+{% block admin_title %}Feedback — {{ announcement.title }}{% endblock %}
 
-<div style="margin-bottom: 1.5rem;">
-  <a href="{% url 'admin_feedback' %}" style="color: var(--primary, #2563eb); text-decoration: none; font-size: 0.9rem;">
-    ← Back to Feedback Overview
+{% block admin_content %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+
+  <a href="{% url 'announcements' %}"
+     style="color:#2563eb; text-decoration:none; font-size:0.9rem;">
+    ← Back to Announcements
   </a>
-</div>
 
+  <a href="{% url 'admin_feedback' %}"
+     style="color:#2563eb; text-decoration:none; font-size:0.9rem;">
+    View Feedback Dashboard →
+  </a>
+
+</div>
 <div style="margin-bottom: 1.5rem;">
   <h2 style="margin: 0 0 0.25rem;">{{ announcement.title }}</h2>
   <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">
