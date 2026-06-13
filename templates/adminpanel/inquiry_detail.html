@@ -31,6 +31,10 @@
         <p>{{ inquiry.address|default:"No address provided" }}</p>
     </div>
 
+    <hr>
+
+    <h2>Inquiry Information</h2>
+
     <div class="detail-group">
         <label>Subject</label>
         <p>{{ inquiry.messagesubject|default:"No subject" }}</p>
@@ -43,12 +47,23 @@
         </div>
     </div>
 
-    <hr>
+    <div class="detail-group">
+        <label>Date Submitted</label>
+        <p>{{ inquiry.created_at|date:"M d, Y, g:i A" }}</p>
+    </div>
 
     <div class="detail-group">
         <label>Status</label>
-        <p>{{ inquiry.status }}</p>
+        <p>
+            <span class="status-badge status-{{ inquiry.status|lower }}">
+                {{ inquiry.status }}
+            </span>
+        </p>
     </div>
+
+    <hr>
+
+    <h2>Admin Response</h2>
 
     {% if inquiry.admin_reply %}
         <div class="detail-group">
@@ -57,6 +72,16 @@
                 {{ inquiry.admin_reply }}
             </div>
         </div>
+
+        {% if inquiry.replied_byuser %}
+            <div class="detail-group">
+                <label>Replied By</label>
+                <p>
+                    {{ inquiry.replied_byuser.firstname }}
+                    {{ inquiry.replied_byuser.lastname }}
+                </p>
+            </div>
+        {% endif %}
 
         {% if inquiry.replied_at %}
             <div class="detail-group">
@@ -67,28 +92,92 @@
     {% endif %}
 
     {% if inquiry.status != "Replied" %}
-        <form method="POST">
+        <form id="inquiryReplyForm" method="POST" onsubmit="return confirmInquiryReply();">
             {% csrf_token %}
 
             <div class="reply-box-wrapper">
                 <textarea
                     name="admin_reply"
-                    maxlength="160"
+                    maxlength="250"
                     placeholder="Type your reply..."
                 ></textarea>
 
-                <span class="char-count">0/160</span>
+                <span class="char-count">0/250</span>
             </div>
 
             <div class="reply-footer">
-                <p>ⓘ This reply will be saved first. SMS sending can be added after testing.</p>
-
                 <button type="submit" name="action" value="reply">
-                    Save Reply
+                    Send Reply
                 </button>
             </div>
         </form>
     {% endif %}
 </div>
+
+<div id="inquirySmsConfirmModal" class="delete-modal-overlay">
+    <div class="delete-modal">
+        <h3>Send SMS Reply</h3>
+
+        <p>
+            This reply will be sent via SMS to:
+        </p>
+
+        <p style="margin-top: 12px; font-weight: 700; line-height: 1.8; color: #1f2937;">
+            {{ inquiry.firstname|title }} {{ inquiry.lastname|title }}<br>
+            {{ inquiry.contactno }}
+        </p>
+
+        <p style="margin-top: 12px;">
+            Please review your response before sending.
+        </p>
+
+        <div class="delete-modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeInquirySmsModal()">
+                Cancel
+            </button>
+
+            <button type="button" class="btn btn-primary" onclick="submitInquiryReplyForm()">
+                Send Reply
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let pendingInquiryReplyForm = null;
+
+const replyTextarea = document.querySelector('textarea[name="admin_reply"]');
+const charCount = document.querySelector('.char-count');
+const maxReplyLength = 250;
+
+if (replyTextarea && charCount) {
+    replyTextarea.addEventListener("input", function () {
+        charCount.textContent = `${this.value.length}/${maxReplyLength}`;
+    });
+}
+
+function confirmInquiryReply() {
+    const replyInput = document.querySelector('textarea[name="admin_reply"]');
+
+    if (!replyInput || replyInput.value.trim() === "") {
+        return true;
+    }
+
+    pendingInquiryReplyForm = document.getElementById("inquiryReplyForm");
+    document.getElementById("inquirySmsConfirmModal").classList.add("show");
+    return false;
+}
+
+function closeInquirySmsModal() {
+    pendingInquiryReplyForm = null;
+    document.getElementById("inquirySmsConfirmModal").classList.remove("show");
+}
+
+function submitInquiryReplyForm() {
+    if (pendingInquiryReplyForm) {
+        pendingInquiryReplyForm.submit();
+    }
+}
+</script>
 
 {% endblock %}

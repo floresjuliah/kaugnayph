@@ -2494,6 +2494,10 @@ def admin_inquiry_detail_view(request, cuid):
  
     current_admin = get_current_user(request)
     sla           = get_sla_for_record("Inquiry", cuid)
+
+    if request.method == "GET" and inquiry.status == "New":
+        inquiry.status = "Pending"
+        inquiry.save()
  
     if request.method == "POST":
         action      = request.POST.get("action")
@@ -2515,13 +2519,14 @@ def admin_inquiry_detail_view(request, cuid):
             resolve_sla("Inquiry", inquiry.cuid)
  
             # Notify resident via SMS
+            sms_reply = f"KaugnayPH Reply: {admin_reply}"
+
             send_sms(
                 inquiry.contactno,
-                f"KaugnayPH: Your inquiry has been replied to. "
-                f"Subject: {inquiry.messagesubject or 'General Inquiry'}.",
+                sms_reply,
                 sent_by=current_admin,
             )
- 
+            
             AuditLogs.objects.create(
                 user=current_admin, action="Reply to Inquiry",
                 module_name="Inquiry", table_name="Inquiry",

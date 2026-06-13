@@ -2573,7 +2573,7 @@ EDIT RESIDENT PROFILE PAGE
 
 .reply-box-wrapper textarea {
     width: 100%;
-    min-height: 54px;
+    min-height: 100px;
     border: 1px solid #d9e2ef;
     border-radius: 8px;
     padding: 14px 70px 14px 16px;
@@ -2732,4 +2732,32 @@ EDIT RESIDENT PROFILE PAGE
 .inquiry-pagination .disabled {
     border: 1px solid #dbe4ee;
     color: #64748b;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-replied {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-closed {
+    background: #e5e7eb;
+    color: #374151;
 }
