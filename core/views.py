@@ -494,9 +494,11 @@ def admin_login_view(request):
     otp, cooldown = generate_otp(user, purpose="login")
 
     if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
         messages.error(
             request,
-            f"Please wait {cooldown} before requesting another OTP."
+            f"Please wait {mins}m {secs}s before requesting another OTP."
         )
         return render(request, "auth/login_admin.html")
 
