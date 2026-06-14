@@ -64,4 +64,7 @@ urlpatterns = [
     path('admin/feedback/', views.admin_feedback_view, name='admin_feedback'),
     path('admin/feedback/<int:announcement_id>/', views.admin_feedback_detail_view, name='admin_feedback_detail'),
 
+    #ADMIN: AUDIT LOGS
+    path("admin/audit-logs/", views.audit_logs_view, name="audit_logs"),
+
 ]

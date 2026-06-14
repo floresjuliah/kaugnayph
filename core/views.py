@@ -2556,3 +2556,52 @@ def admin_inquiry_detail_view(request, cuid):
         "sla_status": get_sla_status_live(sla),
         "user":       current_admin,
     })
+
+@admin_login_required
+def audit_logs_view(request):
+    from django.core.paginator import Paginator
+
+    search_query = request.GET.get("search", "").strip()
+    module_filter = request.GET.get("module", "All").strip()
+
+    logs = AuditLogs.objects.select_related("user").filter(
+    user__user_type__type_name="Admin"
+    )
+
+    if search_query:
+        logs = logs.filter(
+            Q(action__icontains=search_query) |
+            Q(module_name__icontains=search_query) |
+            Q(table_name__icontains=search_query) |
+            Q(new_value__icontains=search_query) |
+            Q(old_value__icontains=search_query) |
+            Q(user__firstname__icontains=search_query) |
+            Q(user__lastname__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+
+    if module_filter != "All":
+        logs = logs.filter(module_name=module_filter)
+
+    logs = logs.order_by("-created_at")
+
+    modules = AuditLogs.objects.filter(
+    user__user_type__type_name="Admin"
+    ).exclude(
+        module_name__isnull=True
+    ).exclude(
+        module_name=""
+    ).values_list("module_name", flat=True).distinct()
+
+    paginator = Paginator(logs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "adminpanel/audit_logs.html", {
+        "logs": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+        "search_query": search_query,
+        "module_filter": module_filter,
+        "modules": modules,
+        "total": logs.count(),
+    })
