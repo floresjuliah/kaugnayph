@@ -1,5 +1,6 @@
 import base64
 import logging
+import re
 
 from openai import OpenAI
 from django.conf import settings
@@ -20,25 +21,30 @@ client = OpenAI(
 # LOCAL FILIPINO PROFANITY FILTER
 
 BAD_WORDS = [
-    "putangina",
-    "gago",
-    "bobo",
-    "ulol",
-    "tanga",
-    "bwisit",
+    # Filipino
+    "putangina", "putang ina", "puta",
+    "gago", "bobo", "ulol", "tanga",
+    "bwisit", "tangina", "pakyu",
+    "tarantado", "hinayupak", "leche",
+    "hayop", "buwisit", "lintik",
+
+    # English
+    "fuck", "shit", "bitch", "asshole",
+    "bastard", "cunt", "damn", "ass",
+    "dick", "piss", "crap",
 ]
 
 
 def contains_bad_words(text: str) -> bool:
 
     text = text.lower()
-
     for word in BAD_WORDS:
-        if word in text:
+        # Use word boundaries to avoid false positives
+        pattern = r'\b' + re.escape(word) + r'\b'
+        if re.search(pattern, text):
             return True
-
     return False
-
+    
 
 # ALLOWED IMAGE TYPES
 
