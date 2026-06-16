@@ -126,7 +126,7 @@
     <button class="modal__close" onclick="closeModal()">&times;</button>
   </div>
   <div class="modal__body" id="modal-body">
-    <!-- Fields injected by JS -->
+
   </div>
   <div class="modal__footer">
     <button class="modal__submit">Submit</button>
@@ -193,71 +193,69 @@
     'Certificate of Indigency': {
       sections: [
         {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-      ]
-    },
+        fields: [
+          { label: 'First Name', type: 'text', col: 'third' },
+          { label: 'Middle Name', type: 'text', col: 'third' },
+          { label: 'Last Name', type: 'text', col: 'third' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Address / Tirahan', type: 'text', col: 'full' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Years of Stay', type: 'number', col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Purpose', type: 'checkbox', options: ['Medical Assistance', 'Financial Assistance', 'DSWD Requirement', 'PWD ID Requirement', 'Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'full' },
+        ]
+      },
+    ]
+  },
 
     'Certificate for First Time Job Seeker': {
-      sections: [
-        {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Educational Attainment', type: 'select', options: ['High School Graduate', 'College Undergraduate', 'College Graduate', 'Vocational'], col: 'full' },
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-      ]
-    },
+    sections: [
+      {
+        fields: [
+          { label: 'First Name', type: 'text', col: 'third' },
+          { label: 'Middle Name', type: 'text', col: 'third' },
+          { label: 'Last Name', type: 'text', col: 'third' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Address / Tirahan', type: 'text', col: 'full' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Years of Stay', type: 'number', col: 'half' },
+          { label: 'Birth Date', type: 'date', col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Age', type: 'number', col: 'full' },
+        ]
+      },
+    ]
+  },
 
     'Certificate of Solo Parent': {
       sections: [
@@ -298,34 +296,35 @@
     'Business Clearance': {
       sections: [
         {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-            { label: 'Business Name', type: 'text', col: 'full' },
-            { label: 'Business Address', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Type of Business', type: 'select', options: ['Sole Proprietorship', 'Partnership', 'Corporation', 'Cooperative'], col: 'half' },
-            { label: 'Nature of Business', type: 'text', col: 'half' },
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-      ]
-    },
+        fields: [
+          { label: 'First Name', type: 'text', col: 'third' },
+          { label: 'Middle Name', type: 'text', col: 'third' },
+          { label: 'Last Name', type: 'text', col: 'third' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Address / Tirahan', type: 'text', col: 'full' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Years of Stay', type: 'number', col: 'half' },
+        ]
+      },
+      {
+        fields: [
+          { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement', 'Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'full' },
+        ]
+      },
+    ]
+  },
 
     'Barangay ID': {
       sections: [
@@ -405,7 +404,13 @@ function openModal(docTitle) {
       const allHalves = cols.every(c => c === 'half');
 
       const row = document.createElement('div');
-      row.className = allThirds ? 'form-row form-row--3' : allHalves ? 'form-row form-row--2' : 'form-row form-row--mixed';
+      if (allThirds) {
+        row.className = 'form-row--3';
+      } else if (allHalves) {
+        row.className = 'form-row--2';
+      } else {
+        row.className = 'form-row--mixed';
+      }
 
       section.fields.forEach(field => {
         const group = document.createElement('div');
@@ -422,6 +427,45 @@ function openModal(docTitle) {
             const option = document.createElement('option');
             option.textContent = opt;
             input.appendChild(option);
+          });
+        } else if (field.type === 'checkbox') {
+          input = document.createElement('div');
+          field.options.forEach(opt => {
+            const checkLabel = document.createElement('label');
+            checkLabel.style.display = 'flex';
+            checkLabel.style.alignItems = 'center';
+            checkLabel.style.gap = '8px';
+            checkLabel.style.marginBottom = '6px';
+            checkLabel.style.fontSize = '0.88rem';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = opt;
+
+            const span = document.createElement('span');
+            span.textContent = opt;
+
+            checkLabel.appendChild(checkbox);
+            checkLabel.appendChild(span);
+
+            // Show text input if Others is checked
+            if (opt === 'Others') {
+              const othersInput = document.createElement('input');
+              othersInput.type = 'text';
+              othersInput.placeholder = 'Please specify...';
+              othersInput.style.display = 'none';
+              othersInput.style.marginTop = '6px';
+              othersInput.style.marginLeft = '24px';
+
+              checkbox.addEventListener('change', function() {
+                othersInput.style.display = this.checked ? 'block' : 'none';
+              });
+
+              input.appendChild(checkLabel);
+              input.appendChild(othersInput);
+            } else {
+              input.appendChild(checkLabel);
+            }
           });
         } else {
           input = document.createElement('input');

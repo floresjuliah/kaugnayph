@@ -33,6 +33,7 @@
         </ul>
       </li>
       <li><a href="{% url 'faqs' %}" {% if active_page == 'faqs' %}class="active"{% endif %}>FAQs</a></li>
+      <li><a href="{% url 'contactus' %}" {% if active_page == 'contactus' %}class="active"{% endif %}>Contact Us</a></li>
       </ul>
 
     {% if request.session.user_id %}

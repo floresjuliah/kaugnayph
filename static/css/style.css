@@ -202,6 +202,7 @@ body.register-page {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  margin-bottom: 16px;
 }
 
 .hint {
@@ -227,6 +228,11 @@ body.register-page {
 .form-group input[type="file"] {
   padding: 8px;
   cursor: pointer;
+}
+
+.form-group input[type="checkbox"] {
+  width: auto;
+  margin: 0;
 }
 
 /* SELECT */
@@ -2358,6 +2364,7 @@ footer ul li a:hover {
   opacity: 0;
   transform: translate(-50%, -48%);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  display: none;
 }
 .modal.active {
   display: flex;
