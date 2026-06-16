@@ -506,6 +506,79 @@ class AuditLogs(models.Model):
     class Meta:
         db_table = 'AuditLogs'
 
+class FAQCategories(models.Model):
+    faq_category_id = models.AutoField(
+        db_column='FAQCategoryID',
+        primary_key=True
+    )
+
+    category_name = models.CharField(
+        db_column='CategoryName',
+        max_length=100
+    )
+
+    description = models.CharField(
+        db_column='Description',
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        db_table = 'FAQCategories'
+        managed = False
+
+    def __str__(self):
+        return self.category_name
+
+class FAQs(models.Model):
+    faq_id = models.AutoField(
+        db_column='FAQID',
+        primary_key=True
+    )
+
+    faq_category = models.ForeignKey(
+        FAQCategories,
+        db_column='FAQCategoryID',
+        on_delete=models.CASCADE
+    )
+
+    question = models.CharField(
+        db_column='Question',
+        max_length=255
+    )
+
+    answer = models.TextField(
+        db_column='Answer'
+    )
+
+    created_by = models.ForeignKey(
+        Users,
+        db_column='CreatedBy',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    created_at = models.DateTimeField(
+        db_column='CreatedAt'
+    )
+
+    updated_at = models.DateTimeField(
+        db_column='UpdatedAt'
+    )
+
+    is_active = models.BooleanField(
+        db_column='IsActive',
+        default=True
+    )
+
+    class Meta:
+        db_table = 'FAQs'
+        managed = False
+
+    def __str__(self):
+        return self.question
+
 #STATUS_CHOICES = [
 #    ("Pending",  "Pending"),
 #    ("Approved", "Approved"),

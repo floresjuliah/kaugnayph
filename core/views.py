@@ -7,7 +7,7 @@ import os
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
@@ -35,6 +35,8 @@ from .models import (
     HearingOfficials,
     AnnouncementFeedback,
     AnnouncementCategories,
+    FAQs,
+    FAQCategories,
 )
  
 from .auth_utils import (
@@ -52,7 +54,7 @@ from .decorators import (
     chairman_required,
 )
 
-from core.moderation import moderate_text, moderate_image
+
 
 
 # PUBLIC PAGES
@@ -172,7 +174,23 @@ def documents(request):
     return render(request, 'documents.html', {"document_types": document_types})
 
 def faqs(request):
-    return render(request, 'faqs.html')
+    faqs = FAQs.objects.filter(is_active=True)
+
+    return render(
+        request,
+        'faqs.html',
+        {
+            'faqs': faqs
+        }
+    )
+
+def admin_faqs(request):
+    faqs = FAQs.objects.select_related('faq_category').order_by('-created_at')
+
+    return render(request, 'adminpanel/admin_faqs.html', {
+    'faqs': faqs
+})
+
 
 def contactus(request):
     if request.method == "POST":
@@ -2607,3 +2625,124 @@ def audit_logs_view(request):
         "modules": modules,
         "total": logs.count(),
     })
+
+# ADMIN FAQS VIEW
+@admin_login_required
+def admin_faqs(request):
+
+    search = request.GET.get('search', '')
+
+    faqs = FAQs.objects.select_related(
+        'faq_category',
+        'created_by'
+    )
+
+    if search:
+        faqs = faqs.filter(
+            Q(question__icontains=search) |
+            Q(answer__icontains=search)
+        )
+
+    faqs = faqs.order_by('-updated_at')
+
+    return render(request, 'adminpanel/admin_faqs.html', {
+        'faqs': faqs,
+        'search': search,
+    })
+
+
+@admin_login_required
+def admin_add_faq(request):
+    categories = FAQCategories.objects.all()
+
+    if request.method == 'POST':
+        current_user = get_current_user(request)
+
+        faq = FAQs.objects.create(
+            faq_category_id=request.POST.get('category'),
+            question=request.POST.get('question'),
+            answer=request.POST.get('answer'),
+            created_by=current_user,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+            is_active=True
+        )
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Create FAQ",
+            module_name="FAQs",
+            table_name="FAQs",
+            record_id=faq.faq_id,
+            new_value=f"Question: {faq.question}",
+            created_at=timezone.now(),
+        )
+
+        messages.success(request, 'FAQ added successfully.')
+        return redirect('admin_faqs')
+
+    return render(request, 'adminpanel/admin_faq_form.html', {
+        'categories': categories,
+        'faq': None
+    })
+
+
+@admin_login_required
+def admin_edit_faq(request, faq_id):
+    faq = get_object_or_404(FAQs, faq_id=faq_id)
+    categories = FAQCategories.objects.all()
+
+    if request.method == 'POST':
+        current_user = get_current_user(request)
+
+        faq.faq_category_id = request.POST.get('category')
+        faq.question = request.POST.get('question')
+        faq.answer = request.POST.get('answer')
+        faq.updated_at = timezone.now()
+        faq.save()
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Update FAQ",
+            module_name="FAQs",
+            table_name="FAQs",
+            record_id=faq.faq_id,
+            new_value=f"Question: {faq.question}",
+            created_at=timezone.now(),
+        )
+
+        messages.success(request, 'FAQ updated successfully.')
+        return redirect('admin_faqs')
+
+    return render(request, 'adminpanel/admin_faq_form.html', {
+        'categories': categories,
+        'faq': faq
+    })
+
+
+@admin_login_required
+def admin_toggle_faq(request, faq_id):
+    faq = get_object_or_404(FAQs, faq_id=faq_id)
+
+    current_user = get_current_user(request)
+
+    faq.is_active = not faq.is_active
+    faq.updated_at = timezone.now()
+    faq.save()
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Activate FAQ" if faq.is_active else "Deactivate FAQ",
+        module_name="FAQs",
+        table_name="FAQs",
+        record_id=faq.faq_id,
+        new_value=f"Question: {faq.question}",
+        created_at=timezone.now(),
+    )
+
+    if faq.is_active:
+        messages.success(request, 'FAQ activated successfully.')
+    else:
+        messages.success(request, 'FAQ deactivated successfully.')
+
+    return redirect('admin_faqs')

@@ -2761,3 +2761,46 @@ EDIT RESIDENT PROFILE PAGE
     background: #e5e7eb;
     color: #374151;
 }
+.admin-filter-bar{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.admin-filter-input{
+    width:320px;
+    padding:10px 14px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.admin-filter-input:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+.faq-category {
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.faq-table-card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.faq-table-card .admin-table {
+    margin: 0;
+}
+
+.faq-table-card .admin-table th,
+.faq-table-card .admin-table td {
+    padding: 16px;
+}
