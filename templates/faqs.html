@@ -26,7 +26,6 @@
     id="faqSearch"
   />
 </div>
-
 <p>
   For quick answers to common concerns and inquiries, please use this feature to
   browse frequently asked questions.
@@ -36,15 +35,27 @@
   </div>
 </section>
 
+
 <!-- FAQ GRID -->
 
 <section class="faq-section">
+  <!-- Category Filter -->
+  <div class="faq-category-wrap">
+    <select id="faqCategory" class="faq-category">
+      <option value="">All Categories</option>
+      <option value="general">General</option>
+      <option value="documents">Documents</option>
+      <option value="complaints">Complaints</option>
+      <option value="announcements">Announcements</option>
+      <option value="account">Account</option>
+      <option value="inquiries">Inquiries</option>
+    </select>
+  </div>
 
   <div class="faq-grid">
 
-
 {% for faq in faqs %}
-  <div class="faq-item">
+  <div class="faq-item" data-category="announcements">
     <button class="faq-question" onclick="toggleFaq(this)">
       {{ faq.question }}
       <span class="faq-arrow">▼</span>

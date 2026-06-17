@@ -111,7 +111,7 @@
 
     <p class="available-docs__track">
       Already submitted a request? You can track its status in the 
-      <a href="#">Track Cases</a> section.
+      <a href="#">Track Submissions</a> section.
     </p>
 
   </div>
@@ -136,10 +136,80 @@
 
 <!-- ── MODAL SCRIPT ── -->
 <script>
+  
+  const fullnameParts = "{{ request.session.fullname|default:'' }}".split(' ');
+  const sessionUser = {
+    firstname: fullnameParts[0] || '',
+    middlename: '',
+    lastname: fullnameParts.slice(1).join(' ') || '',
+  };
+  
   const docForms = {
     'Barangay Clearance': {
       sections: [
+          {
+            fields: [
+              { label: 'First Name', type: 'text', col: 'third' },
+              { label: 'Middle Name', type: 'text', col: 'third' },
+              { label: 'Last Name', type: 'text', col: 'third' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Address / Tirahan', type: 'text', col: 'full' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+              { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Years of Stay', type: 'number', col: 'half' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement'], col: 'half' },
+              {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
+            ]
+          },
         {
+        sectionTitle: 'Requirements'
+        },
+        {
+          fields: [
+            { label: 'Valid Government-Issued ID', type: 'select', options: [
+              'Philippine National ID',
+              'Passport',
+              "Driver's License",
+              'UMID',
+              'Voter ID',
+              'Senior Citizen ID',
+              'PWD ID',
+              'Student ID'
+            ], col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Attach Image of ID', type: 'file', col: 'full' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Proof of Residency', type: 'file', col: 'half' },
+            { label: 'Community Tax Certificate', type: 'file', col: 'half' },
+          ]
+        },
+        ]
+      },
+
+      'Certificate of Indigency': {
+        sections: [
+          {
           fields: [
             { label: 'First Name', type: 'text', col: 'third' },
             { label: 'Middle Name', type: 'text', col: 'third' },
@@ -148,19 +218,7 @@
         },
         {
           fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
             { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Place of Birth', type: 'text', col: 'half' },
-            { label: 'Precinct Number', type: 'text', col: 'half' },
           ]
         },
         {
@@ -171,55 +229,37 @@
         },
         {
           fields: [
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-        { sectionTitle: 'Contact Person in Case of Emergency' },
-        {
-          fields: [
-            { label: 'Name of Parents / Guardian', type: 'text', col: 'half' },
-            { label: 'Contact Number of Parents / Guardian / Tagapag-alaga', type: 'text', col: 'half' },
+            { label: 'Years of Stay', type: 'number', col: 'half' },
           ]
         },
         {
           fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-            { label: 'Relationship', type: 'text', col: 'full' },
+            { label: 'Purpose', type: 'checkbox', options: ['Medical Assistance', 'Financial Assistance', 'DSWD Requirement', 'PWD ID Requirement'], col: 'half' },
+            {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
           ]
         },
-      ]
-    },
-
-    'Certificate of Indigency': {
-      sections: [
         {
-        fields: [
-          { label: 'First Name', type: 'text', col: 'third' },
-          { label: 'Middle Name', type: 'text', col: 'third' },
-          { label: 'Last Name', type: 'text', col: 'third' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Address / Tirahan', type: 'text', col: 'full' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Years of Stay', type: 'number', col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Purpose', type: 'checkbox', options: ['Medical Assistance', 'Financial Assistance', 'DSWD Requirement', 'PWD ID Requirement', 'Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'full' },
-        ]
-      },
+          fields: [
+            { label: 'Valid Government-Issued ID', type: 'select', options: [
+              'Philippine National ID',
+              'Passport',
+              "Driver's License",
+              'UMID',
+              'Voter ID',
+              'Senior Citizen ID',
+              'PWD ID',
+              'Student ID'
+            ], col: 'half' },
+            { label: 'Attach Image of ID', type: 'file', col: 'half' }
+          ]
+        },
+        {
+          fields: [
+            { label: 'Proof of Residency', type: 'file', col: 'third' },
+            { label: 'Proof of Income', type: 'file', col: 'third' },
+            { label: 'Community Tax Certificate', type: 'file', col: 'third' },
+          ]
+        },
     ]
   },
 
@@ -254,8 +294,33 @@
           { label: 'Age', type: 'number', col: 'full' },
         ]
       },
-    ]
-  },
+      {
+        sectionTitle: 'Requirements'
+        },
+        {
+          fields: [
+            { label: 'Valid Government-Issued ID', type: 'select', options: [
+              'Philippine National ID',
+              'Passport',
+              "Driver's License",
+              'UMID',
+              'Voter ID',
+              'Senior Citizen ID',
+              'PWD ID',
+              'Student ID'
+            ], col: 'half' },
+             { label: 'Attach Image of ID', type: 'file', col: 'half' },
+          ]
+        },
+        {
+          fields: [
+            { label: 'Proof of Residency', type: 'file', col: 'half' },
+            { label: 'Diploma/tor/Certificate of Graduation', type: 'file', col: 'half' },
+          ]
+        },
+        ]
+      },
+
 
     'Certificate of Solo Parent': {
       sections: [
@@ -295,36 +360,66 @@
 
     'Business Clearance': {
       sections: [
-        {
-        fields: [
-          { label: 'First Name', type: 'text', col: 'third' },
-          { label: 'Middle Name', type: 'text', col: 'third' },
-          { label: 'Last Name', type: 'text', col: 'third' },
+          {
+            fields: [
+              { label: 'First Name', type: 'text', col: 'third' },
+              { label: 'Middle Name', type: 'text', col: 'third' },
+              { label: 'Last Name', type: 'text', col: 'third' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Address / Tirahan', type: 'text', col: 'full' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
+              { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Years of Stay', type: 'number', col: 'half' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement'], col: 'half' },
+              {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
+            ]
+          },
+          {
+            sectionTitle: 'Requirements'
+          },
+          {
+            fields: [
+              { label: 'Valid Government-Issued ID', type: 'select', options: [
+                'Philippine National ID',
+                'Passport',
+                "Driver's License",
+                'UMID',
+                'Voter ID',
+                'Senior Citizen ID',
+                'PWD ID',
+                'Student ID'
+              ], col: 'full' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Attach Image of ID', type: 'file', col: 'full' },
+            ]
+          },
+          {
+            fields: [
+              { label: 'Proof of Business Registration', type: 'file', col: 'third' },
+              { label: 'Proof of Business Location', type: 'file', col: 'third' },
+              { label: 'Community Tax Certificate', type: 'file', col: 'third' },
+            ]
+          },
         ]
       },
-      {
-        fields: [
-          { label: 'Address / Tirahan', type: 'text', col: 'full' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Years of Stay', type: 'number', col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement', 'Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'full' },
-        ]
-      },
-    ]
-  },
 
     'Barangay ID': {
       sections: [
@@ -378,7 +473,7 @@
         },
       ]
     },
-  };
+  }
 
 function openModal(docTitle) {
     const form = docForms[docTitle];
@@ -476,6 +571,14 @@ function openModal(docTitle) {
       });
 
       body.appendChild(row);
+    });
+
+    // Autofill name fields
+    document.querySelectorAll('.form-group input').forEach(input => {
+      const label = input.previousElementSibling?.textContent?.toLowerCase();
+      if (label?.includes('first name')) input.value = sessionUser.firstname;
+      if (label?.includes('middle name')) input.value = sessionUser.middlename;
+      if (label?.includes('last name')) input.value = sessionUser.lastname;
     });
 
 
