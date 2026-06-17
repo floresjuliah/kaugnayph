@@ -20,16 +20,36 @@
         <div class="doc-detail-header">
             <h2>Request Details: {{ doc_id }}</h2>
 
-            {% if doc_request.status != "Completed" %}
-            <form method="POST">
-                {% csrf_token %}
-                <button type="submit"
-                        name="action"
-                        value="complete"
-                        class="mark-complete-btn">
-                    Mark as Completed
-                </button>
-            </form>
+            {% if doc_request.status != "Completed" and doc_request.status != "Rejected" %}
+                <form method="POST" style="display:flex; gap:10px; flex-wrap:wrap;">
+                    {% csrf_token %}
+
+                    {% if doc_request.status == "Pending" %}
+                        <button type="submit"
+                                name="action"
+                                value="processing"
+                                class="mark-complete-btn">
+                            Mark as Processing
+                        </button>
+                    {% endif %}
+
+                    {% if doc_request.status == "Pending" or doc_request.status == "Processing" %}
+                        <button type="submit"
+                                name="action"
+                                value="complete"
+                                class="mark-complete-btn">
+                            Mark as Completed
+                        </button>
+
+                        <button type="submit"
+                                name="action"
+                                value="reject"
+                                class="mark-complete-btn"
+                                onclick="return confirm('Are you sure you want to reject this document request?');">
+                            Reject
+                        </button>
+                    {% endif %}
+                </form>
             {% endif %}
         </div>
 
@@ -42,6 +62,11 @@
             <p>
                 <strong>Request Date:</strong>
                 {{ doc_request.requested_at|date:"F d, Y" }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                {{ doc_request.status }}
             </p>
 
             <span class="application-badge">
@@ -99,7 +124,16 @@
                 {% for value in field_values %}
                     <div class="info-item">
                         <label>{{ value.document_field.field_label }}</label>
-                        <p>{{ value.field_value|default:"Not provided" }}</p>
+
+                        {% if value.uploaded_file %}
+                            <p>
+                                <a href="/media/{{ value.uploaded_file }}" target="_blank">
+                                    View / Download File
+                                </a>
+                            </p>
+                        {% else %}
+                            <p>{{ value.field_value|default:"Not provided" }}</p>
+                        {% endif %}
                     </div>
                 {% empty %}
                     <div class="info-item">
@@ -107,19 +141,6 @@
                         <p>No additional fields submitted.</p>
                     </div>
                 {% endfor %}
-
-                <div class="file-box">
-                    <div class="file-icon">▱</div>
-
-                    {% if doc_request.uploaded_file %}
-                        <a href="{{ doc_request.uploaded_file.url }}" target="_blank">
-                            Click to view/download attached files
-                        </a>
-                    {% else %}
-                        <p>Click to view/download attached files</p>
-                        <small>No attached file</small>
-                    {% endif %}
-                </div>
 
             </div>
 

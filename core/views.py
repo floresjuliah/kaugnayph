@@ -1890,91 +1890,126 @@ def case_records_view(request):
     })
 
 
-#DOCUMENT REQUEST FOR RESIDENT 
+# DOCUMENT REQUEST FOR RESIDENT 
 @login_required
 @resident_required
 def document_request_view(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
- 
+
     if request.method == "POST":
         document_type_id = request.POST.get("document_type_id", "").strip()
-        purpose          = request.POST.get("purpose", "").strip()
-        uploaded_file    = request.FILES.get("uploaded_file")
- 
+        purpose = request.POST.get("purpose", "").strip()
+
         if not document_type_id:
             messages.error(request, "Please select a document type.")
             return render(request, "documents.html", {"document_types": document_types})
- 
+
         try:
             document_type = DocumentTypes.objects.get(dtid=document_type_id, is_active=True)
         except DocumentTypes.DoesNotExist:
             messages.error(request, "Invalid document type selected.")
             return render(request, "documents.html", {"document_types": document_types})
- 
+
         fields = DocumentFields.objects.filter(document_type=document_type)
+
         field_errors = []
+
         for field in fields:
             if field.is_required:
-                value = request.POST.get(f"field_{field.dfid}", "").strip()
-                if not value:
-                    field_errors.append(f"'{field.field_label}' is required.")
- 
+                input_name = f"field_{field.dfid}"
+
+                if field.field_type == "file":
+                    uploaded_file = request.FILES.get(input_name)
+
+                    if not uploaded_file:
+                        field_errors.append(f"'{field.field_label}' is required.")
+                else:
+                    value = request.POST.get(input_name, "").strip()
+
+                    if not value:
+                        field_errors.append(f"'{field.field_label}' is required.")
+
         if field_errors:
             for err in field_errors:
                 messages.error(request, err)
+
             return render(request, "documents.html", {
                 "document_types": document_types,
                 "selected_type": document_type,
                 "fields": fields,
             })
- 
-        current_user = get_current_user(request)
- 
-        file_path = None
-        if uploaded_file:
-            ok, err = validate_upload(uploaded_file)
-            if not ok:
-                messages.error(request, err)
-                return render(request, "documents.html", {"document_types": document_types})
-            file_path = default_storage.save(
-                f"document_requests/{uploaded_file.name}",
-                ContentFile(uploaded_file.read())
-            )
- 
+
         # CONTENT MODERATION
         text_check = moderate_text(purpose)
+
         if text_check["flagged"]:
             messages.error(request, "Your request contains inappropriate content and could not be submitted.")
             return render(request, "documents.html", {"document_types": document_types})
- 
-        # SAVE
+
+        current_user = get_current_user(request)
+
+        # SAVE MAIN REQUEST
         doc_request = DocumentRequests.objects.create(
-            user=current_user, document_type=document_type,
-            purpose=purpose, uploaded_file=file_path,
-            request_mode="Online", status="Pending",
+            user=current_user,
+            document_type=document_type,
+            purpose=purpose,
+            request_mode="Online",
+            status="Pending",
         )
- 
+
+        # SAVE FIELD VALUES / FILES
         for field in fields:
-            value = request.POST.get(f"field_{field.dfid}", "").strip()
+            input_name = f"field_{field.dfid}"
+
+            field_value = None
+            file_path = None
+
+            if field.field_type == "file":
+                uploaded_file = request.FILES.get(input_name)
+
+                if uploaded_file:
+                    ok, err = validate_upload(uploaded_file)
+
+                    if not ok:
+                        messages.error(request, err)
+                        doc_request.delete()
+                        return render(request, "documents.html", {
+                            "document_types": document_types,
+                            "selected_type": document_type,
+                            "fields": fields,
+                        })
+
+                    file_path = default_storage.save(
+                        f"document_requests/{uploaded_file.name}",
+                        ContentFile(uploaded_file.read())
+                    )
+            else:
+                field_value = request.POST.get(input_name, "").strip()
+
             DocumentRequestFieldValues.objects.create(
-                document_request=doc_request, document_field=field,
-                field_value=value, created_at=timezone.now(),
+                document_request=doc_request,
+                document_field=field,
+                field_value=field_value,
+                uploaded_file=file_path,
+                created_at=timezone.now(),
             )
- 
+
         AuditLogs.objects.create(
-            user=current_user, action="Submit Document Request",
-            module_name="DocumentRequests", table_name="DocumentRequests",
+            user=current_user,
+            action="Submit Document Request",
+            module_name="DocumentRequests",
+            table_name="DocumentRequests",
             record_id=doc_request.drid,
             new_value=f"Request for '{document_type.name}' submitted.",
             created_at=timezone.now(),
         )
- 
+
         # SLA — start the 3-day clock
         create_sla("DocumentRequest", doc_request.drid, priority="Medium")
- 
+
         messages.success(request, "Document request submitted successfully. You can track its status under Track Submissions.")
         return redirect("tracksub")
- 
+
     return render(request, "documents.html", {"document_types": document_types})
 
 

@@ -3,624 +3,284 @@
 
 {% block content %}
 
-<!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-bg"></div>
 
   <div class="hero-content">
     <h1>Documents & Requirements</h1>
-
     <div class="ann-hero-divider"></div>
 
-    <p>
-      For requests and applications, please refer to the list below for the required 
-      documents needed when availing barangay services.
-    </p>
+```
+<p>
+  For requests and applications, please refer to the list below for the required
+  documents needed when availing barangay services.
+</p>
+```
+
   </div>
 </section>
 
-<!-- ── AVAILABLE DOCUMENTS ── -->
 <section class="available-docs">
   <div class="available-docs__container">
 
-    <div class="available-docs__header">
-      <h2>Available Documents</h2>
-      <p>Select a document to view its requirements and submit a request</p>
+```
+<div class="available-docs__header">
+  <h2>Available Documents</h2>
+  <p>Select a document to view its requirements and submit a request</p>
+</div>
+
+<div class="available-docs__grid">
+
+  {% for document_type in document_types %}
+    <div class="doc-card">
+      <h3 class="doc-card__title">{{ document_type.name }}</h3>
+      <div class="doc-card__divider"></div>
+
+      <div class="doc-card__actions">
+        <button
+          type="button"
+          class="doc-card__btn doc-card__btn--primary"
+          onclick="openModal('{{ document_type.dtid }}', '{{ document_type.name|escapejs }}')"
+        >
+          Online Application
+        </button>
+
+        <a href="{% static 'forms/placeholderfile.pdf' %}"
+           class="doc-card__btn doc-card__btn--primary"
+           download>
+          Downloadable Form
+        </a>
+      </div>
+
+      <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
     </div>
+  {% endfor %}
 
-    <div class="available-docs__grid">
+</div>
 
-      <!-- Card -->
-      <div class="doc-card">
-        
-        <h3 class="doc-card__title">Barangay Clearance</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Barangay Clearance')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
+<div class="available-docs__notice">
+  <span class="notice-icon">&#9432;</span>
+  <p>Please ensure all required documents are complete to lessen delays in processing your request.</p>
+</div>
 
-      <!-- Card -->
-      <div class="doc-card">
-        <h3 class="doc-card__title">Certificate of Indigency</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate of Indigency')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
-
-      <!-- Card -->
-      <div class="doc-card">
-        <h3 class="doc-card__title">Certificate for First Time Job Seeker</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate for First Time Job Seeker')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
-
-      <!-- Card -->
-      <div class="doc-card">
-        
-        <h3 class="doc-card__title">Certificate of Solo Parent</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Certificate of Solo Parent')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
-
-      <!-- Card -->
-      <div class="doc-card">
-        
-        <h3 class="doc-card__title">Business Clearance</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Business Clearance')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
-
-      <!-- Card -->
-      <div class="doc-card">
-        
-        <h3 class="doc-card__title">Barangay ID</h3>
-        <div class="doc-card__divider"></div>
-        <div class="doc-card__actions">
-          <button class="doc-card__btn doc-card__btn--primary" onclick="openModal('Barangay ID')">Online Application</button>
-          <a href="{% static 'forms/placeholderfile.pdf' %}" class="doc-card__btn doc-card__btn--primary" download>
-            Downloadable Form
-          </a>
-        </div>
-        <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
-      </div>
-
-    </div>
-
-    <!-- Notice -->
-    <div class="available-docs__notice">
-      <span class="notice-icon">&#9432;</span>
-      <p>Please ensure all required documents are complete to lessen delays in processing your request.</p>
-    </div>
-
-    <p class="available-docs__track">
-      Already submitted a request? You can track its status in the 
-      <a href="#">Track Submissions</a> section.
-    </p>
+<p class="available-docs__track">
+  Already submitted a request? You can track its status in the
+  <a href="{% url 'tracksub' %}">Track Submissions</a> section.
+</p>
+```
 
   </div>
 </section>
 
-<!-- ── SINGLE MODAL ── -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
 
 <div class="modal" id="doc-modal">
   <div class="modal__header">
     <h2 id="modal-title">Document Title</h2>
-    <button class="modal__close" onclick="closeModal()">&times;</button>
+    <button class="modal__close" type="button" onclick="closeModal()">&times;</button>
   </div>
-  <div class="modal__body" id="modal-body">
 
-  </div>
-  <div class="modal__footer">
-    <button class="modal__submit">Submit</button>
-  </div>
+  <form
+    id="document-request-form"
+    method="POST"
+    action="{% url 'document_request' %}"
+    enctype="multipart/form-data"
+  >
+    {% csrf_token %}
+
+```
+<input type="hidden" id="document_type_id" name="document_type_id">
+<input type="hidden" id="purpose-hidden" name="purpose">
+
+<div class="modal__body" id="modal-body"></div>
+
+<div class="modal__footer">
+  <button type="submit" class="modal__submit">Submit</button>
+</div>
+```
+
+  </form>
 </div>
 
-
-<!-- ── MODAL SCRIPT ── -->
 <script>
-  
   const fullnameParts = "{{ request.session.fullname|default:'' }}".split(' ');
+
   const sessionUser = {
     firstname: fullnameParts[0] || '',
     middlename: '',
     lastname: fullnameParts.slice(1).join(' ') || '',
   };
-  
-  const docForms = {
-    'Barangay Clearance': {
-      sections: [
-          {
-            fields: [
-              { label: 'First Name', type: 'text', col: 'third' },
-              { label: 'Middle Name', type: 'text', col: 'third' },
-              { label: 'Last Name', type: 'text', col: 'third' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Address / Tirahan', type: 'text', col: 'full' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-              { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Years of Stay', type: 'number', col: 'half' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement'], col: 'half' },
-              {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
-            ]
-          },
-        {
-        sectionTitle: 'Requirements'
-        },
-        {
-          fields: [
-            { label: 'Valid Government-Issued ID', type: 'select', options: [
-              'Philippine National ID',
-              'Passport',
-              "Driver's License",
-              'UMID',
-              'Voter ID',
-              'Senior Citizen ID',
-              'PWD ID',
-              'Student ID'
-            ], col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Attach Image of ID', type: 'file', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Proof of Residency', type: 'file', col: 'half' },
-            { label: 'Community Tax Certificate', type: 'file', col: 'half' },
-          ]
-        },
-        ]
-      },
 
-      'Certificate of Indigency': {
-        sections: [
-          {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Years of Stay', type: 'number', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Purpose', type: 'checkbox', options: ['Medical Assistance', 'Financial Assistance', 'DSWD Requirement', 'PWD ID Requirement'], col: 'half' },
-            {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
-          ]
-        },
-        {
-          fields: [
-            { label: 'Valid Government-Issued ID', type: 'select', options: [
-              'Philippine National ID',
-              'Passport',
-              "Driver's License",
-              'UMID',
-              'Voter ID',
-              'Senior Citizen ID',
-              'PWD ID',
-              'Student ID'
-            ], col: 'half' },
-            { label: 'Attach Image of ID', type: 'file', col: 'half' }
-          ]
-        },
-        {
-          fields: [
-            { label: 'Proof of Residency', type: 'file', col: 'third' },
-            { label: 'Proof of Income', type: 'file', col: 'third' },
-            { label: 'Community Tax Certificate', type: 'file', col: 'third' },
-          ]
-        },
+  const selectOptions = {
+    "Gender / Kasarian": ["Female", "Male", "Other"],
+    "Civil Status / Katayuan": ["Single", "Married", "Widowed", "Separated"],
+    "Valid Government-Issued ID": [
+      "Philippine National ID",
+      "Passport",
+      "Driver's License",
+      "UMID",
+      "Voter ID",
+      "Senior Citizen ID",
+      "PWD ID",
+      "Student ID"
+    ],
+    "Reason for Solo Parenthood": [
+      "Death of spouse",
+      "Legally separated",
+      "Abandoned by spouse",
+      "Unmarried mother/father"
     ]
-  },
+  };
 
-    'Certificate for First Time Job Seeker': {
-    sections: [
-      {
-        fields: [
-          { label: 'First Name', type: 'text', col: 'third' },
-          { label: 'Middle Name', type: 'text', col: 'third' },
-          { label: 'Last Name', type: 'text', col: 'third' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Address / Tirahan', type: 'text', col: 'full' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-          { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Years of Stay', type: 'number', col: 'half' },
-          { label: 'Birth Date', type: 'date', col: 'half' },
-        ]
-      },
-      {
-        fields: [
-          { label: 'Age', type: 'number', col: 'full' },
-        ]
-      },
-      {
-        sectionTitle: 'Requirements'
-        },
-        {
-          fields: [
-            { label: 'Valid Government-Issued ID', type: 'select', options: [
-              'Philippine National ID',
-              'Passport',
-              "Driver's License",
-              'UMID',
-              'Voter ID',
-              'Senior Citizen ID',
-              'PWD ID',
-              'Student ID'
-            ], col: 'half' },
-             { label: 'Attach Image of ID', type: 'file', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Proof of Residency', type: 'file', col: 'half' },
-            { label: 'Diploma/tor/Certificate of Graduation', type: 'file', col: 'half' },
-          ]
-        },
-        ]
-      },
-
-
-    'Certificate of Solo Parent': {
-      sections: [
-        {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Number of Children', type: 'number', col: 'half' },
-            { label: 'Reason for Solo Parenthood', type: 'select', options: ['Death of spouse', 'Legally separated', 'Abandoned by spouse', 'Unmarried mother/father'], col: 'half' },
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-      ]
-    },
-
-    'Business Clearance': {
-      sections: [
-          {
-            fields: [
-              { label: 'First Name', type: 'text', col: 'third' },
-              { label: 'Middle Name', type: 'text', col: 'third' },
-              { label: 'Last Name', type: 'text', col: 'third' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Address / Tirahan', type: 'text', col: 'full' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-              { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Years of Stay', type: 'number', col: 'half' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Purpose', type: 'checkbox', options: ['Local Employment', 'School Requirement', 'Bank Requirement', 'PWD ID Requirement'], col: 'half' },
-              {label:'', type: 'checkbox', options: ['Senior Citizen ID Requirement', 'Legal Requirement', 'Others'], col: 'half'},
-            ]
-          },
-          {
-            sectionTitle: 'Requirements'
-          },
-          {
-            fields: [
-              { label: 'Valid Government-Issued ID', type: 'select', options: [
-                'Philippine National ID',
-                'Passport',
-                "Driver's License",
-                'UMID',
-                'Voter ID',
-                'Senior Citizen ID',
-                'PWD ID',
-                'Student ID'
-              ], col: 'full' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Attach Image of ID', type: 'file', col: 'full' },
-            ]
-          },
-          {
-            fields: [
-              { label: 'Proof of Business Registration', type: 'file', col: 'third' },
-              { label: 'Proof of Business Location', type: 'file', col: 'third' },
-              { label: 'Community Tax Certificate', type: 'file', col: 'third' },
-            ]
-          },
-        ]
-      },
-
-    'Barangay ID': {
-      sections: [
-        {
-          fields: [
-            { label: 'First Name', type: 'text', col: 'third' },
-            { label: 'Middle Name', type: 'text', col: 'third' },
-            { label: 'Last Name', type: 'text', col: 'third' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Mobile Number', type: 'text', col: 'half' },
-            { label: 'Birthday / Kaarawan', type: 'date', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Place of Birth', type: 'text', col: 'half' },
-            { label: 'Precinct Number', type: 'text', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Gender / Kasarian', type: 'select', options: ['Female', 'Male', 'Other'], col: 'half' },
-            { label: 'Civil Status / Katayuan', type: 'select', options: ['Single', 'Married', 'Widowed', 'Separated'], col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Purpose', type: 'text', col: 'full' },
-          ]
-        },
-        { sectionTitle: 'Contact Person in Case of Emergency' },
-        {
-          fields: [
-            { label: 'Name of Parents / Guardian', type: 'text', col: 'half' },
-            { label: 'Contact Number of Parents / Guardian / Tagapag-alaga', type: 'text', col: 'half' },
-          ]
-        },
-        {
-          fields: [
-            { label: 'Address / Tirahan', type: 'text', col: 'full' },
-            { label: 'Relationship', type: 'text', col: 'full' },
-          ]
-        },
-      ]
-    },
-  }
-
-function openModal(docTitle) {
-    const form = docForms[docTitle];
-    if (!form) return;
-
-
-    document.getElementById('modal-title').textContent = docTitle;
+  async function openModal(documentTypeId, documentTitle) {
+    document.getElementById('modal-title').textContent = documentTitle;
+    document.getElementById('document_type_id').value = documentTypeId;
+    document.getElementById('purpose-hidden').value = "";
 
     const body = document.getElementById('modal-body');
-    body.innerHTML = '';
+    body.innerHTML = '<p>Loading form fields...</p>';
 
-    form.sections.forEach(section => {
-      if (section.sectionTitle) {
-        const div = document.createElement('div');
-        div.className = 'modal__section-title';
-        div.textContent = section.sectionTitle;
-        body.appendChild(div);
+    try {
+      const response = await fetch(`/documents/fields/${documentTypeId}/`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        body.innerHTML = '<p>Unable to load document fields.</p>';
         return;
       }
 
-      const cols = section.fields.map(f => f.col);
-      const allThirds = cols.every(c => c === 'third');
-      const allHalves = cols.every(c => c === 'half');
+      body.innerHTML = '';
 
-      const row = document.createElement('div');
-      if (allThirds) {
-        row.className = 'form-row--3';
-      } else if (allHalves) {
-        row.className = 'form-row--2';
-      } else {
-        row.className = 'form-row--mixed';
-      }
+      const fields = data.fields || [];
 
-      section.fields.forEach(field => {
+      fields.forEach((field, index) => {
         const group = document.createElement('div');
-        group.className = 'form-group' + (field.col === 'full' ? ' form-group--full' : '');
+        group.className = 'form-group form-group--full';
 
         const label = document.createElement('label');
-        label.textContent = field.label;
+        label.textContent = field.field_label;
+
+        if (field.is_required) {
+          const requiredMark = document.createElement('span');
+          requiredMark.textContent = ' *';
+          requiredMark.style.color = '#dc2626';
+          label.appendChild(requiredMark);
+        }
+
         group.appendChild(label);
 
         let input;
-        if (field.type === 'select') {
+
+        if (field.field_type === 'select') {
           input = document.createElement('select');
-          field.options.forEach(opt => {
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = 'Select an option';
+          input.appendChild(defaultOption);
+
+          const options = selectOptions[field.field_label] || [];
+
+          options.forEach(optionText => {
             const option = document.createElement('option');
-            option.textContent = opt;
+            option.value = optionText;
+            option.textContent = optionText;
             input.appendChild(option);
           });
-        } else if (field.type === 'checkbox') {
-          input = document.createElement('div');
-          field.options.forEach(opt => {
-            const checkLabel = document.createElement('label');
-            checkLabel.style.display = 'flex';
-            checkLabel.style.alignItems = 'center';
-            checkLabel.style.gap = '8px';
-            checkLabel.style.marginBottom = '6px';
-            checkLabel.style.fontSize = '0.88rem';
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = opt;
-
-            const span = document.createElement('span');
-            span.textContent = opt;
-
-            checkLabel.appendChild(checkbox);
-            checkLabel.appendChild(span);
-
-            // Show text input if Others is checked
-            if (opt === 'Others') {
-              const othersInput = document.createElement('input');
-              othersInput.type = 'text';
-              othersInput.placeholder = 'Please specify...';
-              othersInput.style.display = 'none';
-              othersInput.style.marginTop = '6px';
-              othersInput.style.marginLeft = '24px';
-
-              checkbox.addEventListener('change', function() {
-                othersInput.style.display = this.checked ? 'block' : 'none';
-              });
-
-              input.appendChild(checkLabel);
-              input.appendChild(othersInput);
-            } else {
-              input.appendChild(checkLabel);
-            }
-          });
         } else {
           input = document.createElement('input');
-          input.type = field.type;
+          input.type = field.field_type || 'text';
+
+          if (field.field_type === 'file') {
+            input.accept = '.jpg,.jpeg,.png,.pdf';
+          }
         }
+
+        input.name = `field_${field.dfid}`;
+        input.id = `field_${field.dfid}`;
+
+        if (field.is_required) {
+          input.required = true;
+        }
+
+        const lowerLabel = field.field_label.toLowerCase();
+
+        if (lowerLabel.includes('first name')) {
+          input.value = sessionUser.firstname;
+        }
+
+        if (lowerLabel.includes('middle name')) {
+          input.value = sessionUser.middlename;
+        }
+
+        if (lowerLabel.includes('last name')) {
+          input.value = sessionUser.lastname;
+        }
+
+        if (lowerLabel === 'purpose' || lowerLabel.includes('purpose')) {
+          input.addEventListener('input', function () {
+            document.getElementById('purpose-hidden').value = this.value;
+          });
+
+          input.addEventListener('change', function () {
+            document.getElementById('purpose-hidden').value = this.value;
+          });
+        }
+
         group.appendChild(input);
-        row.appendChild(group);
+        body.appendChild(group);
       });
 
-      body.appendChild(row);
-    });
-
-    // Autofill name fields
-    document.querySelectorAll('.form-group input').forEach(input => {
-      const label = input.previousElementSibling?.textContent?.toLowerCase();
-      if (label?.includes('first name')) input.value = sessionUser.firstname;
-      if (label?.includes('middle name')) input.value = sessionUser.middlename;
-      if (label?.includes('last name')) input.value = sessionUser.lastname;
-    });
-
+    } catch (error) {
+      body.innerHTML = '<p>Something went wrong while loading the form.</p>';
+    }
 
     const overlay = document.getElementById('modal-overlay');
     const modal = document.getElementById('doc-modal');
+
     overlay.style.display = 'block';
     modal.style.display = 'flex';
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         overlay.classList.add('active');
         modal.classList.add('active');
       });
     });
+
     document.body.style.overflow = 'hidden';
   }
 
   function closeModal() {
     const overlay = document.getElementById('modal-overlay');
     const modal = document.getElementById('doc-modal');
+
     overlay.classList.remove('active');
     modal.classList.remove('active');
+
     setTimeout(() => {
       overlay.style.display = 'none';
       modal.style.display = 'none';
     }, 250);
+
     document.body.style.overflow = '';
   }
+
+  document.getElementById('document-request-form').addEventListener('submit', function () {
+    const purposeInput = Array.from(this.elements).find(element => {
+      const label = document.querySelector(`label[for="${element.id}"]`);
+      return label && label.textContent.toLowerCase().includes('purpose');
+    });
+
+    if (purposeInput) {
+      document.getElementById('purpose-hidden').value = purposeInput.value;
+    }
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
-</script> 
+</script>
 
-{% endblock %}  
+{% endblock %}
