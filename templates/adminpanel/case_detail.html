@@ -150,7 +150,20 @@
             {% endif %}
 
             <hr style="margin: 25px 0;">
-
+            
+            <!--FOR TESTING-->
+            <h3>Progress Timeline</h3>
+            <div class="timeline">
+                {% for update in complaint_updates %}
+                <div class="timeline-entry">
+                    <span class="timeline-date">{{ update.updated_at|date:"M d, Y g:i A" }}</span>
+                    <span class="timeline-status">{{ update.status }}</span>
+                    {% if update.remarks %}<p class="timeline-remarks">{{ update.remarks }}</p>{% endif %}
+                    <span class="timeline-by">by {{ update.updated_by.firstname }} {{ update.updated_by.lastname }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <!--END TEST-->
             <h3 style="margin-bottom: 20px;">Barangay Official</h3>
 
             {% if assigned_officials %}

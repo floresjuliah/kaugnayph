@@ -28,8 +28,14 @@ urlpatterns = [
     path('documents/', views.documents, name='documents'),
     path('documents/request/', views.document_request_view, name='document_request'),
     path('documents/fields/<int:dtid>/', views.get_document_fields, name='document_fields_api'),
-    path('track/', views.tracksub, name='tracksub'),
     path('announcements/<int:announcement_id>/feedback/', views.submit_announcement_feedback, name='submit_feedback'),
+    path('track/', views.tracksub, name='tracksub'),
+    
+    path(
+    'track/complaint/<int:complaint_id>/',
+    views.complaint_timeline_view,
+    name='complaint_timeline'
+    ),
 
     #ADMIN DASHBOARD
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),

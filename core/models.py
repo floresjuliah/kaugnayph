@@ -125,6 +125,14 @@ class Users(models.Model):
         default=False
     )
 
+    avatar = models.ForeignKey(
+        'AvatarOptions',
+        db_column='avatar_id',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
     class Meta:
         db_table = 'Users'
 
@@ -268,24 +276,52 @@ class ComplaintType(models.Model):
 
 
 class Complaints(models.Model):
+    STATUS_CHOICES = [
+        ("Submitted", "Submitted"),
+        ("Referred to Proper Barangay", "Referred to Proper Barangay"),
+        ("Recorded", "Recorded"),
+        ("Mediation Scheduled", "Mediation Scheduled"),
+        ("Mediation Ongoing", "Mediation Ongoing"),
+        ("Settled", "Settled"),
+        ("For 1st Hearing", "For 1st Hearing"),
+        ("For 2nd Hearing", "For 2nd Hearing"),
+        ("For 3rd Hearing", "For 3rd Hearing"),
+        ("Non-Cooperative Party", "Non-Cooperative Party"),
+        ("Eligible for Certificate to File Action", "Eligible for Certificate to File Action"),
+        ("Certificate Issued", "Certificate Issued"),
+        ("Resolved Outside Barangay", "Resolved Outside Barangay"),
+        ("Settled in Court", "Settled in Court"),
+        ("Under Review", "Under Review"),
+        ("Resolved", "Resolved"),
+        ("Dismissed", "Dismissed"),
+    ]
+
     complaintsid = models.AutoField(db_column='ComplaintsID', primary_key=True)
+    case_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
     complaint_type = models.ForeignKey(ComplaintType, models.CASCADE, db_column='complaint_type_id', blank=True, null=True)
     complainant_user = models.ForeignKey(Users, models.CASCADE, db_column='complainant_user_id', blank=True, null=True)
     complainee = models.CharField(max_length=255, blank=True, null=True)
     complainee_address = models.CharField(max_length=255, blank=True, null=True)
+    jurisdiction_barangay = models.CharField(max_length=150, blank=True, null=True)
     title = models.CharField(db_column='Title', max_length=255, blank=True, null=True)
     description = models.TextField(db_column='Description', blank=True, null=True)
     file = models.BinaryField(db_column='File', blank=True, null=True)
     file_path = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Submitted", blank=True, null=True)
 
-    incident_date = models.DateField(
-        blank=True,
-        null=True
-    )
+    incident_date = models.DateField(blank=True, null=True)
 
     dateadded = models.DateTimeField(db_column='DateAdded', auto_now_add=True)
     datefinish = models.DateTimeField(db_column='DateFinish', blank=True, null=True)
+
+    settlement_notes = models.TextField(blank=True, null=True)
+    settlement_date = models.DateTimeField(blank=True, null=True)
+
+    non_cooperative_party = models.CharField(max_length=20, blank=True, null=True)
+    non_cooperative_flagged_at = models.DateTimeField(blank=True, null=True)
+
+    external_resolution_notes = models.TextField(blank=True, null=True)
+    external_resolution_date = models.DateField(blank=True, null=True)
 
     handled_by = models.ForeignKey(
         Users,
@@ -331,11 +367,20 @@ class HearingStatus(models.Model):
 
 
 class ComplaintHearing(models.Model):
+    OUTCOME_CHOICES = [
+        ("Settled", "Settled"),
+        ("Not Settled", "Not Settled"),
+        ("No Show", "No Show"),
+        ("Rescheduled", "Rescheduled"),
+    ]
+
     chid = models.AutoField(db_column='CHID', primary_key=True)
     complaint = models.ForeignKey(Complaints, models.CASCADE, db_column='complaint_id')
     hearing_level = models.ForeignKey(HearingLevel, models.CASCADE, db_column='hearing_level_id')
     hearing_date = models.DateTimeField()
     status = models.ForeignKey(HearingStatus, models.CASCADE, db_column='status_id')
+    outcome = models.CharField(max_length=20, choices=OUTCOME_CHOICES, blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -350,6 +395,46 @@ class HearingOfficials(models.Model):
 
     class Meta:
         db_table = 'HearingOfficials'
+
+
+class HearingAttendance(models.Model):
+    PARTICIPANT_CHOICES = [
+        ("Complainant", "Complainant"),
+        ("Respondent", "Respondent"),
+    ]
+    ATTENDANCE_CHOICES = [
+        ("Present", "Present"),
+        ("Absent", "Absent"),
+        ("Excused", "Excused"),
+        ("Refused", "Refused"),
+    ]
+
+    attendanceid = models.AutoField(db_column='AttendanceID', primary_key=True)
+    hearing = models.ForeignKey(ComplaintHearing, models.CASCADE, db_column='hearing_id')
+    participant_type = models.CharField(max_length=20, choices=PARTICIPANT_CHOICES)
+    attendance_status = models.CharField(max_length=20, choices=ATTENDANCE_CHOICES)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'HearingAttendance'
+
+
+class CertificateToFileAction(models.Model):
+    cfaid = models.AutoField(db_column='CFAID', primary_key=True)
+    complaint = models.OneToOneField(Complaints, models.CASCADE, db_column='complaint_id')
+    certificate_no = models.CharField(max_length=50, unique=True)
+    issued_by = models.ForeignKey(
+        Users,
+        models.SET_NULL,
+        db_column='issued_by',
+        blank=True,
+        null=True
+    )
+    issued_at = models.DateTimeField()
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'CertificateToFileAction'
 
 
 class SMSSubscriptions(models.Model):
@@ -578,6 +663,15 @@ class FAQs(models.Model):
 
     def __str__(self):
         return self.question
+
+class AvatarOptions(models.Model):
+    avatarid = models.AutoField(db_column='AvatarID', primary_key=True)
+    name = models.CharField(max_length=100)
+    image_path = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'AvatarOptions'
 
 #STATUS_CHOICES = [
 #    ("Pending",  "Pending"),
