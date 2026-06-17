@@ -13,8 +13,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Q
- 
-from core.utils import validate_upload
+
+
+from core.complaint_workflow import apply_status_change, build_sms_for_status
+from core.utils import generate_case_number, generate_certificate_number
+from .models import HearingAttendance, CertificateToFileAction
+from core.utils import validate_upload, generate_case_number
 from core.moderation import moderate_text, moderate_image
 from core.sla_utils import (
     create_sla,
@@ -73,97 +77,116 @@ def landing_page(request):
 @resident_required
 def filecomplaint(request):
     complaint_types = ComplaintType.objects.all()
- 
+
     if request.method == "POST":
-        complaint_type_id = request.POST.get("complaint_type", "").strip()
-        incident_date     = request.POST.get("incident_date")
-        complainee        = request.POST.get("complainee", "").strip()
-        complainee_address = request.POST.get("complainee_address", "").strip()
-        title             = request.POST.get("title", "").strip()
-        description       = request.POST.get("description", "").strip()
-        evidence          = request.FILES.get("evidence")
- 
+        complaint_type_id  = request.POST.get("complaint_type", "").strip()
+        incident_date       = request.POST.get("incident_date")
+        complainee          = request.POST.get("complainee", "").strip()
+        complainee_address  = request.POST.get("complainee_address", "").strip()
+        jurisdiction_barangay = request.POST.get("jurisdiction_barangay", "").strip()
+        title               = request.POST.get("title", "").strip()
+        description         = request.POST.get("description", "").strip()
+        evidence             = request.FILES.get("evidence")
+
         if not complaint_type_id:
             messages.error(request, "Please select a complaint type.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
         if not complainee:
             messages.error(request, "Name of complainee is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
         if not title:
             messages.error(request, "Title is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
         if not description:
             messages.error(request, "Description is required.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
         try:
             complaint_type = ComplaintType.objects.get(ctid=complaint_type_id)
         except ComplaintType.DoesNotExist:
             messages.error(request, "Invalid complaint type selected.")
             return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
         current_user = get_current_user(request)
- 
-        #FILE VALIDATION & SAVE
+
+        # FILE VALIDATION & SAVE
         file_path = None
         if evidence:
             ok, err = validate_upload(evidence)
             if not ok:
                 messages.error(request, err)
                 return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
+
             file_path = default_storage.save(
                 "complaints/" + evidence.name,
                 ContentFile(evidence.read())
             )
- 
+
         #CONTENT MODERATION
         text_check = moderate_text(f"{title} {description} {complainee}")
- 
-        #CONTENT MODERATION — image (ONLY if file is an image)
+
         image_check = {"flagged": False, "reason": None}
         if evidence and evidence.content_type.startswith("image/"):
             evidence.seek(0)
             image_check = moderate_image(evidence)
- 
+
         is_flagged  = text_check["flagged"] or image_check["flagged"]
         flag_reason = text_check["reason"] or image_check["reason"]
- 
-        if is_flagged:
-            messages.error(
-                request,
-                "Your complaint contains inappropriate content and could not be submitted. "
-                "Please revise and try again."
-            )
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
- 
-        # SAVE — only reaches here if clean
-        Complaints.objects.create(
+
+        complaint = Complaints.objects.create(
             complaint_type=complaint_type,
             complainant_user=current_user,
             complainee=complainee,
             complainee_address=complainee_address,
+            jurisdiction_barangay=jurisdiction_barangay or None,
             title=title,
             description=description,
             incident_date=incident_date or None,
             file_path=file_path,
-            status="Pending",
-            is_flagged=False,
-            flagged_reason=None,
+            status="Submitted",
+            is_flagged=is_flagged,
+            flagged_reason=flag_reason,
         )
- 
-        #NOTE: SLA for Complaints is ON HOLD! NEED TO CLARFIY TO BARANGAY
- 
-        messages.success(
-            request,
-            "Complaint submitted successfully. You can track its status through Track Submissions."
+
+        complaint.case_number = generate_case_number(complaint.complaintsid)
+        complaint.save(update_fields=["case_number"])
+
+        ComplaintUpdates.objects.create(
+            complaint=complaint,
+            updated_by=current_user,
+            status="Submitted",
+            remarks="Complaint submitted by resident." if not is_flagged
+                    else f"Complaint submitted by resident. Flagged for review: {flag_reason}",
+            updated_at=timezone.now(),
         )
+
+        if is_flagged:
+            messages.warning(
+                request,
+                "Your complaint was submitted and is pending admin review due to "
+                "flagged content. You can track its status through Track Submissions."
+            )
+        else:
+            messages.success(
+                request,
+                "Complaint submitted successfully. You can track its status through Track Submissions."
+            )
         return redirect("tracksub")
- 
-    return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+
+    current_user = get_current_user(request)
+    initial_data = {
+        "firstname": current_user.firstname,
+        "lastname": current_user.lastname,
+        "contactno": current_user.contactno,
+    } if current_user else {}
+
+    return render(request, "filecomplaint.html", {
+        "complaint_types": complaint_types,
+        "initial_data": initial_data,
+    })
 
 
 def aboutus(request):
@@ -193,6 +216,16 @@ def admin_faqs(request):
 
 
 def contactus(request):
+    current_user = get_current_user(request)
+    
+    initial_data = {}
+    if current_user:
+        initial_data = {
+            "firstname": current_user.firstname,
+            "lastname": current_user.lastname,
+            "contactno": current_user.contactno,
+        }
+
     if request.method == "POST":
         firstname = request.POST.get("firstname", "").strip()
         lastname  = request.POST.get("lastname", "").strip()
@@ -1785,11 +1818,15 @@ def case_records_view(request):
     import re
 
     search_query = request.GET.get("search", "").strip()
+    flagged_only = request.GET.get("flagged", "") == "1"
 
     complaints = Complaints.objects.select_related(
         "complaint_type",
         "complainant_user"
     ).all()
+
+    if flagged_only:
+        complaints = complaints.filter(is_flagged=True)
 
     if search_query:
         case_id_match = re.search(r"(\d+)$", search_query)
@@ -1813,17 +1850,19 @@ def case_records_view(request):
     case_records = []
 
     for complaint in complaints:
-        status = complaint.status or "Pending"
+        status = complaint.status or "Submitted"
 
         case_records.append({
             "complaint_id": complaint.complaintsid,
-            "case_id": f"CMP-2026-{complaint.complaintsid:04d}",
+            "case_id": complaint.case_number or f"CMP-{complaint.dateadded.year}-{complaint.complaintsid:04d}",
             "case_type": complaint.complaint_type.type if complaint.complaint_type else "Complaint",
             "type_class": "complaint",
             "title": complaint.title,
             "date_submitted": complaint.dateadded.strftime("%b %d, %Y") if complaint.dateadded else "",
             "status": status,
             "status_class": status.lower().replace(" ", "-"),
+            "is_flagged": complaint.is_flagged,
+            "flagged_reason": complaint.flagged_reason,
         })
 
     paginator = Paginator(case_records, 10)
@@ -1831,104 +1870,23 @@ def case_records_view(request):
     page_obj = paginator.get_page(page_number)
 
     total_cases = complaints.count()
-    pending_cases = complaints.filter(status="Pending").count()
+    pending_cases = complaints.filter(status="Submitted").count()
     under_review_cases = complaints.filter(status="Under Review").count()
     completed_cases = complaints.filter(status="Resolved").count()
+    flagged_count = Complaints.objects.filter(is_flagged=True).count()
 
     return render(request, "adminpanel/case_records.html", {
         "cases": page_obj,
         "page_obj": page_obj,
         "user": get_current_user(request),
         "search_query": search_query,
+        "flagged_only": flagged_only,
+        "flagged_count": flagged_count,
         "total_cases": total_cases,
         "pending_cases": pending_cases,
         "under_review_cases": under_review_cases,
         "completed_cases": completed_cases,
         "avg_processing_time": "0%",
-    })
-
-# ADMIN CASE DETAIL
-@admin_login_required
-def case_detail_view(request, complaint_id):
-    complaint = Complaints.objects.select_related(
-        "complaint_type",
-        "complainant_user",
-        "handled_by"
-    ).get(complaintsid=complaint_id)
-
-    current_admin = get_current_user(request)
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-        old_status = complaint.status
-
-        if action == "resolve":
-            complaint.status = "Resolved"
-            log_action = "Resolve Case"
-
-        elif action == "review":
-            complaint.status = "Under Review"
-            log_action = "Mark Case Under Review"
-
-        elif action == "dismiss":
-            complaint.status = "Dismissed"
-            log_action = "Dismiss Case"
-
-        else:
-            messages.error(request, "Invalid action.")
-            return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-        complaint.handled_by = current_admin
-        complaint.save()
-
-        case_number = f"CMP-2026-{complaint.complaintsid:04d}"
-
-        if complaint.complainant_user and complaint.complainant_user.contactno:
-            if complaint.status == "Under Review":
-                sms_message = (
-                    f"KaugnayPH: Your complaint {case_number} is now Under Review."
-                )
-
-            elif complaint.status == "Resolved":
-                sms_message = (
-                    f"KaugnayPH: Your complaint {case_number} has been resolved."
-                )
-
-            elif complaint.status == "Dismissed":
-                sms_message = (
-                    f"KaugnayPH: Your complaint {case_number} has been dismissed. "
-                    "Please contact the barangay office for more information."
-                )
-
-            else:
-                sms_message = None
-
-            if sms_message:
-                send_sms(
-                    complaint.complainant_user.contactno,
-                    sms_message,
-                    sent_by=current_admin
-                )
-
-        AuditLogs.objects.create(
-            user=current_admin,
-            action=log_action,
-            module_name="Cases",
-            table_name="Complaints",
-            record_id=complaint.complaintsid,
-            old_value=f"Status: {old_status}",
-            new_value=f"Status: {complaint.status}",
-            created_at=timezone.now()
-        )
-
-        messages.success(request, "Case status updated successfully.")
-
-        return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-    return render(request, "adminpanel/case_detail.html", {
-        "complaint": complaint,
-        "user": current_admin,
-        "case_id": f"CMP-2026-{complaint.complaintsid:04d}",
     })
 
 
@@ -2050,29 +2008,78 @@ def tracksub(request):
 
     complaints = Complaints.objects.filter(
         complainant_user=current_user
-    ).order_by("-dateadded")
+    ).select_related("complaint_type").order_by("-dateadded")
 
     document_requests = DocumentRequests.objects.filter(
         user=current_user
     ).select_related("document_type").order_by("-requested_at")
 
+    # Build a hearing summary per complaint so the template doesn't need
+    # nested queries per row.
+    hearing_by_complaint = {}
     hearings = ComplaintHearing.objects.select_related(
-        "complaint",
-        "hearing_level",
-        "status"
+        "complaint", "hearing_level", "status"
     ).filter(
         complaint__complainant_user=current_user
     ).order_by("-hearing_date")
 
-    print("CURRENT USER:", current_user.userid)
-    print("HEARINGS FOUND:", hearings.count())
+    for hearing in hearings:
+        cid = hearing.complaint_id
+        if cid not in hearing_by_complaint:
+            officials = HearingOfficials.objects.filter(
+                complaint_id=cid
+            ).select_related("user_officials")
+            hearing_by_complaint[cid] = {
+                "latest_hearing": hearing,
+                "officials": officials,
+            }
 
     return render(request, "tracksub.html", {
         "complaints": complaints,
         "document_requests": document_requests,
-        "hearings": hearings,
+        "hearing_by_complaint": hearing_by_complaint,
     })
 
+@login_required
+@resident_required
+def complaint_timeline_view(request, complaint_id):
+    """
+    Resident-facing read-only timeline for a single complaint they own.
+    Used by Track Submissions (Item 2/3) when a resident clicks into a complaint.
+    """
+    current_user = get_current_user(request)
+
+    try:
+        complaint = Complaints.objects.select_related("complaint_type", "handled_by").get(
+            complaintsid=complaint_id,
+            complainant_user=current_user,  # ownership check — residents can't view others' complaints
+        )
+    except Complaints.DoesNotExist:
+        messages.error(request, "Complaint not found.")
+        return redirect("tracksub")
+
+    complaint_updates = ComplaintUpdates.objects.filter(
+        complaint=complaint
+    ).select_related("updated_by").order_by("-updated_at")
+
+    all_hearings = ComplaintHearing.objects.filter(
+        complaint=complaint
+    ).select_related("hearing_level", "status").order_by("hearing_date")
+
+    assigned_officials = HearingOfficials.objects.filter(
+        complaint=complaint
+    ).select_related("user_officials")
+
+    certificate = CertificateToFileAction.objects.filter(complaint=complaint).first()
+
+    return render(request, "complaint_timeline.html", {
+        "complaint": complaint,
+        "case_id": complaint.case_number or generate_case_number(complaint.complaintsid),
+        "complaint_updates": complaint_updates,
+        "all_hearings": all_hearings,
+        "assigned_officials": assigned_officials,
+        "certificate": certificate,
+    })
 
 # ADMIN: DOCUMENT REQUESTS LIST
 @admin_login_required
@@ -2229,13 +2236,25 @@ def admin_document_request_detail_view(request, drid):
     })
 
 
+def _complaint_contact_numbers(complaint):
+    """
+    Returns a list of phone numbers to SMS for a complaint update.
+    Complainant is a registered Users record so we always have their number.
+    Respondent is free text (complainee field) with no account, so there's
+    no number to text unless you later add a respondent_contactno field.
+    """
+    numbers = []
+    if complaint.complainant_user and complaint.complainant_user.contactno:
+        numbers.append(complaint.complainant_user.contactno)
+    return numbers
+
 #COMPLAINT UPDATES 
+# ADMIN CASE DETAIL
 @admin_login_required
 def case_detail_view(request, complaint_id):
     """
-    Replaces the existing case_detail_view.
-    Now writes to ComplaintUpdates table on every status change.
-    Also handles hearing level updates and assigned official.
+    Full complaint lifecycle management per the barangay complaint process:
+    Submitted -> Referred/Recorded -> Mediation -> Hearings 1-3 -> Settled/Certificate -> External.
     """
     try:
         complaint = Complaints.objects.select_related(
@@ -2249,96 +2268,360 @@ def case_detail_view(request, complaint_id):
 
     current_admin = get_current_user(request)
 
-    #Get/Fetch hearing levels and existing hearing record (if any)
     hearing_levels   = HearingLevel.objects.all()
     hearing_statuses = HearingStatus.objects.all()
-    existing_hearing = ComplaintHearing.objects.filter(
+    all_hearings = ComplaintHearing.objects.filter(
         complaint=complaint
-    ).select_related("hearing_level", "status").first()
+    ).select_related("hearing_level", "status").order_by("hearing_date")
+    existing_hearing = all_hearings.last()
 
-    # Get/Fetch all update history for this complaint
     complaint_updates = ComplaintUpdates.objects.filter(
         complaint=complaint
     ).select_related("updated_by").order_by("-updated_at")
 
-    #GetFetch assigned officials
     assigned_officials = HearingOfficials.objects.filter(
         complaint=complaint
     ).select_related("user_officials")
 
-    #Get/Fetch all admin users for the "assign official" dropdown
     admin_users = Users.objects.filter(
         user_type__type_name="Admin",
         is_active=True
     ).select_related("position")
 
+    certificate = CertificateToFileAction.objects.filter(complaint=complaint).first()
+
+    attendance_records = HearingAttendance.objects.filter(
+        hearing__complaint=complaint
+    ).select_related("hearing")
+
+    hearings_completed = all_hearings.filter(status__statustype="Completed").count()
+
     if request.method == "POST":
         action = request.POST.get("action")
+        case_number = complaint.case_number or generate_case_number(complaint.complaintsid)
 
-        #CHANGE Status
-        if action in ("resolve", "review", "dismiss"):
-            old_status = complaint.status
-            remarks    = request.POST.get("remarks", "").strip()
+        # ---- STEP 2: Initial Review outcome ----
+        if action == "refer_jurisdiction":
+            target_barangay = request.POST.get("target_barangay", "").strip()
+            if not target_barangay:
+                messages.error(request, "Please specify the proper barangay.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
 
-            status_map = {
-                "resolve": "Resolved",
-                "review":  "Under Review",
-                "dismiss": "Dismissed",
-            }
-            log_action_map = {
-                "resolve": "Resolve Case",
-                "review":  "Mark Case Under Review",
-                "dismiss": "Dismiss Case",
-            }
-
-            new_status = status_map[action]
-            log_action = log_action_map[action]
-
-            complaint.status     = new_status
-            complaint.handled_by = current_admin
-            complaint.save()
-
-            # Write to ComplaintUpdates table
-            ComplaintUpdates.objects.create(
-                complaint=complaint,
-                updated_by=current_admin,
-                status=new_status,
-                remarks=remarks or None,
-                updated_at=timezone.now(),
+            complaint.jurisdiction_barangay = target_barangay
+            apply_status_change(
+                complaint, "Referred to Proper Barangay", current_admin,
+                remarks=f"Referred to {target_barangay}.",
+                log_action="Refer Complaint to Proper Barangay",
             )
-
-            #SMS notification (PLS CHECKK AND VERIFY THE LOGIC HERE, WE DONT WANT TO SEND SMS ON EVERY UPDATE, ONLY ON STATUS CHANGE TO UNDER REVIEW, RESOLVED, OR DISMISSED)
-            case_number = f"CMP-2026-{complaint.complaintsid:04d}"
-            sms_map = {
-                "Under Review": f"KaugnayPH: Your complaint {case_number} is now Under Review.",
-                "Resolved":     f"KaugnayPH: Your complaint {case_number} has been resolved.",
-                "Dismissed":    (
-                    f"KaugnayPH: Your complaint {case_number} has been dismissed. "
-                    "Please contact the barangay office for more information."
-                ),
-            }
-            sms_body = sms_map.get(new_status)
+            sms_body = build_sms_for_status(
+                "Referred to Proper Barangay", case_number, jurisdiction=target_barangay
+            )
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(
-                    complaint.complainant_user.contactno,
-                    sms_body,
-                    sent_by=current_admin,
-                )
+                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+            messages.success(request, "Complaint referred to proper barangay.")
 
-            AuditLogs.objects.create(
-                user=current_admin,
-                action=log_action,
-                module_name="Cases",
-                table_name="Complaints",
-                record_id=complaint.complaintsid,
-                old_value=f"Status: {old_status}",
-                new_value=f"Status: {new_status}",
+        elif action == "mark_recorded":
+            apply_status_change(
+                complaint, "Recorded", current_admin,
+                remarks="Complaint validated and recorded by Chairman.",
+                log_action="Record Complaint (Chairman Review)",
+            )
+            sms_body = build_sms_for_status("Recorded", case_number)
+            if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+            messages.success(request, "Complaint marked as Recorded.")
+
+        # ---- STEP 4: Schedule Mediation ----
+        elif action == "schedule_mediation":
+            hearing_date = request.POST.get("hearing_date", "").strip()
+            lupon_user_id = request.POST.get("lupon_user_id", "").strip()
+
+            if not hearing_date:
+                messages.error(request, "Please provide a mediation date/time.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            mediation_level = HearingLevel.objects.filter(level_type="Mediation").first()
+            scheduled_status = HearingStatus.objects.filter(statustype="Scheduled").first()
+
+            if not mediation_level or not scheduled_status:
+                messages.error(
+                    request,
+                    "HearingLevel 'Mediation' or HearingStatus 'Scheduled' not found. "
+                    "Run the lookup table inserts from Section 9.1 first."
+                )
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing = ComplaintHearing.objects.create(
+                complaint=complaint,
+                hearing_level=mediation_level,
+                hearing_date=hearing_date,
+                status=scheduled_status,
                 created_at=timezone.now(),
             )
 
+            if lupon_user_id:
+                lupon_user = Users.objects.filter(userid=lupon_user_id).first()
+                if lupon_user:
+                    HearingOfficials.objects.get_or_create(
+                        complaint=complaint,
+                        user_officials=lupon_user,
+                        defaults={"role": "Lupon Member"},
+                    )
+
+            apply_status_change(
+                complaint, "Mediation Scheduled", current_admin,
+                remarks=f"Mediation scheduled for {hearing.hearing_date}.",
+                log_action="Schedule Mediation",
+            )
+
+            sms_body = build_sms_for_status(
+                "Mediation Scheduled", case_number, hearing_date=hearing.hearing_date
+            )
+            for party_contact in _complaint_contact_numbers(complaint):
+                send_sms(party_contact, sms_body, sent_by=current_admin)
+
+            messages.success(request, "Mediation scheduled.")
+
+        # ---- STEP 5: First Mediation Session outcome ----
+        elif action == "record_mediation_outcome":
+            outcome = request.POST.get("outcome", "").strip()  # "Settled" or "Not Settled"
+            remarks = request.POST.get("remarks", "").strip()
+
+            mediation_hearing = all_hearings.filter(hearing_level__level_type="Mediation").last()
+            completed_status = HearingStatus.objects.filter(statustype="Completed").first()
+            if mediation_hearing and completed_status:
+                mediation_hearing.status = completed_status
+                mediation_hearing.outcome = outcome
+                mediation_hearing.remarks = remarks or None
+                mediation_hearing.save()
+
+            if outcome == "Settled":
+                complaint.settlement_notes = remarks or None
+                complaint.settlement_date = timezone.now()
+                apply_status_change(
+                    complaint, "Settled", current_admin,
+                    remarks=remarks or "Settled during mediation.",
+                    log_action="Record Mediation Settlement",
+                )
+                sms_body = build_sms_for_status("Settled", case_number)
+            else:
+                apply_status_change(
+                    complaint, "For 1st Hearing", current_admin,
+                    remarks="No agreement reached in mediation. Proceeding to Hearing 1.",
+                    log_action="Mediation Failed - Escalate to Hearing 1",
+                )
+                sms_body = build_sms_for_status("For 1st Hearing", case_number)
+
+            if sms_body:
+                for party_contact in _complaint_contact_numbers(complaint):
+                    send_sms(party_contact, sms_body, sent_by=current_admin)
+
+            messages.success(request, f"Mediation outcome recorded: {outcome}.")
+
+        # ---- STEP 6: Schedule a numbered hearing (1, 2, or 3) ----
+        elif action == "schedule_hearing":
+            hearing_number = request.POST.get("hearing_number", "").strip()  # "1", "2", "3"
+            hearing_date = request.POST.get("hearing_date", "").strip()
+
+            level_name = f"Hearing {hearing_number}"
+            status_label = f"For {hearing_number}{'st' if hearing_number == '1' else 'nd' if hearing_number == '2' else 'rd'} Hearing"
+
+            if not hearing_date or hearing_number not in ("1", "2", "3"):
+                messages.error(request, "Please provide a valid hearing number (1-3) and date.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing_level = HearingLevel.objects.filter(level_type=level_name).first()
+            scheduled_status = HearingStatus.objects.filter(statustype="Scheduled").first()
+
+            if not hearing_level or not scheduled_status:
+                messages.error(request, f"HearingLevel '{level_name}' not found in lookup table.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing = ComplaintHearing.objects.create(
+                complaint=complaint,
+                hearing_level=hearing_level,
+                hearing_date=hearing_date,
+                status=scheduled_status,
+                created_at=timezone.now(),
+            )
+
+            apply_status_change(
+                complaint, status_label, current_admin,
+                remarks=f"{level_name} scheduled for {hearing.hearing_date}.",
+                log_action=f"Schedule {level_name}",
+            )
+
+            sms_body = build_sms_for_status(status_label, case_number, hearing_date=hearing.hearing_date)
+            for party_contact in _complaint_contact_numbers(complaint):
+                send_sms(party_contact, sms_body, sent_by=current_admin)
+
+            messages.success(request, f"{level_name} scheduled.")
+
+        # ---- STEP 6/7: Record attendance + outcome for a specific hearing ----
+        elif action == "record_hearing_outcome":
+            hearing_id = request.POST.get("hearing_id", "").strip()
+            outcome = request.POST.get("outcome", "").strip()
+            remarks = request.POST.get("remarks", "").strip()
+            complainant_attendance = request.POST.get("complainant_attendance", "").strip()
+            respondent_attendance = request.POST.get("respondent_attendance", "").strip()
+
+            try:
+                hearing = ComplaintHearing.objects.get(chid=hearing_id, complaint=complaint)
+            except ComplaintHearing.DoesNotExist:
+                messages.error(request, "Hearing record not found.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            completed_status = HearingStatus.objects.filter(statustype="Completed").first()
+            hearing.status = completed_status or hearing.status
+            hearing.outcome = outcome
+            hearing.remarks = remarks or None
+            hearing.save()
+
+            if complainant_attendance:
+                HearingAttendance.objects.create(
+                    hearing=hearing, participant_type="Complainant",
+                    attendance_status=complainant_attendance,
+                )
+            if respondent_attendance:
+                HearingAttendance.objects.create(
+                    hearing=hearing, participant_type="Respondent",
+                    attendance_status=respondent_attendance,
+                )
+
+            # STEP 7: Failed Attendance Tracking — flag non-cooperative party
+            unexcused_count = HearingAttendance.objects.filter(
+                hearing__complaint=complaint,
+                participant_type="Respondent",
+                attendance_status="Refused",
+            ).count()
+            if unexcused_count >= 2 and not complaint.non_cooperative_party:
+                complaint.non_cooperative_party = "Respondent"
+                complaint.non_cooperative_flagged_at = timezone.now()
+                complaint.save(update_fields=["non_cooperative_party", "non_cooperative_flagged_at"])
+                AuditLogs.objects.create(
+                    user=current_admin, action="Flag Non-Cooperative Party",
+                    module_name="Cases", table_name="Complaints",
+                    record_id=complaint.complaintsid,
+                    new_value="Respondent flagged as non-cooperative after repeated unexcused absences.",
+                    created_at=timezone.now(),
+                )
+                messages.warning(
+                    request,
+                    "Respondent flagged as Non-Cooperative Party due to repeated absences. "
+                    "A Certificate to File Action may now be justified."
+                )
+
+            if outcome == "Settled":
+                complaint.settlement_notes = remarks or None
+                complaint.settlement_date = timezone.now()
+                apply_status_change(
+                    complaint, "Settled", current_admin,
+                    remarks=remarks or f"Settled at {hearing.hearing_level.level_type}.",
+                    log_action="Record Hearing Settlement",
+                )
+                sms_body = build_sms_for_status("Settled", case_number)
+                if sms_body:
+                    for party_contact in _complaint_contact_numbers(complaint):
+                        send_sms(party_contact, sms_body, sent_by=current_admin)
+
+            elif hearing.hearing_level.level_type == "Hearing 3":
+                # STEP 8: Final Outcome After Hearing 3, no settlement
+                apply_status_change(
+                    complaint, "Eligible for Certificate to File Action", current_admin,
+                    remarks="No settlement reached after 3 hearings.",
+                    log_action="Mark Eligible for Certificate to File Action",
+                )
+            else:
+                # Stay on current "For Nth Hearing" status until next hearing is scheduled
+                ComplaintUpdates.objects.create(
+                    complaint=complaint, updated_by=current_admin,
+                    status=complaint.status,
+                    remarks=f"{hearing.hearing_level.level_type} outcome recorded: {outcome}.",
+                    updated_at=timezone.now(),
+                )
+
+            messages.success(request, "Hearing outcome recorded.")
+
+        # ---- STEP 9: Issue Certificate to File Action ----
+        elif action == "issue_certificate":
+            remarks = request.POST.get("remarks", "").strip()
+
+            if complaint.status != "Eligible for Certificate to File Action":
+                messages.error(
+                    request,
+                    "Certificate can only be issued when status is "
+                    "'Eligible for Certificate to File Action'."
+                )
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            if CertificateToFileAction.objects.filter(complaint=complaint).exists():
+                messages.warning(request, "A certificate was already issued for this complaint.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            cert = CertificateToFileAction.objects.create(
+                complaint=complaint,
+                certificate_no="TEMP",
+                issued_by=current_admin,
+                issued_at=timezone.now(),
+                remarks=remarks or None,
+            )
+            cert.certificate_no = generate_certificate_number(cert.cfaid)
+            cert.save(update_fields=["certificate_no"])
+
+            apply_status_change(
+                complaint, "Certificate Issued", current_admin,
+                remarks=f"Certificate {cert.certificate_no} issued.",
+                log_action="Issue Certificate to File Action",
+            )
+
+            sms_body = build_sms_for_status("Certificate Issued", case_number)
+            if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+
+            messages.success(request, f"Certificate {cert.certificate_no} issued.")
+
+        # ---- STEP 10: External Resolution ----
+        elif action == "record_external_resolution":
+            ext_status = request.POST.get("external_status", "").strip()  # "Resolved Outside Barangay" or "Settled in Court"
+            ext_notes = request.POST.get("external_notes", "").strip()
+            ext_date = request.POST.get("external_date", "").strip()
+
+            if ext_status not in ("Resolved Outside Barangay", "Settled in Court"):
+                messages.error(request, "Invalid external resolution status.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            complaint.external_resolution_status = ext_status
+            complaint.external_resolution_notes = ext_notes or None
+            complaint.external_resolution_date = ext_date or None
+            complaint.save(update_fields=[
+                "external_resolution_status", "external_resolution_notes", "external_resolution_date"
+            ])
+
+            apply_status_change(
+                complaint, ext_status, current_admin,
+                remarks=ext_notes or "Resolved outside the barangay process.",
+                log_action="Record External Resolution",
+            )
+
+            messages.success(request, "External resolution recorded.")
+
+        # ---- Existing simple status changes (kept for flexibility) ----
+        elif action in ("resolve", "review", "dismiss"):
+            remarks = request.POST.get("remarks", "").strip()
+            status_map = {"resolve": "Resolved", "review": "Under Review", "dismiss": "Dismissed"}
+            log_action_map = {
+                "resolve": "Resolve Case", "review": "Mark Case Under Review", "dismiss": "Dismiss Case"
+            }
+            new_status = status_map[action]
+            apply_status_change(
+                complaint, new_status, current_admin, remarks=remarks, log_action=log_action_map[action]
+            )
+            sms_body = build_sms_for_status(new_status, case_number)
+            if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Case status updated successfully.")
 
-        #Hearing Level Update
+        # ---- Existing hearing level / official management ----
         elif action == "update_hearing":
             hearing_level_id = request.POST.get("hearing_level_id", "").strip()
             hearing_date     = request.POST.get("hearing_date", "").strip()
@@ -2350,46 +2633,33 @@ def case_detail_view(request, complaint_id):
 
             try:
                 hearing_level = HearingLevel.objects.get(hearinglevelid=hearing_level_id)
-            except HearingLevel.DoesNotExist:
-                messages.error(request, "Invalid hearing level.")
-                return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-            try:
                 hearing_status = HearingStatus.objects.get(statusid=hearing_status_id)
-            except HearingStatus.DoesNotExist:
-                messages.error(request, "Invalid hearing status.")
+            except (HearingLevel.DoesNotExist, HearingStatus.DoesNotExist):
+                messages.error(request, "Invalid hearing level or status.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             if existing_hearing:
-                # Update existing record
                 existing_hearing.hearing_level = hearing_level
-                existing_hearing.status        = hearing_status
+                existing_hearing.status = hearing_status
                 if hearing_date:
                     existing_hearing.hearing_date = hearing_date
                 existing_hearing.save()
             else:
-                # Create new hearing record
                 ComplaintHearing.objects.create(
-                    complaint=complaint,
-                    hearing_level=hearing_level,
+                    complaint=complaint, hearing_level=hearing_level,
                     hearing_date=hearing_date or timezone.now(),
-                    status=hearing_status,
-                    created_at=timezone.now(),
+                    status=hearing_status, created_at=timezone.now(),
                 )
 
             AuditLogs.objects.create(
-                user=current_admin,
-                action="Update Hearing Level",
-                module_name="Cases",
-                table_name="ComplaintHearing",
+                user=current_admin, action="Update Hearing Level",
+                module_name="Cases", table_name="ComplaintHearing",
                 record_id=complaint.complaintsid,
                 new_value=f"Hearing level set to '{hearing_level.level_type}'.",
                 created_at=timezone.now(),
             )
-
             messages.success(request, "Hearing level updated.")
 
-        #ASSIGN OFFICIAL
         elif action == "assign_official":
             official_user_id = request.POST.get("official_user_id", "").strip()
             official_role    = request.POST.get("official_role", "Mediator").strip()
@@ -2404,32 +2674,25 @@ def case_detail_view(request, complaint_id):
                 messages.error(request, "Selected official not found.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
-            # Prevent duplicate assignment
             already_assigned = HearingOfficials.objects.filter(
-                complaint=complaint,
-                user_officials=official_user
+                complaint=complaint, user_officials=official_user
             ).exists()
 
             if already_assigned:
                 messages.warning(request, "This official is already assigned to this case.")
             else:
                 HearingOfficials.objects.create(
-                    complaint=complaint,
-                    user_officials=official_user,
-                    role=official_role,
+                    complaint=complaint, user_officials=official_user, role=official_role,
                 )
                 AuditLogs.objects.create(
-                    user=current_admin,
-                    action="Assign Official",
-                    module_name="Cases",
-                    table_name="HearingOfficials",
+                    user=current_admin, action="Assign Official",
+                    module_name="Cases", table_name="HearingOfficials",
                     record_id=complaint.complaintsid,
                     new_value=f"Official '{official_user.firstname} {official_user.lastname}' assigned.",
                     created_at=timezone.now(),
                 )
                 messages.success(request, "Official assigned successfully.")
 
-        # ---- REMOVE OFFICIAL ----
         elif action == "remove_official":
             hoid = request.POST.get("hoid", "").strip()
             try:
@@ -2445,15 +2708,19 @@ def case_detail_view(request, complaint_id):
         return redirect("case_detail", complaint_id=complaint.complaintsid)
 
     return render(request, "adminpanel/case_detail.html", {
-        "complaint":          complaint,
-        "user":               current_admin,
-        "case_id":            f"CMP-2026-{complaint.complaintsid:04d}",
-        "complaint_updates":  complaint_updates,
-        "hearing_levels":     hearing_levels,
-        "hearing_statuses":   hearing_statuses,
-        "existing_hearing":   existing_hearing,
-        "assigned_officials": assigned_officials,
-        "admin_users":        admin_users,
+        "complaint":           complaint,
+        "user":                current_admin,
+        "case_id":             complaint.case_number or generate_case_number(complaint.complaintsid),
+        "complaint_updates":   complaint_updates,
+        "hearing_levels":      hearing_levels,
+        "hearing_statuses":    hearing_statuses,
+        "existing_hearing":    existing_hearing,
+        "all_hearings":        all_hearings,
+        "attendance_records":  attendance_records,
+        "assigned_officials":  assigned_officials,
+        "admin_users":         admin_users,
+        "certificate":         certificate,
+        "hearings_completed":  hearings_completed,
     })
 
 #admin inquiry view

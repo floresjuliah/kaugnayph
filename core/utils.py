@@ -1,9 +1,19 @@
 from datetime import datetime
 
-def generate_case_id(complaints_id):
-    """Generates: CMP-2026-0001"""
+def generate_case_number(complaints_id):
+    """
+    Generates a real, permanent case number at creation time, e.g. CMP-2026-0001.
+    Uses the actual current year — call this once, when the Complaints row is first saved.
+    """
+    from datetime import datetime
     year = datetime.now().year
-    return f'CMP-{year}-{str(complaints_id).zfill(4)}'
+    return f"CMP-{year}-{str(complaints_id).zfill(4)}"
+
+def generate_certificate_number(cfa_id):
+    """Generates: CFA-2026-0001"""
+    from datetime import datetime
+    year = datetime.now().year
+    return f"CFA-{year}-{str(cfa_id).zfill(4)}"
 
 def generate_document_id(document_request_id):
     """Generates: DOC-2026-0001"""
