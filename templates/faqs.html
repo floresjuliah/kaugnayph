@@ -55,7 +55,7 @@
   <div class="faq-grid">
 
 {% for faq in faqs %}
-  <div class="faq-item" data-category="announcements">
+  <div class="faq-item" data-category="{{ faq.faq_category.category_name|lower }}">
     <button class="faq-question" onclick="toggleFaq(this)">
       {{ faq.question }}
       <span class="faq-arrow">▼</span>
@@ -129,6 +129,20 @@
         : 'none';
     });
   });
+
+  // Filter by category
+document.getElementById('faqCategory').addEventListener('change', function() {
+  const selected = this.value.toLowerCase();
+
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const category = item.dataset.category || '';
+
+    item.style.display = (selected === '' || category === selected)
+      ? ''
+      : 'none';
+  });
+});
+
 </script>
 
 {% endblock %}
