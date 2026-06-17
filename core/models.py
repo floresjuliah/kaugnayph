@@ -312,7 +312,14 @@ class Complaints(models.Model):
 
     complaintsid = models.AutoField(db_column='ComplaintsID', primary_key=True)
     case_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
-    complaint_type = models.ForeignKey(ComplaintType, models.CASCADE, db_column='complaint_type_id', blank=True, null=True)
+    complaint_type = models.ForeignKey(
+        ComplaintType,
+        on_delete=models.PROTECT,
+        db_column='complaint_type_id',
+        blank=True,
+        null=True,
+        related_name='complaints'
+    )
     complainant_user = models.ForeignKey(Users, models.CASCADE, db_column='complainant_user_id', blank=True, null=True)
     complainee = models.CharField(max_length=255, blank=True, null=True)
     complainee_address = models.CharField(max_length=255, blank=True, null=True)

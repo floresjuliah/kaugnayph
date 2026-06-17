@@ -16,9 +16,14 @@ from django.db.models import Q
 
 
 from core.complaint_workflow import apply_status_change, build_sms_for_status
-from core.utils import generate_case_number, generate_certificate_number
 from .models import HearingAttendance, CertificateToFileAction
-from core.utils import validate_upload, generate_case_number
+from core.utils import (
+    validate_upload,
+    generate_case_number,
+    generate_certificate_number,
+)
+from datetime import date
+import uuid
 from core.moderation import moderate_text, moderate_image
 from core.sla_utils import (
     create_sla,
@@ -119,11 +124,13 @@ def filecomplaint(request):
             if not ok:
                 messages.error(request, err)
                 return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+            
+            filename = f"complaints/{uuid.uuid4()}_{evidence.name}"
 
             file_path = default_storage.save(
-                "complaints/" + evidence.name,
+                filename,
                 ContentFile(evidence.read())
-            )
+)
 
         #CONTENT MODERATION
         text_check = moderate_text(f"{title} {description} {complainee}")
@@ -151,9 +158,11 @@ def filecomplaint(request):
             flagged_reason=flag_reason,
         )
 
-        complaint.case_number = generate_case_number(complaint.complaintsid)
+        complaint.case_number = generate_case_number(
+            complaint.complaintsid
+        )
         complaint.save(update_fields=["case_number"])
-
+        
         ComplaintUpdates.objects.create(
             complaint=complaint,
             updated_by=current_user,
@@ -176,13 +185,25 @@ def filecomplaint(request):
             )
         return redirect("tracksub")
 
-    current_user = get_current_user(request)
+    if incident_date:
+        if incident_date > str(date.today()):
+            messages.error(
+                request,
+                "Incident date cannot be in the future."
+            )
+            return render(
+                request,
+                "filecomplaint.html",
+                {"complaint_types": complaint_types}
+            )
+        
+        current_user = get_current_user(request)
     initial_data = {
         "firstname": current_user.firstname,
         "lastname": current_user.lastname,
         "contactno": current_user.contactno,
     } if current_user else {}
-
+    
     return render(request, "filecomplaint.html", {
         "complaint_types": complaint_types,
         "initial_data": initial_data,
@@ -1821,9 +1842,10 @@ def case_records_view(request):
     flagged_only = request.GET.get("flagged", "") == "1"
 
     complaints = Complaints.objects.select_related(
-        "complaint_type",
-        "complainant_user"
-    ).all()
+    "complaint_type",
+    "complainant_user",
+    "handled_by"
+    )   
 
     if flagged_only:
         complaints = complaints.filter(is_flagged=True)
@@ -2058,15 +2080,25 @@ def tracksub(request):
         complaint__complainant_user=current_user
     ).order_by("-hearing_date")
 
+    officials_map = {}
+
+    all_officials = HearingOfficials.objects.select_related(
+        "user_officials"
+    )
+
+    for official in all_officials:
+        officials_map.setdefault(
+            official.complaint_id,
+            []
+        ).append(official)
+
     for hearing in hearings:
         cid = hearing.complaint_id
+
         if cid not in hearing_by_complaint:
-            officials = HearingOfficials.objects.filter(
-                complaint_id=cid
-            ).select_related("user_officials")
             hearing_by_complaint[cid] = {
                 "latest_hearing": hearing,
-                "officials": officials,
+                "officials": officials_map.get(cid, [])
             }
 
     return render(request, "tracksub.html", {
