@@ -2336,7 +2336,7 @@ def case_detail_view(request, complaint_id):
         action = request.POST.get("action")
         case_number = complaint.case_number or generate_case_number(complaint.complaintsid)
 
-        # ---- STEP 2: Initial Review outcome ----
+        #STEP 2: Initial Review outcome 
         if action == "refer_jurisdiction":
             target_barangay = request.POST.get("target_barangay", "").strip()
             if not target_barangay:
@@ -2367,7 +2367,7 @@ def case_detail_view(request, complaint_id):
                 send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Complaint marked as Recorded.")
 
-        # ---- STEP 4: Schedule Mediation ----
+        #STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
             hearing_date = request.POST.get("hearing_date", "").strip()
             lupon_user_id = request.POST.get("lupon_user_id", "").strip()
@@ -2418,7 +2418,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "Mediation scheduled.")
 
-        # ---- STEP 5: First Mediation Session outcome ----
+        #STEP 5: First Mediation Session outcome
         elif action == "record_mediation_outcome":
             outcome = request.POST.get("outcome", "").strip()  # "Settled" or "Not Settled"
             remarks = request.POST.get("remarks", "").strip()
@@ -2454,7 +2454,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"Mediation outcome recorded: {outcome}.")
 
-        # ---- STEP 6: Schedule a numbered hearing (1, 2, or 3) ----
+        #STEP 6: Schedule a numbered hearing (1, 2, or 3)
         elif action == "schedule_hearing":
             hearing_number = request.POST.get("hearing_number", "").strip()  # "1", "2", "3"
             hearing_date = request.POST.get("hearing_date", "").strip()
@@ -2493,7 +2493,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"{level_name} scheduled.")
 
-        # ---- STEP 6/7: Record attendance + outcome for a specific hearing ----
+        #Record attendance + outcome for a specific hearing
         elif action == "record_hearing_outcome":
             hearing_id = request.POST.get("hearing_id", "").strip()
             outcome = request.POST.get("outcome", "").strip()
@@ -2524,7 +2524,7 @@ def case_detail_view(request, complaint_id):
                     attendance_status=respondent_attendance,
                 )
 
-            # STEP 7: Failed Attendance Tracking — flag non-cooperative party
+            #Failed Attendance Tracking — flag non-cooperative party
             unexcused_count = HearingAttendance.objects.filter(
                 hearing__complaint=complaint,
                 participant_type="Respondent",
@@ -2561,9 +2561,9 @@ def case_detail_view(request, complaint_id):
                         send_sms(party_contact, sms_body, sent_by=current_admin)
 
             elif hearing.hearing_level.level_type == "Hearing 3":
-                # STEP 8: Final Outcome After Hearing 3, no settlement
+                #Final Outcome After Hearing 3, no settlement
                 apply_status_change(
-                    complaint, "Eligible for Certificate to File Action", current_admin,
+                    complaint, "Certificate Eligible", current_admin,
                     remarks="No settlement reached after 3 hearings.",
                     log_action="Mark Eligible for Certificate to File Action",
                 )
@@ -2578,15 +2578,14 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "Hearing outcome recorded.")
 
-        # ---- STEP 9: Issue Certificate to File Action ----
+        #Issue Certificate to File Action
         elif action == "issue_certificate":
             remarks = request.POST.get("remarks", "").strip()
 
-            if complaint.status != "Eligible for Certificate to File Action":
+            if complaint.status != "Certificate Eligible":
                 messages.error(
                     request,
-                    "Certificate can only be issued when status is "
-                    "'Eligible for Certificate to File Action'."
+                    "Certificate can only be issued when status is 'Certificate Eligible'."
                 )
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
@@ -2616,7 +2615,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"Certificate {cert.certificate_no} issued.")
 
-        # ---- STEP 10: External Resolution ----
+        #External Resolution (either "Resolved Outside Barangay" or "Settled in Court")
         elif action == "record_external_resolution":
             ext_status = request.POST.get("external_status", "").strip()  # "Resolved Outside Barangay" or "Settled in Court"
             ext_notes = request.POST.get("external_notes", "").strip()
@@ -2626,12 +2625,9 @@ def case_detail_view(request, complaint_id):
                 messages.error(request, "Invalid external resolution status.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
-            complaint.external_resolution_status = ext_status
             complaint.external_resolution_notes = ext_notes or None
             complaint.external_resolution_date = ext_date or None
-            complaint.save(update_fields=[
-                "external_resolution_status", "external_resolution_notes", "external_resolution_date"
-            ])
+            complaint.save(update_fields=["external_resolution_notes", "external_resolution_date"])
 
             apply_status_change(
                 complaint, ext_status, current_admin,
@@ -2641,7 +2637,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "External resolution recorded.")
 
-        # ---- Existing simple status changes (kept for flexibility) ----
+        #Existing simple status changes (kept for flexibility)
         elif action in ("resolve", "review", "dismiss"):
             remarks = request.POST.get("remarks", "").strip()
             status_map = {"resolve": "Resolved", "review": "Under Review", "dismiss": "Dismissed"}
@@ -2657,7 +2653,7 @@ def case_detail_view(request, complaint_id):
                 send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Case status updated successfully.")
 
-        # ---- Existing hearing level / official management ----
+        #Existing hearing level / official management
         elif action == "update_hearing":
             hearing_level_id = request.POST.get("hearing_level_id", "").strip()
             hearing_date     = request.POST.get("hearing_date", "").strip()
