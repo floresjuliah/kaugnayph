@@ -225,7 +225,6 @@ class DocumentRequests(models.Model):
     request_mode = models.CharField(max_length=20, blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
     generated_file = models.CharField(max_length=255, blank=True, null=True)
-    uploaded_file = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, blank=True, null=True)
     requested_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(blank=True, null=True)
@@ -245,7 +244,10 @@ class DocumentRequests(models.Model):
 
 
 class DocumentRequestFieldValues(models.Model):
-    drfvid = models.AutoField(db_column='DRFVID', primary_key=True)
+    drfvid = models.AutoField(
+        db_column='DRFVID',
+        primary_key=True
+    )
 
     document_request = models.ForeignKey(
         DocumentRequests,
@@ -259,9 +261,20 @@ class DocumentRequestFieldValues(models.Model):
         db_column='document_field_id'
     )
 
-    field_value = models.TextField(blank=True, null=True)
+    field_value = models.TextField(
+        blank=True,
+        null=True
+    )
 
-    created_at = models.DateTimeField(blank=True, null=True)
+    uploaded_file = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
     class Meta:
         db_table = 'DocumentRequestFieldValues'
