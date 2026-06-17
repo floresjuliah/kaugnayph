@@ -6,88 +6,87 @@
 
 {% block admin_content %}
 
-<div class="admin-page-header">
-    <div>
-        <h1>
-            {% if faq %}Edit FAQ{% else %}Add FAQ{% endif %}
-        </h1>
+<div class="faq-page">
 
-
-    <p>
-        {% if faq %}
-            Update an existing frequently asked question.
-        {% else %}
-            Create a new frequently asked question.
-        {% endif %}
-    </p>
-</div>
-
-
-</div>
-
-<form method="POST" class="admin-form">
-    {% csrf_token %}
-
-
-<div class="form-group">
-    <label>Category</label>
-
-    <select name="category" required>
-        <option value="">Select category</option>
-
-        {% for category in categories %}
-            <option
-                value="{{ category.faq_category_id }}"
-                {% if faq and faq.faq_category.faq_category_id == category.faq_category_id %}
-                    selected
-                {% endif %}
-            >
-                {{ category.category_name }}
-            </option>
-        {% endfor %}
-    </select>
-</div>
-
-<div class="form-group">
-    <label>Question</label>
-
-    <input
-        type="text"
-        name="question"
-        value="{% if faq %}{{ faq.question }}{% endif %}"
-        required
-    >
-</div>
-
-<div class="form-group">
-    <label>Answer</label>
-
-    <textarea
-        name="answer"
-        rows="6"
-        required
-    >{% if faq %}{{ faq.answer }}{% endif %}</textarea>
-</div>
-
-<div class="form-actions">
-    <a href="{% url 'admin_faqs' %}"
-       class="btn btn-secondary">
-        Cancel
+    <a href="{% url 'admin_faqs' %}" class="faq-back-link">
+        ← Back to FAQs
     </a>
 
-    <button
-        type="submit"
-        class="btn btn-primary"
-    >
-        {% if faq %}
-            Save Changes
-        {% else %}
-            Add FAQ
-        {% endif %}
-    </button>
+    <div class="faq-form-header">
+        <h1>{% if faq %}Edit FAQ{% else %}Add FAQ{% endif %}</h1>
+
+        <p>
+            {% if faq %}
+                Update an existing frequently asked question.
+            {% else %}
+                Create a new frequently asked question.
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="POST" class="faq-form-card">
+        {% csrf_token %}
+
+        <div class="faq-form-body">
+
+            <div class="faq-form-group faq-category-field">
+                <label>Category <span>*</span></label>
+
+                <select name="category" required>
+                    <option value="">Select category</option>
+
+                    {% for category in categories %}
+                        <option
+                            value="{{ category.faq_category_id }}"
+                            {% if faq and faq.faq_category.faq_category_id == category.faq_category_id %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ category.category_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="faq-form-group">
+                <label>Question <span>*</span></label>
+
+                <input
+                    type="text"
+                    name="question"
+                    value="{% if faq %}{{ faq.question }}{% endif %}"
+                    placeholder="Enter frequently asked question"
+                    required
+                >
+            </div>
+
+            <div class="faq-form-group">
+                <label>Answer <span>*</span></label>
+
+                <textarea
+                    name="answer"
+                    placeholder="Enter the answer"
+                    required
+                >{% if faq %}{{ faq.answer }}{% endif %}</textarea>
+            </div>
+
+        </div>
+
+        <div class="faq-form-actions">
+            <a href="{% url 'admin_faqs' %}" class="faq-btn faq-btn-cancel">
+                Cancel
+            </a>
+
+            <button type="submit" class="faq-btn faq-btn-save">
+                {% if faq %}
+                    Save Changes
+                {% else %}
+                    Add FAQ
+                {% endif %}
+            </button>
+        </div>
+    </form>
+
 </div>
-
-
-</form>
 
 {% endblock %}

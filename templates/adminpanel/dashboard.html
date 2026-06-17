@@ -4,46 +4,135 @@
 
 {% block admin_content %}
 
-<div class="dashboard-welcome">
-    <h2>Welcome back, {{ user.firstname }} {{ user.lastname }}</h2>
-    <p class="text-muted">{{ user.role.rolename|default:"Administrator" }}</p>
-</div>
+<div class="dash-page">
 
-<div class="dashboard-cards">
+    <div class="dash-header">
+        <h1>Overview Dashboard</h1>
+    </div>
 
-    <a href="{% url 'resident_records' %}" class="dash-card">
-        <div class="dash-card-label">Residents</div>
-    </a>
+    <div class="dash-filter-row">
+        <select class="dash-select">
+            <option>Date Range</option>
+        </select>
 
-    <a href="#" class="dash-card">
-        <div class="dash-card-label">Announcements</div>
-    </a>
+        <div class="dash-tabs">
+            <button type="button" class="active">Daily</button>
+            <button type="button">Weekly</button>
+            <button type="button">Monthly</button>
+        </div>
 
-    <a href="#" class="dash-card">
-        <div class="dash-card-label">Requests</div>
-    </a>
+        <button class="dash-apply-btn">Apply</button>
+    </div>
 
-    <a href="#" class="dash-card">
-        <div class="dash-card-label">Cases</div>
-    </a>
+    <div class="dash-stats-grid">
 
-    <a href="{% url 'admin_inquiries' %}" class="dash-card">
-        <div class="dash-card-label">Inquiries</div>
-    </a>
+        <div class="dash-stat-card">
+            <p>Total Residents</p>
+            <h2>{{ total_residents|default:"0" }}</h2>
+            <span></span>
+        </div>
 
-    <a href="#" class="dash-card">
-        <div class="dash-card-label">Audit Logs</div>
-    </a>
+        <div class="dash-stat-card">
+            <p>Total Requests</p>
+            <h2>{{ total_requests|default:"0" }}</h2>
+            <span></span>
+        </div>
 
-    <a href="#" class="dash-card">
-        <div class="dash-card-label">SMS Outbox</div>
-    </a>
+        <div class="dash-stat-card">
+            <p>Total Cases</p>
+            <h2>{{ total_cases|default:"0" }}</h2>
+            <span></span>
+        </div>
 
-    {% if user.role.rolename == "Barangay Chairman" %}
-    <a href="{% url 'admin_register' %}" class="dash-card">
-        <div class="dash-card-label">Admins</div>
-    </a>
-    {% endif %}
+        <div class="dash-stat-card">
+            <p>Total Inquiries</p>
+            <h2>{{ total_inquiries|default:"0" }}</h2>
+            <span></span>
+        </div>
+
+        <div class="dash-stat-card">
+            <p>SMS Sent</p>
+            <h2>{{ total_sms_sent|default:"0" }}</h2>
+            <span></span>
+        </div>
+
+    </div>
+
+    <div class="dash-analytics-grid">
+
+        <div class="dash-panel">
+            <h2>Announcement Analytics</h2>
+
+            <div class="dash-info-row">
+                <p>Total Views:</p>
+                <strong>{{ total_views|default:"0" }}</strong>
+            </div>
+
+            <div class="dash-info-row">
+                <p>Unique Visitors:</p>
+                <strong>{{ unique_visitors|default:"0" }}</strong>
+            </div>
+
+            <div class="dash-most-viewed">
+                <p>Most Viewed:</p>
+                <strong>{{ most_viewed_announcement_1|default:"No announcement yet" }}</strong>
+                <strong>{{ most_viewed_announcement_2|default:"" }}</strong>
+            </div>
+
+            <div class="dash-info-row">
+                <p>Total Announcements:</p>
+                <strong>{{ total_announcements|default:"0" }}</strong>
+            </div>
+        </div>
+
+        <div class="dash-panel">
+            <h2>Case Analytics</h2>
+
+            <div class="chart-placeholder">
+
+                <div class="chart-placeholder-icon"></div>
+
+                <p>Case Analytics Chart</p>
+
+                <span>
+                    analytics data
+                </span>
+
+            </div>
+
+            <p class="dash-small-label">Avg Resolution Time:</p>
+            <h3>{{ avg_resolution_time|default:"0" }} days</h3>
+        </div>
+
+    </div>
+
+    <div class="dash-panel dash-doc-card">
+        <h2>Document Request</h2>
+
+        <div class="chart-placeholder chart-large">
+
+            <div class="chart-placeholder-icon"></div>
+
+            <p>Document Request Chart</p>
+
+            <span>
+                request statistics
+            </span>
+
+        </div>
+
+        <div class="doc-bottom-stats">
+            <div>
+                <p>Avg Processing Time:</p>
+                <h3>{{ avg_processing_time|default:"0" }} days</h3>
+            </div>
+
+            <div>
+                <p>Completion Rate:</p>
+                <h3>{{ completion_rate|default:"0" }}%</h3>
+            </div>
+        </div>
+    </div>
 
 </div>
 
