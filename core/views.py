@@ -2038,6 +2038,7 @@ def tracksub(request):
         "complaints": complaints,
         "document_requests": document_requests,
         "hearing_by_complaint": hearing_by_complaint,
+        "hearings": hearings,
     })
 
 @login_required

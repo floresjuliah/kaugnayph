@@ -278,6 +278,7 @@ class ComplaintType(models.Model):
 class Complaints(models.Model):
     STATUS_CHOICES = [
         ("Submitted", "Submitted"),
+        ("For Chairman Review", "For Chairman Review"),
         ("Referred to Proper Barangay", "Referred to Proper Barangay"),
         ("Recorded", "Recorded"),
         ("Mediation Scheduled", "Mediation Scheduled"),

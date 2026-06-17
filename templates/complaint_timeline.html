@@ -1,32 +1,71 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="timeline-page">
+
     <h2>Complaint {{ case_id }}</h2>
-    <p><strong>Title:</strong> {{ complaint.title }}</p>
-    <p><strong>Current Status:</strong>
-        <span class="status-badge status-{{ complaint.status|slugify }}">{{ complaint.status }}</span>
-    </p>
+
+    <div class="timeline-card">
+
+        <p>
+            <strong>Title:</strong>
+            {{ complaint.title }}
+        </p>
+
+        <p>
+            <strong>Complainant:</strong>
+            {{ complaint.complainant_user.firstname }}
+            {{ complaint.complainant_user.lastname }}
+        </p>
+
+        <p>
+            <strong>Respondent:</strong>
+            {{ complaint.complainee }}
+        </p>
+
+        <p>
+            <strong>Date Filed:</strong>
+            {{ complaint.dateadded|date:"M d, Y" }}
+        </p>
+
+        <p>
+            <strong>Current Status:</strong>
+            <span class="status-badge status-{{ complaint.status|slugify }}">
+                {{ complaint.status }}
+            </span>
+        </p>
+
+    </div>
 
     {% if complaint.non_cooperative_party %}
     <div class="alert alert-warning">
-        The {{ complaint.non_cooperative_party|lower }} has been marked as non-cooperative
-        due to repeated absences.
+        The {{ complaint.non_cooperative_party|lower }}
+        has been marked as non-cooperative due to repeated absences.
     </div>
     {% endif %}
 
     {% if certificate %}
     <div class="alert alert-info">
-        Certificate to File Action issued: <strong>{{ certificate.certificate_no }}</strong>
+        Certificate to File Action issued:
+        <strong>{{ certificate.certificate_no }}</strong>
         on {{ certificate.issued_at|date:"M d, Y" }}.
     </div>
     {% endif %}
 
     <h3>Hearing Schedule</h3>
+
     {% if all_hearings %}
     <table class="hearing-table">
         <thead>
-            <tr><th>Level</th><th>Date</th><th>Status</th><th>Outcome</th><th>Remarks</th></tr>
+            <tr>
+                <th>Level</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Outcome</th>
+                <th>Remarks</th>
+            </tr>
         </thead>
+
         <tbody>
             {% for hearing in all_hearings %}
             <tr>
@@ -39,29 +78,69 @@
             {% endfor %}
         </tbody>
     </table>
+
     {% else %}
-    <p>No hearings scheduled yet.</p>
+        <p>No hearings scheduled yet.</p>
     {% endif %}
 
     {% if assigned_officials %}
     <h3>Assigned Officials</h3>
+
     <ul>
         {% for official in assigned_officials %}
-        <li>{{ official.user_officials.firstname }} {{ official.user_officials.lastname }} — {{ official.role }}</li>
+        <li>
+            {{ official.user_officials.firstname }}
+            {{ official.user_officials.lastname }}
+            {% if official.role %}
+                — {{ official.role }}
+            {% endif %}
+        </li>
         {% endfor %}
     </ul>
     {% endif %}
 
     <h3>Progress Timeline</h3>
+
     <div class="timeline">
+
         {% for update in complaint_updates %}
         <div class="timeline-entry">
-            <div class="timeline-date">{{ update.updated_at|date:"M d, Y g:i A" }}</div>
-            <div class="timeline-status">{{ update.status }}</div>
-            {% if update.remarks %}<div class="timeline-remarks">{{ update.remarks }}</div>{% endif %}
-            <div class="timeline-by">— {{ update.updated_by.firstname|default:"System" }} {{ update.updated_by.lastname|default:"" }}</div>
+
+            <div class="timeline-date">
+                {{ update.updated_at|date:"M d, Y g:i A" }}
+            </div>
+
+            <div class="timeline-status">
+                {{ update.status }}
+            </div>
+
+            {% if update.remarks %}
+            <div class="timeline-remarks">
+                {{ update.remarks }}
+            </div>
+            {% endif %}
+
+            <div class="timeline-by">
+                —
+                {{ update.updated_by.firstname|default:"System" }}
+                {{ update.updated_by.lastname|default:"" }}
+            </div>
+
         </div>
+        {% empty %}
+
+        <p>No timeline updates available.</p>
+
         {% endfor %}
+
     </div>
+
+    <br>
+
+    <a href="{% url 'tracksub' %}" class="btn btn-secondary">
+        ← Back to Track Submissions
+    </a>
+
 </div>
+
 {% endblock %}
