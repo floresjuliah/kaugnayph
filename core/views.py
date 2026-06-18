@@ -2452,17 +2452,17 @@ def case_detail_view(request, complaint_id):
             messages.success(request, "Complaint referred to proper barangay.")
 
         elif action == "mark_recorded":
-            if complaint.status == "Recorded":
-                messages.warning(request, "Complaint is already recorded.")
+            if complaint.status == "Ongoing":
+                messages.warning(request, "Complaint is already marked as Ongoing.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             apply_status_change(
-                complaint, "Recorded", current_admin,
+                complaint, "Ongoing", current_admin,
                 remarks="Complaint validated and recorded by Chairman.",
                 log_action="Record Complaint (Chairman Review)",
             )
 
-            sms_body = build_sms_for_status("Recorded", case_number)
+            sms_body = build_sms_for_status("Ongoing", case_number)
 
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
                 send_sms(
@@ -2471,7 +2471,7 @@ def case_detail_view(request, complaint_id):
                     sent_by=current_admin
                 )
 
-            messages.success(request, "Complaint marked as Recorded.")
+            messages.success(request, "Complaint marked as Ongoing.")
 
         #STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
