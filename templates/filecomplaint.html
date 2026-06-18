@@ -47,13 +47,6 @@
             {% csrf_token %}
 
             <div class="complaint-row">
-                <select name="complaint_type" required>
-                    <option value="">Type of Complaint</option>
-                    {% for ct in complaint_types %}
-                        <option value="{{ ct.ctid }}">{{ ct.type }}</option>
-                    {% endfor %}
-                </select>
-
                 <input
                     type="date"
                     name="incident_date"

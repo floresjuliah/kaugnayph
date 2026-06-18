@@ -86,13 +86,10 @@ def announcement_detail(request, announcement_id):
 @login_required
 @resident_required
 def filecomplaint(request):
-    complaint_types = ComplaintType.objects.all()
-
     incident_date = None
     current_user = get_current_user(request)
 
     if request.method == "POST":
-        complaint_type_id  = request.POST.get("complaint_type", "").strip()
         incident_date       = request.POST.get("incident_date")
         complainee          = request.POST.get("complainee", "").strip()
         complainee_address  = request.POST.get("complainee_address", "").strip()
@@ -101,27 +98,17 @@ def filecomplaint(request):
         description         = request.POST.get("description", "").strip()
         evidence             = request.FILES.get("evidence")
 
-        if not complaint_type_id:
-            messages.error(request, "Please select a complaint type.")
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
         if not complainee:
             messages.error(request, "Name of complainee is required.")
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+            return render(request, "filecomplaint.html", {})
 
         if not title:
             messages.error(request, "Title is required.")
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+            return render(request, "filecomplaint.html", {})
 
         if not description:
             messages.error(request, "Description is required.")
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-
-        try:
-            complaint_type = ComplaintType.objects.get(ctid=complaint_type_id)
-        except ComplaintType.DoesNotExist:
-            messages.error(request, "Invalid complaint type selected.")
-            return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
+            return render(request, "filecomplaint.html", {})
 
         current_user = get_current_user(request)
 
@@ -131,8 +118,8 @@ def filecomplaint(request):
             ok, err = validate_upload(evidence)
             if not ok:
                 messages.error(request, err)
-                return render(request, "filecomplaint.html", {"complaint_types": complaint_types})
-            
+                return render(request, "filecomplaint.html", {})
+
             filename = f"complaints/{uuid.uuid4()}_{evidence.name}"
 
             file_path = default_storage.save(
@@ -152,7 +139,7 @@ def filecomplaint(request):
         flag_reason = text_check["reason"] or image_check["reason"]
 
         complaint = Complaints.objects.create(
-            complaint_type=complaint_type,
+            complaint_type=None,
             complainant_user=current_user,
             complainee=complainee,
             complainee_address=complainee_address,
@@ -170,7 +157,7 @@ def filecomplaint(request):
             complaint.complaintsid
         )
         complaint.save(update_fields=["case_number"])
-        
+
         ComplaintUpdates.objects.create(
             complaint=complaint,
             updated_by=current_user,
@@ -215,18 +202,17 @@ def filecomplaint(request):
             return render(
                 request,
                 "filecomplaint.html",
-                {"complaint_types": complaint_types}
+                {}
             )
-        
+
         current_user = get_current_user(request)
     initial_data = {
         "firstname": current_user.firstname,
         "lastname": current_user.lastname,
         "contactno": current_user.contactno,
     } if current_user else {}
-    
+
     return render(request, "filecomplaint.html", {
-        "complaint_types": complaint_types,
         "initial_data": initial_data,
     })
 
@@ -2398,7 +2384,7 @@ def case_detail_view(request, complaint_id):
         return redirect("case_records")
 
     current_admin = get_current_user(request)
-
+    complaint_types = ComplaintType.objects.all()
     hearing_levels   = HearingLevel.objects.all()
     hearing_statuses = HearingStatus.objects.all()
     all_hearings = ComplaintHearing.objects.filter(
@@ -2456,10 +2442,24 @@ def case_detail_view(request, complaint_id):
                 messages.warning(request, "Complaint is already marked as Ongoing.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
+            complaint_type_id = request.POST.get("complaint_type", "").strip()
+            if not complaint_type_id:
+                messages.error(request, "Please classify the complaint as Incident or Blotter before proceeding.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            try:
+                chosen_type = ComplaintType.objects.get(ctid=complaint_type_id)
+            except ComplaintType.DoesNotExist:
+                messages.error(request, "Invalid complaint type selected.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            complaint.complaint_type = chosen_type
+            complaint.save(update_fields=["complaint_type"])
+
             apply_status_change(
                 complaint, "Ongoing", current_admin,
-                remarks="Complaint validated and recorded by Chairman.",
-                log_action="Record Complaint (Chairman Review)",
+                remarks=f"Classified as {chosen_type.type} and recorded by Chairman.",
+                log_action="Classify Complaint and Record (Chairman Review)",
             )
 
             sms_body = build_sms_for_status("Ongoing", case_number)
@@ -2471,7 +2471,7 @@ def case_detail_view(request, complaint_id):
                     sent_by=current_admin
                 )
 
-            messages.success(request, "Complaint marked as Ongoing.")
+            messages.success(request, f"Complaint classified as {chosen_type.type} and marked as Ongoing.")
 
         #STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
@@ -2886,6 +2886,7 @@ def case_detail_view(request, complaint_id):
         "admin_users":         admin_users,
         "certificate":         certificate,
         "hearings_completed":  hearings_completed,
+        "complaint_types":     complaint_types,
     })
 
 def _complaint_contact_numbers(complaint):
