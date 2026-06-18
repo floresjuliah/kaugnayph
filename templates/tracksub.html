@@ -39,44 +39,35 @@
 
         <div class="track-card" id="complaints">
           <h3 class="track-card__title">Complaints</h3>
-          <table class="track-table">
-            <thead>
-              <tr>
-                <th>Case ID</th>
-                <th>Type</th>
-                <th>Title</th>
-                <th>Date Submitted</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for complaint in complaints %}
-                <div class="submission-card">
-                    <h4>{{ complaint.case_number|default:complaint.title }}</h4>
-                    <p>Status: <span class="status-badge">{{ complaint.status }}</span></p>
 
-                    {% with hearing_info=hearing_by_complaint|get_item:complaint.complaintsid %}
-                    {% if hearing_info %}
-                    <div class="hearing-summary">
-                        <p><strong>Hearing Level:</strong> {{ hearing_info.latest_hearing.hearing_level.level_type }}</p>
-                        <p><strong>Hearing Status:</strong> {{ hearing_info.latest_hearing.status.statustype }}</p>
-                        <p><strong>Schedule:</strong> {{ hearing_info.latest_hearing.hearing_date|date:"M d, Y g:i A" }}</p>
-                        {% if hearing_info.officials %}
-                        <p><strong>Assigned Official(s):</strong>
-                            {% for official in hearing_info.officials %}
-                                {{ official.user_officials.firstname }} {{ official.user_officials.lastname }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </p>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% endwith %}
+          {% for complaint in complaints %}
+            <div class="submission-card">
+              <h4>{{ complaint.case_number|default:complaint.title }}</h4>
+              <p>Status: <span class="status-badge">{{ complaint.status }}</span></p>
 
-                    <a href="{% url 'complaint_timeline' complaint.complaintsid %}">View Full Timeline</a>
-                </div>
-                {% endfor %}
-            </tbody>
-          </table>
+              {% with hearing_info=hearing_by_complaint|get_item:complaint.complaintsid %}
+              {% if hearing_info %}
+              <div class="hearing-summary">
+                <p><strong>Hearing Level:</strong> {{ hearing_info.latest_hearing.hearing_level.level_type }}</p>
+                <p><strong>Hearing Status:</strong> {{ hearing_info.latest_hearing.status.statustype }}</p>
+                <p><strong>Schedule:</strong> {{ hearing_info.latest_hearing.hearing_date|date:"M d, Y g:i A" }}</p>
+                {% if hearing_info.officials %}
+                <p><strong>Assigned Official(s):</strong>
+                  {% for official in hearing_info.officials %}
+                    {{ official.user_officials.firstname }} {{ official.user_officials.lastname }}{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </p>
+                {% endif %}
+              </div>
+              {% endif %}
+              {% endwith %}
+
+              <a href="{% url 'complaint_timeline' complaint.complaintsid %}">View Full Timeline</a>
+            </div>
+          {% empty %}
+            <p class="track-empty">No complaints filed yet.</p>
+          {% endfor %}
+
         </div>
 
         <div class="track-card" id="documents" style="display:none">

@@ -1298,13 +1298,13 @@ def residentprofile(request):
         user=current_user
     ).select_related('document_type').order_by('-requested_at')[:3]
 
-    latest_announcement = Announcements.objects.order_by('-announcement_id').first()
+    latest_announcements = Announcements.objects.order_by('-announcement_id')[:3]
 
     return render(request, 'residentprofile.html', {
         'recent_complaints': recent_complaints,
         'active_complaints': active_complaints,
         'recent_requests': recent_requests,
-        'latest_announcement': latest_announcement,
+        'latest_announcements': latest_announcements,
     })
 
 @admin_login_required
