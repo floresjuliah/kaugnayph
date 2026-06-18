@@ -15,7 +15,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 
 
-from core.complaint_workflow import apply_status_change, build_sms_for_status
+from core.complaint_workflow import apply_status_change, build_sms_for_status, _complaint_contact_numbers
 from .models import HearingAttendance, CertificateToFileAction
 from core.utils import (
     validate_upload,
@@ -2640,7 +2640,7 @@ def case_detail_view(request, complaint_id):
             elif hearing.hearing_level.level_type == "Hearing 3":
                 #Final Outcome After Hearing 3, no settlement
                 apply_status_change(
-                    complaint, "Certificate Eligible", current_admin,
+                    complaint, "Eligible for Certificate to File Action", current_admin,
                     remarks="No settlement reached after 3 hearings.",
                     log_action="Mark Eligible for Certificate to File Action",
                 )
@@ -2659,10 +2659,10 @@ def case_detail_view(request, complaint_id):
         elif action == "issue_certificate":
             remarks = request.POST.get("remarks", "").strip()
 
-            if complaint.status != "Certificate Eligible":
+            if complaint.status != "Eligible for Certificate to File Action":
                 messages.error(
                     request,
-                    "Certificate can only be issued when status is 'Certificate Eligible'."
+                    "Certificate can only be issued when status is 'Eligible for Certificate to File Action'."
                 )
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
@@ -2831,6 +2831,20 @@ def case_detail_view(request, complaint_id):
         "certificate":         certificate,
         "hearings_completed":  hearings_completed,
     })
+
+def _complaint_contact_numbers(complaint):
+    """
+    Returns a list of contact numbers to SMS for case-wide notifications
+    (mediation/hearing schedules, settlements). Currently only the
+    complainant has a linked Users record with a phone number — the
+    respondent (complainee) is stored as a free-text name/address on
+    Complaints.complainee, not a Users FK, so there's no number to
+    message on their side yet.
+    """
+    numbers = []
+    if complaint.complainant_user and complaint.complainant_user.contactno:
+        numbers.append(complaint.complainant_user.contactno)
+    return numbers
 
 #admin inquiry view
 @admin_login_required
