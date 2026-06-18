@@ -293,7 +293,7 @@ class Complaints(models.Model):
         ("Submitted", "Submitted"),
         ("For Chairman Review", "For Chairman Review"),
         ("Referred to Proper Barangay", "Referred to Proper Barangay"),
-        ("Recorded", "Recorded"),
+        ("Ongoing", "Ongoing"),
         ("Mediation Scheduled", "Mediation Scheduled"),
         ("Mediation Ongoing", "Mediation Ongoing"),
         ("Settled", "Settled"),
