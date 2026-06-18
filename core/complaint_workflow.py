@@ -1,6 +1,10 @@
 from django.utils import timezone
 from .models import ComplaintUpdates, AuditLogs
 
+
+import logging
+logger = logging.getLogger(__name__)
+
 VALID_OFFICIAL_ROLES = ["Lupon Member", "Chairman"]
 
 # SMS copy per status. None = no SMS sent for that status.
@@ -77,12 +81,7 @@ def _complaint_contact_numbers(complaint):
     return numbers
 
 def apply_status_change(complaint, new_status, admin_user, remarks=None, log_action=None):
-    """
-    Single entry point for changing a complaint's status.
-    Writes to ComplaintUpdates (the timeline source for Item 1) and AuditLogs.
-    Does NOT send SMS — caller decides that using build_sms_for_status,
-    since some callers need hearing_date/jurisdiction context this function doesn't have.
-    """
+    logger.debug("apply_status_change: new_status=%r, complaint_id=%s", new_status, complaint.complaintsid)
     old_status = complaint.status
     complaint.status = new_status
     complaint.handled_by = admin_user
