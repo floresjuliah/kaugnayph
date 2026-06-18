@@ -29,11 +29,11 @@
                 value="mark_recorded"
                 style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
             >
-                Record Complaint
+                Mark as Ongoing
             </button>
             {% endif %}
 
-            {% if complaint.status not in "Settled,Dismissed,Certificate Issued,Resolved Outside Barangay,Settled in Court" %}
+            {% if complaint.status != "Settled" and complaint.status != "Dismissed" and complaint.status != "Certificate Issued" and complaint.status != "Resolved Outside Barangay" and complaint.status != "Settled in Court" %}
             <button
                 type="submit"
                 name="action"
@@ -98,7 +98,7 @@
                 <div id="hearingSummary" style="margin-bottom: 20px; line-height: 1.8;">
                     <p><strong>Hearing Level:</strong> {{ existing_hearing.hearing_level.level_type }}</p>
                     <p><strong>Hearing Status:</strong> {{ existing_hearing.status.statustype }}</p>
-                    <p><strong>Hearing Date:</strong> {{ existing_hearing.hearing_date|date:"F d, Y" }}</p>
+                    <p><strong>Hearing Date:</strong> {{ existing_hearing.hearing_date|date:"F d, Y h:i A" }}</p>
 
                     <button
                         type="button"
@@ -142,10 +142,9 @@
 
                 <label><strong>Hearing Date:</strong></label><br>
                 <input
-                    type="date"
+                    type="datetime-local"
                     name="hearing_date"
-                    value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d' }}{% endif %}"
-                    style="padding: 10px; width: 100%; margin: 8px 0 15px;"
+                    value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}"
                 >
 
                 <button type="submit" style="padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">

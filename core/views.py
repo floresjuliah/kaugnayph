@@ -2447,17 +2447,20 @@ def case_detail_view(request, complaint_id):
             messages.success(request, "Complaint referred to proper barangay.")
 
         elif action == "mark_recorded":
-            if complaint.status == "Recorded":
-                messages.warning(request, "Complaint is already recorded.")
-                return redirect("case_detail", complaint_id=complaint.complaintsid)
+            if complaint.status == "Ongoing":
+                apply_status_change(
+                complaint, "Ongoing", current_admin,
+                remarks="Complaint validated and accepted by Chairman.",
+                log_action="Accept Complaint",
+            )
 
             apply_status_change(
-                complaint, "Recorded", current_admin,
+                complaint, "Ongoing", current_admin,
                 remarks="Complaint validated and recorded by Chairman.",
                 log_action="Record Complaint (Chairman Review)",
             )
 
-            sms_body = build_sms_for_status("Recorded", case_number)
+            sms_body = build_sms_for_status("Ongoing", case_number)
 
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
                 send_sms(
