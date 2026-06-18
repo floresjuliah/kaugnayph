@@ -80,7 +80,10 @@ def landing_page(request):
 
 def announcement_detail(request, announcement_id):
     announcement = Announcements.objects.get(announcement_id=announcement_id)
-    return render(request, 'public/announcement_detail.html', {'announcement': announcement})
+    return render(request, 'public/announcement_detail.html', {
+        'announcement': announcement,
+        'is_resident': request.session.get('user_type') == 'Resident',
+    })
 
 
 @login_required

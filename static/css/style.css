@@ -1885,6 +1885,7 @@ footer ul li a:hover {
     height: 220px;
   }
 }
+
 /* ── ANNOUNCEMENT DETAIL PAGE ── */
 .ann-detail-page {
   max-width: 800px;
@@ -1906,6 +1907,38 @@ footer ul li a:hover {
 
 .btn-secondary:hover {
   background: #2a4a8a;
+}
+
+.ann-detail-page .ann-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ann-detail-page .ann-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ann-detail-page .status-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.ann-detail-page .ann-author {
+  font-weight: 700;
+}
+
+.ann-detail-page .ann-role {
+  font-size: 0.77rem;
+  color: var(--muted);
+}
+
+.ann-content {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .complaint-hero {

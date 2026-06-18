@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 
 <div class="ann-detail-page">
@@ -24,15 +25,20 @@
         </span>
         <span class="ann-role">
             {% if announcement.posted_by %}
-            {{ announcement.posted_by.role.role_name|default:"Staff" }}
+            {{ announcement.posted_by.role.rolename|default:"Admin" }}
             {% else %}
             Barangay Admin
             {% endif %}
         </span>
         <span class="ann-time">{{ announcement.created_at|timesince }} ago</span>
         </div>
-        <span class="status-badge status-{{ announcement.category.name|slugify }}">
-        {{ announcement.category.name|default:"General Updates" }}
+        <span class="ann-badge badge-{{ announcement.category.name|slugify }}">
+            <svg width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4m0 4h.01"/>
+          </svg>
+            {{ announcement.category.name|default:"General Updates" }}
         </span>
     </div>
 
@@ -48,11 +54,14 @@
 
     <!-- Footer -->
     <div class="ann-card-footer">
-        <button class="ann-action-btn" title="Feedback">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M13.7299 3.50989L15.4899 7.02989C15.7299 7.51989 16.3699 7.98989 16.9099 8.07989L20.0999 8.60989C22.1399 8.94989 22.6199 10.4299 21.1499 11.8899L18.6699 14.3699C18.2499 14.7899 18.0199 15.5999 18.1499 16.1799L18.8599 19.2499C19.4199 21.6799 18.1299 22.6199 15.9799 21.3499L12.9899 19.5799C12.4499 19.2599 11.5599 19.2599 11.0099 19.5799L8.01991 21.3499C5.87991 22.6199 4.57991 21.6699 5.13991 19.2499L5.84991 16.1799C5.74991 14.7899 5.32991 14.3699L2.84991 11.8899C1.38991 10.4299 1.85991 8.94989 3.89991 8.60989L7.08991 8.07989C7.61991 7.98989 8.25991 7.51989 8.49991 7.02989L10.2599 3.50989C11.2199 1.59989 12.7799 1.59989 13.7299 3.50989Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <button class="ann-action-btn" title="Feedback"
+        onclick="{% if is_resident %}openFeedback(){% else %}alert('Please log in as a resident to leave feedback.'){% endif %}">
+        <svg width="16" height="16" fill="none"
+            stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
-        </button>
+    </button>
 
         <div class="ann-actions">
         <div class="ann-view">
@@ -66,7 +75,108 @@
     </div>
 
     </div>
-
 </div>
+
+<!-- FEEDBACK MODAL -->
+<div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
+  <div class="ann-modal">
+
+    <h3>How helpful is this announcement?</h3>
+    <p class="ann-modal-sub">( Not Helpful at all → Very Helpful )</p>
+
+    <div class="ann-emoji-row" id="emojiRow">
+      <button class="emoji-btn" onclick="selectEmoji(this, 1)" title="Not Helpful at all">
+        <img src="{% static 'images/emoji-1.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 2)" title="Slightly Helpful">
+        <img src="{% static 'images/emoji-2.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 3)" title="Somewhat Helpful">
+        <img src="{% static 'images/emoji-3.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 4)" title="Helpful">
+        <img src="{% static 'images/emoji-4.png' %}" width="50" height="50" />
+      </button>
+      <div class="emoji-line"></div>
+      <button class="emoji-btn" onclick="selectEmoji(this, 5)" title="Very Helpful">
+        <img src="{% static 'images/emoji-5.png' %}" width="50" height="50" />
+      </button>
+    </div>
+
+    <div id="thankYouMsg" style="display:none; text-align:center; padding: 16px 0;">
+      <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Thank you for your feedback!</p>
+      <p style="font-size: 0.85rem; color: var(--muted);">Your response has been recorded.</p>
+    </div>
+
+    <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
+    <button class="ann-modal-close" onclick="closeFeedback()">Close</button>
+
+  </div>
+</div>
+
+<script>
+  const currentAnnouncementId = {{ announcement.announcement_id }};
+
+  function openFeedback() {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('feedbackLabel').textContent = '\u00a0';
+    document.getElementById('emojiRow').style.display = 'flex';
+    document.getElementById('thankYouMsg').style.display = 'none';
+    document.getElementById('feedbackModal').classList.add('active');
+  }
+
+  function closeFeedback() {
+    document.getElementById('feedbackModal').classList.remove('active');
+  }
+
+  function closeFeedbackOnOverlay(e) {
+    if (e.target === document.getElementById('feedbackModal')) closeFeedback();
+  }
+
+  function selectEmoji(btn, rating) {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+
+    fetch(`/announcements/${currentAnnouncementId}/feedback/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ rating: rating }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('emojiRow').style.display = 'none';
+        document.getElementById('thankYouMsg').style.display = 'block';
+        setTimeout(() => {
+          closeFeedback();
+          document.getElementById('emojiRow').style.display = 'flex';
+          document.getElementById('thankYouMsg').style.display = 'none';
+        }, 2000);
+      } else {
+        alert(data.error || 'Something went wrong. Please try again.');
+      }
+    })
+    .catch(() => alert('Network error. Please try again.'));
+  }
+
+  function getCookie(name) {
+    let value = null;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(function(c) {
+        c = c.trim();
+        if (c.startsWith(name + '=')) {
+          value = decodeURIComponent(c.substring(name.length + 1));
+        }
+      });
+    }
+    return value;
+  }
+</script>
 
 {% endblock %}
