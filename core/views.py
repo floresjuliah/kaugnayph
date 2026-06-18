@@ -83,6 +83,9 @@ def landing_page(request):
 def filecomplaint(request):
     complaint_types = ComplaintType.objects.all()
 
+    incident_date = None
+    current_user = get_current_user(request)
+
     if request.method == "POST":
         complaint_type_id  = request.POST.get("complaint_type", "").strip()
         incident_date       = request.POST.get("incident_date")
