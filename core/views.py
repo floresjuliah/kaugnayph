@@ -175,6 +175,19 @@ def filecomplaint(request):
             updated_at=timezone.now(),
         )
 
+        sms_body = (
+            f"KaugnayPH: Your complaint {complaint.case_number} "
+            "has been submitted successfully. "
+            "Please wait for updates from Barangay 761."
+        )
+
+        if current_user.contactno:
+            send_sms(
+                current_user.contactno,
+                sms_body,
+                sent_by=current_user
+            )
+
         if is_flagged:
             messages.warning(
                 request,
@@ -2434,14 +2447,25 @@ def case_detail_view(request, complaint_id):
             messages.success(request, "Complaint referred to proper barangay.")
 
         elif action == "mark_recorded":
+            if complaint.status == "Recorded":
+                messages.warning(request, "Complaint is already recorded.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
             apply_status_change(
                 complaint, "Recorded", current_admin,
                 remarks="Complaint validated and recorded by Chairman.",
                 log_action="Record Complaint (Chairman Review)",
             )
+
             sms_body = build_sms_for_status("Recorded", case_number)
+
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+                send_sms(
+                    complaint.complainant_user.contactno,
+                    sms_body,
+                    sent_by=current_admin
+                )
+
             messages.success(request, "Complaint marked as Recorded.")
 
         #STEP 4: Schedule Mediation
@@ -2767,7 +2791,21 @@ def case_detail_view(request, complaint_id):
                 new_value=f"Hearing level set to '{hearing_level.level_type}'.",
                 created_at=timezone.now(),
             )
-            messages.success(request, "Hearing level updated.")
+            sms_body = (
+                f"KaugnayPH: Hearing details for complaint "
+                f"{case_number} has been updated. "
+                "Please check your account for the latest schedule and status."
+            )
+
+            if complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(
+                    complaint.complainant_user.contactno,
+                    sms_body,
+                    sent_by=current_admin
+                )
+
+                messages.success(request, "Hearing level updated.")
+
 
         elif action == "assign_official":
             official_user_id = request.POST.get("official_user_id", "").strip()
@@ -2799,6 +2837,19 @@ def case_detail_view(request, complaint_id):
                     record_id=complaint.complaintsid,
                     new_value=f"Official '{official_user.firstname} {official_user.lastname}' assigned.",
                     created_at=timezone.now(),
+                )
+
+                sms_body = (
+                    f"KaugnayPH: A barangay official has been assigned "
+                    f"to your complaint {case_number}. "
+                    "Please check your account for updates."
+                )
+
+            if complaint.complainant_user and complaint.complainant_user.contactno:
+                send_sms(
+                    complaint.complainant_user.contactno,
+                    sms_body,
+                    sent_by=current_admin
                 )
                 messages.success(request, "Official assigned successfully.")
 
