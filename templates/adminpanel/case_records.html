@@ -88,18 +88,51 @@
                     <td>{{ case.date_submitted }}</td>
 
                     <td>
-                        <span class="case-status 
-                            {% if case.status == 'Pending' %}
+                        <span class="case-status
+
+                            {% if case.status == 'Submitted' %}
                                 status-pending
-                            {% elif case.status == 'Under Review' %}
+
+                            {% elif case.status == 'Recorded' %}
                                 status-review
+
+                            {% elif case.status == 'Mediation Scheduled' %}
+                                status-review
+
+                            {% elif case.status == 'For 1st Hearing' %}
+                                status-review
+
+                            {% elif case.status == 'For 2nd Hearing' %}
+                                status-review
+
+                            {% elif case.status == 'For 3rd Hearing' %}
+                                status-review
+
+                            {% elif case.status == 'Eligible for Certificate to File Action' %}
+                                status-review
+
+                            {% elif case.status == 'Settled' %}
+                                status-resolved
+
+                            {% elif case.status == 'Certificate Issued' %}
+                                status-resolved
+
                             {% elif case.status == 'Resolved' %}
                                 status-resolved
+
+                            {% elif case.status == 'Resolved Outside Barangay' %}
+                                status-resolved
+
+                            {% elif case.status == 'Settled in Court' %}
+                                status-resolved
+
                             {% elif case.status == 'Dismissed' %}
                                 status-dismissed
+
                             {% else %}
                                 {{ case.status_class }}
                             {% endif %}
+
                         ">
                             {{ case.status }}
                         </span>

@@ -22,17 +22,37 @@
         <form method="POST">
             {% csrf_token %}
 
-            <button type="submit" name="action" value="resolve" style="background: #137333; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;">
+            {% if complaint.status == "Submitted" %}
+            <button
+                type="submit"
+                name="action"
+                value="mark_recorded"
+                style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
+            >
+                Record Complaint
+            </button>
+            {% endif %}
+
+            {% if complaint.status not in "Settled,Dismissed,Certificate Issued,Resolved Outside Barangay,Settled in Court" %}
+            <button
+                type="submit"
+                name="action"
+                value="resolve"
+                style="background:#137333;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
+            >
                 Resolve Case
             </button>
+            {% endif %}
 
-            <button type="submit" name="action" value="review" style="background: #2563eb; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;">
-                Mark as Ongoing
-            </button>
-
-            <button type="submit" name="action" value="dismiss" style="background: white; color: #dc2626; padding: 10px 18px; border: 1px solid #dc2626; border-radius: 6px; cursor: pointer;">
+            <button
+                type="submit"
+                name="action"
+                value="dismiss"
+                style="background:white;color:#dc2626;padding:10px 18px;border:1px solid #dc2626;border-radius:6px;cursor:pointer;"
+            >
                 Reject Case
             </button>
+
         </form>
 
     </div>
