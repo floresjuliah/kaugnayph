@@ -55,6 +55,26 @@ def build_sms_for_status(status, case_number, jurisdiction=None, hearing_date=No
         hearing_date=hearing_date.strftime("%B %d, %Y at %I:%M %p") if hearing_date else "a date to be announced",
     )
 
+def _complaint_contact_numbers(complaint):
+    """
+    Returns a list of contact numbers to SMS for case-wide notifications
+    (mediation/hearing schedules, settlements). Currently only the
+    complainant has a linked Users record with a phone number — the
+    respondent (complainee) is stored as a free-text name/address on
+    Complaints.complainee, not a Users FK, so there's no number to
+    message on their side yet.
+    """
+    numbers = []
+
+    if (
+        complaint.complainant_user
+        and complaint.complainant_user.contactno
+    ):
+        numbers.append(
+            complaint.complainant_user.contactno
+        )
+
+    return numbers
 
 def apply_status_change(complaint, new_status, admin_user, remarks=None, log_action=None):
     """
