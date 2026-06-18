@@ -2804,7 +2804,7 @@ def case_detail_view(request, complaint_id):
                     sent_by=current_admin
                 )
 
-                messages.success(request, "Hearing level updated.")
+            messages.success(request, "Hearing level updated.")
 
 
         elif action == "assign_official":
