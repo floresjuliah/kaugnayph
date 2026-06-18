@@ -803,6 +803,7 @@ body.landing-page .nav-links .active {
   border: 2px solid #d0d8ee;
   color: var(--navy);
   background: transparent;
+  margin-top: 50px;
 }
 
 .btn-outline:hover {
@@ -1893,41 +1894,40 @@ footer ul li a:hover {
   padding: 0 24px;
 }
 
-.btn-secondary {
+.btn-secondary-detail {
   display: inline-block;
-  padding: 10px 24px;
-  background: #1a2e5a;
-  color: #fff;
-  border-radius: 30px;
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 500;
   transition: background 0.2s ease;
+  margin-left: -30px;
 }
 
-.btn-secondary:hover {
+/* .btn-secondary-detail:hover {
   background: #2a4a8a;
-}
+} */
 
 .ann-detail-page .ann-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-}
+  margin-bottom: 24px;
+
+} 
 
 .ann-detail-page .ann-meta {
   display: flex;
   flex-direction: column;
   flex: 1;
+  margin-top: 24px;
 }
 
 .ann-detail-page .status-badge {
   margin-left: auto;
   flex-shrink: 0;
+  margin-top: 24px;
 }
 
 .ann-detail-page .ann-author {
   font-weight: 700;
+  
 }
 
 .ann-detail-page .ann-role {
@@ -2880,6 +2880,18 @@ footer ul li a:hover {
   margin: 0 60px;
 }
 
+.profile-announcement {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.profile-announcement:hover {
+  background: #f4f6fb;
+  border-radius: 8px;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .available-docs__grid {
@@ -2953,6 +2965,9 @@ footer ul li a:hover {
   color: var(--blue);
   text-decoration: none;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .profile-card__link:hover {

@@ -46,19 +46,23 @@
       <div class="profile-card">
         <div class="profile-card__header">
           <h2>Recent Announcements</h2>
-          <a href="{% url 'announcementslist' %}" class="profile-card__link">View all →</a>
+          <a href="{% url 'announcementslist' %}" class="profile-card__link">View all
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#2E3A59" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
         </div>
 
         {% if latest_announcements %}
           {% for announcement in latest_announcements %}
-          <div class="profile-announcement">
+          <a href="{% url 'announcement_detail' announcement.announcement_id %}" class="profile-announcement">
             <span class="profile-announcement__badge">
               {{ announcement.category.name|default:"General" }}
             </span>
             <h3 class="profile-announcement__title">{{ announcement.title }}</h3>
             <p class="profile-announcement__text">{{ announcement.content|truncatewords:25 }}</p>
             <p class="profile-announcement__time">{{ announcement.created_at|timesince }} ago</p>
-          </div>
+          </a>
           {% endfor %}
         {% else %}
           <div class="profile-empty">
@@ -76,7 +80,11 @@
       <div class="profile-card">
         <div class="profile-card__header">
           <h2>Recent Complaints</h2>
-          <a href="{% url 'tracksub' %}" class="profile-card__link">View all →</a>
+          <a href="{% url 'tracksub' %}" class="profile-card__link">View all
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#2E3A59" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
         </div>
 
         {% if recent_complaints %}
@@ -109,7 +117,11 @@
       <div class="profile-card">
         <div class="profile-card__header">
           <h2>Recent Document Requests</h2>
-          <a href="{% url 'tracksub' %}" class="profile-card__link">View all →</a>
+          <a href="{% url 'tracksub' %}" class="profile-card__link">View all
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#2E3A59" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
         </div>
 
         {% if recent_requests %}
