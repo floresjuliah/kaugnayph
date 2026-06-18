@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="ann-detail-page">
+
+  <a href="{% url 'announcementslist' %}" class="btn btn-secondary">← Back to Announcements</a>
+
+  <div class="ann-card" style="margin-top: 20px; cursor: default;">
+
+    <!-- Header -->
+    <div class="ann-card-header">
+        <div class="ann-avatar">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        </div>
+        <div class="ann-meta">
+        <span class="ann-author">
+            {% if announcement.posted_by %}
+            {{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}
+            {% else %}
+            Barangay Admin
+            {% endif %}
+        </span>
+        <span class="ann-role">
+            {% if announcement.posted_by %}
+            {{ announcement.posted_by.role.role_name|default:"Staff" }}
+            {% else %}
+            Barangay Admin
+            {% endif %}
+        </span>
+        <span class="ann-time">{{ announcement.created_at|timesince }} ago</span>
+        </div>
+        <span class="status-badge status-{{ announcement.category.name|slugify }}">
+        {{ announcement.category.name|default:"General Updates" }}
+        </span>
+    </div>
+
+    <!-- Body -->
+    <div class="ann-card-body" style="display:block;">
+        <h2 class="ann-title">{{ announcement.title }}</h2>
+        <p class="ann-content">{{ announcement.content }}</p>
+
+        {% if announcement.file_path %}
+        <img src="/media/{{ announcement.file_path }}" alt="Announcement image" style="max-width:100%; border-radius:14px; margin-top:18px;">
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="ann-card-footer">
+        <button class="ann-action-btn" title="Feedback">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M13.7299 3.50989L15.4899 7.02989C15.7299 7.51989 16.3699 7.98989 16.9099 8.07989L20.0999 8.60989C22.1399 8.94989 22.6199 10.4299 21.1499 11.8899L18.6699 14.3699C18.2499 14.7899 18.0199 15.5999 18.1499 16.1799L18.8599 19.2499C19.4199 21.6799 18.1299 22.6199 15.9799 21.3499L12.9899 19.5799C12.4499 19.2599 11.5599 19.2599 11.0099 19.5799L8.01991 21.3499C5.87991 22.6199 4.57991 21.6699 5.13991 19.2499L5.84991 16.1799C5.74991 14.7899 5.32991 14.3699L2.84991 11.8899C1.38991 10.4299 1.85991 8.94989 3.89991 8.60989L7.08991 8.07989C7.61991 7.98989 8.25991 7.51989 8.49991 7.02989L10.2599 3.50989C11.2199 1.59989 12.7799 1.59989 13.7299 3.50989Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        </button>
+
+        <div class="ann-actions">
+        <div class="ann-view">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M15.5799 11.9999C15.5799 13.9799 13.9799 15.5799 11.9999 15.5799C10.0199 15.5799 8.41992 13.9799 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C13.9799 8.41992 15.5799 10.0199 15.5799 11.9999Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.0001 20.27C15.5301 20.27 18.8201 18.19 21.1101 14.59C22.0101 13.18 22.0101 10.81 21.1101 9.39997C18.8201 5.79997 15.5301 3.71997 12.0001 3.71997C8.47009 3.71997 5.18009 5.79997 2.89009 9.39997C1.99009 10.81 1.99009 13.18 2.89009 14.59C5.18009 18.19 8.47009 20.27 12.0001 20.27Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>128</span>
+        </div>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

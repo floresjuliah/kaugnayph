@@ -78,6 +78,11 @@ def landing_page(request):
         "announcements": announcements
     })
 
+def announcement_detail(request, announcement_id):
+    announcement = Announcements.objects.get(announcement_id=announcement_id)
+    return render(request, 'public/announcement_detail.html', {'announcement': announcement})
+
+
 @login_required
 @resident_required
 def filecomplaint(request):
@@ -2447,20 +2452,17 @@ def case_detail_view(request, complaint_id):
             messages.success(request, "Complaint referred to proper barangay.")
 
         elif action == "mark_recorded":
-            if complaint.status == "Ongoing":
-                apply_status_change(
-                complaint, "Ongoing", current_admin,
-                remarks="Complaint validated and accepted by Chairman.",
-                log_action="Accept Complaint",
-            )
+            if complaint.status == "Recorded":
+                messages.warning(request, "Complaint is already recorded.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             apply_status_change(
-                complaint, "Ongoing", current_admin,
+                complaint, "Recorded", current_admin,
                 remarks="Complaint validated and recorded by Chairman.",
                 log_action="Record Complaint (Chairman Review)",
             )
 
-            sms_body = build_sms_for_status("Ongoing", case_number)
+            sms_body = build_sms_for_status("Recorded", case_number)
 
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
                 send_sms(

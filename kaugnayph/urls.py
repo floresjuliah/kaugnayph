@@ -34,7 +34,7 @@ urlpatterns = [
     # API
     path('users/', get_users),
     path('announcements/', get_announcements),
-    path('announcements/<int:announcement_id>/', get_announcement_detail),
+    # path('announcements/<int:announcement_id>/', get_announcement_detail),
     path('announcements/create/', create_announcement),
     path('announcements/<int:announcement_id>/update/', update_announcement),
     path('announcements/<int:announcement_id>/delete/', delete_announcement),
@@ -50,6 +50,7 @@ urlpatterns = [
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
     path('announcementslist/', views.announcements_view, name='announcementslist'),
+
 
     # Resident profile
     path('residentprofile/', views.residentprofile, name='residentprofile'),

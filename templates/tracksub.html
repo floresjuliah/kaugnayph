@@ -32,7 +32,6 @@
         <h3>Case Overview</h3>
         <a href="#complaints" onclick="event.preventDefault(); showSection('complaints')" class="sidebar-link active">Complaints</a>
         <a href="#documents" onclick="event.preventDefault(); showSection('documents')" class="sidebar-link">Documents / Requirements</a>
-        <a href="#hearings" onclick="event.preventDefault(); showSection('hearings')" class="sidebar-link">Hearing Status</a>
       </div>
 
       <div class="track-main">
@@ -103,46 +102,6 @@
               {% empty %}
                 <tr>
                   <td colspan="4" class="track-empty">No document requests found.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="track-card" id="hearings" style="display:none">
-          <h3 class="track-card__title">Hearing Status</h3>
-
-          <table class="track-table">
-            <thead>
-              <tr>
-                <th>Case ID</th>
-                <th>Complaint Title</th>
-                <th>Hearing Date</th>
-                <th>Hearing Level</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for hearing in hearings %}
-                <tr>
-                  <td>CMP-2026-{{ hearing.complaint.complaintsid|stringformat:"04d" }}</td>
-                  <td>{{ hearing.complaint.title }}</td>
-                  <td>{{ hearing.hearing_date|date:"M d, Y" }}</td>
-                  <td>{{ hearing.hearing_level.level_type }}</td>
-                  <td>
-                    <span class="track-status
-                      {% if hearing.status.statustype == 'Scheduled' %}scheduled
-                      {% elif hearing.status.statustype == 'Ongoing' %}under-review
-                      {% elif hearing.status.statustype == 'Completed' %}resolved
-                      {% elif hearing.status.statustype == 'Cancelled' %}dismissed
-                      {% endif %}">
-                      {{ hearing.status.statustype }}
-                    </span>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="5" class="track-empty">No hearing records found.</td>
                 </tr>
               {% endfor %}
             </tbody>

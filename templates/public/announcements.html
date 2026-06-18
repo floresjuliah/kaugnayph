@@ -58,17 +58,12 @@
     {% for announcement in announcements %}
 
     <article
-      class="ann-card"
-      style="cursor:pointer;"
-      data-id="{{ announcement.announcement_id }}"
-      data-my-rating="{{ announcement.my_rating|default:0 }}"
-      data-category="{{ announcement.category.name|default:'general'|lower }}"
-      data-title="{{ announcement.title|escapejs }}"
-      data-content="{{ announcement.content|escapejs }}"
-      data-catname="{{ announcement.category.name|default:'General Updates'|escapejs }}"
-      data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Admin{% endif %}"
-      data-time="{{ announcement.created_at|timesince }}"
-      data-image="{% if announcement.file_path %}/media/{{ announcement.file_path }}{% endif %}"
+    class="ann-card"
+    style="cursor:pointer;"
+    data-id="{{ announcement.announcement_id }}"
+    data-my-rating="{{ announcement.my_rating|default:0 }}"
+    data-category="{{ announcement.category.name|default:'general'|lower }}"
+    onclick="window.location.href='{% url 'announcement_detail' announcement.announcement_id %}'"
     >
 
       <div class="ann-card-top">
@@ -206,24 +201,6 @@
 
 </section>
 
-<!-- ANNOUNCEMENT DETAIL MODAL -->
-<div class="ann-detail-overlay" id="annDetailModal">
-  <div class="ann-detail-modal">
-    <button class="ann-detail-close" onclick="closeDetail()">✕</button>
-    <div class="ann-detail-badge" id="detailBadge"></div>
-    <h2 class="ann-detail-title" id="detailTitle"></h2>
-    <div class="ann-detail-meta" id="detailMeta"></div>
-    <p class="ann-detail-content" id="detailContent"></p>
-
-    <img
-      id="detailImage"
-      class="ann-detail-image"
-      src=""
-      alt="Announcement attachment"
-      style="display:none; max-width:100%; border-radius:14px; margin-top:18px;"
-    >
-  </div>
-</div>
 
 <!-- FEEDBACK MODAL -->
 <div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
@@ -270,38 +247,6 @@
 </div>
 
 <script>
-
-// CARD CLICK - DETAIL MODAL
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.ann-card').forEach(function(card) {
-    card.addEventListener('click', function() {
-      document.getElementById('detailTitle').textContent = card.dataset.title;
-      document.getElementById('detailContent').textContent = card.dataset.content;
-      document.getElementById('detailMeta').innerHTML = '<strong>' + card.dataset.author + '</strong> · ' + card.dataset.time + ' ago';
-      document.getElementById('detailBadge').textContent = card.dataset.catname;
-
-      const detailImage = document.getElementById('detailImage');
-
-      if (card.dataset.image) {
-        detailImage.src = card.dataset.image;
-        detailImage.style.display = 'block';
-      } else {
-        detailImage.src = '';
-        detailImage.style.display = 'none';
-      }
-
-      document.getElementById('annDetailModal').classList.add('active');
-    });
-  });
-
-  document.getElementById('annDetailModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDetail();
-  });
-});
-
-function closeDetail() {
-  document.getElementById('annDetailModal').classList.remove('active');
-}
 
 
 // SEARCH

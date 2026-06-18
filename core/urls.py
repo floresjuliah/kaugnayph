@@ -29,6 +29,7 @@ urlpatterns = [
     path('documents/request/', views.document_request_view, name='document_request'),
     path('documents/fields/<int:dtid>/', views.get_document_fields, name='document_fields_api'),
     path('announcements/<int:announcement_id>/feedback/', views.submit_announcement_feedback, name='submit_feedback'),
+    path('announcements/<int:announcement_id>/', views.announcement_detail, name='announcement_detail'),
     path('track/', views.tracksub, name='tracksub'),
     
     path(
