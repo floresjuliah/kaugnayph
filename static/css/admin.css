@@ -2224,6 +2224,14 @@ EDIT RESIDENT PROFILE PAGE
     color: #1d4ed8;
 }
 
+.doc-status.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
 .doc-view-link {
     color: #0066ff;
     font-weight: 700;
@@ -3172,4 +3180,91 @@ EDIT RESIDENT PROFILE PAGE
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-modal {
+    width: 420px;
+    max-width: calc(100% - 32px);
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+.confirm-modal h3 {
+    margin: 0 0 10px;
+    font-size: 22px;
+    color: #0f172a;
+}
+
+.confirm-modal p {
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.confirm-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.confirm-btn-secondary {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.confirm-btn-danger {
+    background: #b91c1c;
+    color: #ffffff;
+}
+
+.reject-btn {
+    background: #b91c1c;
+}
+
+.ann-badge {
+    display: inline-block;
+    padding: 6px 13px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ann-badge.general {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ann-badge.emergency {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.ann-badge.sports {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.ann-badge.events {
+    background: #ffedd5;
+    color: #ea580c;
 }

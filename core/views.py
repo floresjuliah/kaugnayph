@@ -1517,10 +1517,12 @@ def admin_announcements_view(request):
     search = request.GET.get("search", "").strip()
     category = request.GET.get("category", "").strip()
 
-    announcements = Announcements.objects.select_related(
+    all_announcements = Announcements.objects.select_related(
         "category",
         "posted_by"
     ).all()
+
+    announcements = all_announcements
 
     if search:
         announcements = announcements.filter(title__icontains=search)
@@ -1529,6 +1531,16 @@ def admin_announcements_view(request):
         announcements = announcements.filter(category__name__iexact=category)
 
     announcements = announcements.order_by("-announcement_id")
+
+    total_announcements = all_announcements.count()
+
+    general_count = all_announcements.filter(
+        category__name__iexact="General"
+    ).count()
+
+    emergency_count = all_announcements.filter(
+        category__name__iexact="Emergency"
+    ).count()
 
     paginator = Paginator(announcements, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -1539,7 +1551,9 @@ def admin_announcements_view(request):
         "user": get_current_user(request),
         "search": search,
         "selected_category": category,
-        "total_announcements": announcements.count(),
+        "total_announcements": total_announcements,
+        "general_count": general_count,
+        "emergency_count": emergency_count,
     })
 
 # ADMIN ANNOUNCEMENT DETAIL
@@ -2019,6 +2033,16 @@ def document_request_view(request):
                 created_at=timezone.now(),
             )
 
+        from core.utils import generate_document_id
+        doc_id = generate_document_id(doc_request.drid)
+
+        if current_user and current_user.contactno:
+            send_sms(
+                current_user.contactno,
+                f"KaugnayPH: Your document request {doc_id} ({document_type.name}) has been submitted and is now pending review.",
+                sent_by=current_user,
+            )
+
         AuditLogs.objects.create(
             user=current_user,
             action="Submit Document Request",
@@ -2213,111 +2237,129 @@ def admin_document_request_detail_view(request, drid):
     except DocumentRequests.DoesNotExist:
         messages.error(request, "Document request not found.")
         return redirect("admin_document_requests")
- 
+
     current_admin = get_current_user(request)
-    field_values  = DocumentRequestFieldValues.objects.filter(
+
+    field_values = DocumentRequestFieldValues.objects.filter(
         document_request=doc_request
     ).select_related("document_field")
+
     resident = doc_request.user
- 
+
     if request.method == "POST":
         action = request.POST.get("action")
- 
+
+        from core.utils import generate_document_id
+        doc_id = generate_document_id(doc_request.drid)
+
         if action == "complete":
-            old_status            = doc_request.status
-            doc_request.status    = "Completed"
+            old_status = doc_request.status
+            doc_request.status = "Completed"
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
- 
+
             # SLA — mark first response + resolve
             record_first_response("DocumentRequest", doc_request.drid)
             resolve_sla("DocumentRequest", doc_request.drid)
- 
+
             if resident and resident.contactno:
-                from core.utils import generate_document_id
-                doc_id = generate_document_id(doc_request.drid)
                 send_sms(
                     resident.contactno,
                     f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
                     "has been completed. Please visit the barangay office to claim it.",
                     sent_by=current_admin,
                 )
- 
+
             AuditLogs.objects.create(
-                user=current_admin, action="Complete Document Request",
-                module_name="DocumentRequests", table_name="DocumentRequests",
+                user=current_admin,
+                action="Complete Document Request",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}", new_value="Status: Completed",
+                old_value=f"Status: {old_status}",
+                new_value="Status: Completed",
                 created_at=timezone.now(),
             )
+
             messages.success(request, "Document request marked as Completed.")
- 
+
         elif action == "processing":
-            old_status            = doc_request.status
-            doc_request.status    = "Processing"
+            old_status = doc_request.status
+            doc_request.status = "Processing"
             doc_request.processed_by = current_admin
             doc_request.save()
- 
+
             # SLA — mark first touch only (not resolved yet)
             record_first_response("DocumentRequest", doc_request.drid)
- 
+
+            if resident and resident.contactno:
+                send_sms(
+                    resident.contactno,
+                    f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
+                    "is now being processed.",
+                    sent_by=current_admin,
+                )
+
             AuditLogs.objects.create(
-                user=current_admin, action="Set Document Request Processing",
-                module_name="DocumentRequests", table_name="DocumentRequests",
+                user=current_admin,
+                action="Set Document Request Processing",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}", new_value="Status: Processing",
+                old_value=f"Status: {old_status}",
+                new_value="Status: Processing",
                 created_at=timezone.now(),
             )
+
             messages.success(request, "Document request marked as Processing.")
- 
+
         elif action == "reject":
-            old_status            = doc_request.status
-            doc_request.status    = "Rejected"
+            old_status = doc_request.status
+            doc_request.status = "Rejected"
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
- 
+
             # SLA — mark first response + resolve
             record_first_response("DocumentRequest", doc_request.drid)
             resolve_sla("DocumentRequest", doc_request.drid)
- 
+
+            if resident and resident.contactno:
+                send_sms(
+                    resident.contactno,
+                    f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
+                    "has been rejected. Please contact the barangay office for more details.",
+                    sent_by=current_admin,
+                )
+
             AuditLogs.objects.create(
-                user=current_admin, action="Reject Document Request",
-                module_name="DocumentRequests", table_name="DocumentRequests",
+                user=current_admin,
+                action="Reject Document Request",
+                module_name="DocumentRequests",
+                table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}", new_value="Status: Rejected",
+                old_value=f"Status: {old_status}",
+                new_value="Status: Rejected",
                 created_at=timezone.now(),
             )
+
             messages.success(request, "Document request rejected.")
- 
+
         return redirect("admin_document_request_detail", drid=doc_request.drid)
- 
+
     from core.utils import generate_document_id
     sla = get_sla_for_record("DocumentRequest", drid)
- 
+
     return render(request, "adminpanel/document_request_detail.html", {
-        "doc_request":  doc_request,
-        "doc_id":       generate_document_id(doc_request.drid),
+        "doc_request": doc_request,
+        "doc_id": generate_document_id(doc_request.drid),
         "field_values": field_values,
-        "resident":     resident,
-        "user":         current_admin,
-        "sla":          sla,
-        "sla_status":   get_sla_status_live(sla),
+        "resident": resident,
+        "user": current_admin,
+        "sla": sla,
+        "sla_status": get_sla_status_live(sla),
     })
-
-
-def _complaint_contact_numbers(complaint):
-    """
-    Returns a list of phone numbers to SMS for a complaint update.
-    Complainant is a registered Users record so we always have their number.
-    Respondent is free text (complainee field) with no account, so there's
-    no number to text unless you later add a respondent_contactno field.
-    """
-    numbers = []
-    if complaint.complainant_user and complaint.complainant_user.contactno:
-        numbers.append(complaint.complainant_user.contactno)
-    return numbers
 
 #COMPLAINT UPDATES 
 # ADMIN CASE DETAIL

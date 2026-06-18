@@ -41,11 +41,9 @@
                             Mark as Completed
                         </button>
 
-                        <button type="submit"
-                                name="action"
-                                value="reject"
-                                class="mark-complete-btn"
-                                onclick="return confirm('Are you sure you want to reject this document request?');">
+                        <button type="button"
+                                class="mark-complete-btn reject-btn"
+                                onclick="openRejectModal()">
                             Reject
                         </button>
                     {% endif %}
@@ -149,5 +147,56 @@
     </div>
 
 </div>
+
+<div class="confirm-overlay" id="rejectConfirmOverlay">
+    <div class="confirm-modal">
+        <h3>Reject Document Request?</h3>
+
+        <p>
+            Are you sure you want to reject this document request? This will update the resident’s request status to Rejected.
+        </p>
+
+        <div class="confirm-actions">
+            <button type="button"
+                    class="confirm-btn confirm-btn-secondary"
+                    onclick="closeRejectModal()">
+                Cancel
+            </button>
+
+            <button type="button"
+                    class="confirm-btn confirm-btn-danger"
+                    onclick="submitRejectForm()">
+                Yes, Reject
+            </button>
+        </div>
+    </div>
+</div>
+
+<form method="POST" id="rejectForm" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="reject">
+</form>
+
+<script>
+    function openRejectModal() {
+        document.getElementById("rejectConfirmOverlay").style.display = "flex";
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeRejectModal() {
+        document.getElementById("rejectConfirmOverlay").style.display = "none";
+        document.body.style.overflow = "";
+    }
+
+    function submitRejectForm() {
+        document.getElementById("rejectForm").submit();
+    }
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            closeRejectModal();
+        }
+    });
+</script>
 
 {% endblock %}
