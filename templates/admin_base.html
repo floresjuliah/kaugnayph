@@ -103,8 +103,8 @@ window.addEventListener("click", function(e){
                 SMS Outbox
             </a>
 
-            <a href="{% url 'admin_register' %}"
-               class="{% if request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
+            <a href="{% url 'admins_list' %}"
+            class="{% if request.resolver_match.url_name == 'admins_list' or request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
                 <span class="menu-icon"></span> 
                 Admins
             </a>

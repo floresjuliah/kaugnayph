@@ -3196,3 +3196,14 @@ def admin_toggle_faq(request, faq_id):
         messages.success(request, 'FAQ deactivated successfully.')
 
     return redirect('admin_faqs')
+
+# ADMIN REGISTER
+@admin_login_required
+def admins_list_view(request):
+
+    context = {
+        "admins": [],
+        "total_admins": 0,
+    }
+
+    return render(request, "adminpanel/admins_list.html", context)

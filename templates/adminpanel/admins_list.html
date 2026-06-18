@@ -1,0 +1,77 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Admins{% endblock %}
+
+{% block admin_content %}
+
+<div class="admins-page">
+
+    <div class="admins-header">
+
+        <h1 class="admins-title">Admins</h1>
+
+        <a href="{% url 'admin_register' %}" class="add-admin-btn">
+            + Add Admin
+        </a>
+
+    </div>
+
+    <div class="admins-card">
+
+        <table class="admins-table">
+            <thead>
+                <tr>
+                    <th>OFFICIAL</th>
+                    <th>POSITION</th>
+                    <th>ROLE</th>
+                    <th class="actions-col">ACTIONS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for admin in admins %}
+                <tr>
+                    <td>{{ admin.name }}</td>
+                    <td>{{ admin.position }}</td>
+                    <td>{{ admin.role }}</td>
+
+                    <td class="actions-col">
+                        <div class="admin-action-wrapper">
+                            <button class="admin-dots-btn">⋮</button>
+
+                            <div class="admin-action-menu">
+                                <a href="#" class="edit-role-btn">
+                                    ✎ <span>Edit Roles</span>
+                                </a>
+                                <a href="#" class="deactivate-btn">
+                                    🗑 <span>Deactivate</span>
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="no-admins">No admins found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="admins-pagination">
+            <p>Showing {{ total_admins|default:"0" }} records</p>
+            
+            <div class="pagination-buttons">
+                <button>Previous</button>
+                <button class="active-page">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button class="next-page">Next</button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -82,4 +82,7 @@ urlpatterns = [
     #ADMIN: AUDIT LOGS
     path("admin/audit-logs/", views.audit_logs_view, name="audit_logs"),
 
+    #ADMIN: ADMIN REGISTER
+    path("admin-register/", views.admin_register, name="admin_register"),
+    path("admin/", views.admins_list_view, name="admins_list"),
 ]

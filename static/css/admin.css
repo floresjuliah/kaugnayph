@@ -3268,3 +3268,126 @@ EDIT RESIDENT PROFILE PAGE
     background: #ffedd5;
     color: #ea580c;
 }
+
+/* =========================
+   ADMINS PAGE
+========================= */
+
+.admins-page {
+    width: 100%;
+}
+
+.admins-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.admins-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.add-admin-btn {
+    background: #0f62fe;
+    color: white;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.add-admin-btn:hover {
+    background: #0b57d0;
+    color: white;
+}
+
+.admins-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admins-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admins-table thead {
+    background: #dbe3ee;
+}
+
+.admins-table th {
+    text-align: left;
+    padding: 18px 22px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.admins-table td {
+    padding: 16px 22px;
+    font-size: 15px;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.actions-col {
+    width: 120px;
+    text-align: center !important;
+}
+
+.no-admins {
+    text-align: center;
+    padding: 50px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.admins-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.admins-pagination p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-buttons button {
+    border: 1px solid #dbe3ee;
+    background: white;
+    color: #1e293b;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pagination-buttons .active-page {
+    background: #dbeafe;
+    color: #0f62fe;
+    border: none;
+}
+
+.pagination-buttons .next-page {
+    background: #0f62fe;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+}
