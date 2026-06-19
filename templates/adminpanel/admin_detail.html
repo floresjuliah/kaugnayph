@@ -1,0 +1,30 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Admin Details{% endblock %}
+
+{% block admin_content %}
+
+<div class="admins-page">
+
+    <div class="admins-header">
+        <h1 class="admins-title">Admin Details</h1>
+
+        <a href="{% url 'admins_list' %}" class="add-admin-btn">
+            Back to Admins
+        </a>
+    </div>
+
+    <div class="admins-card" style="padding: 28px;">
+
+        <p><strong>Name:</strong> {{ admin_user.firstname }} {{ admin_user.lastname }}</p>
+        <p><strong>Username:</strong> {{ admin_user.username }}</p>
+        <p><strong>Email:</strong> {{ admin_user.email|default:"—" }}</p>
+        <p><strong>Contact No.:</strong> {{ admin_user.contactno }}</p>
+        <p><strong>Position:</strong> {{ admin_user.position.name|default:"—" }}</p>
+        <p><strong>Status:</strong> {% if admin_user.is_active %}Active{% else %}Inactive{% endif %}</p>
+        <p><strong>Account Setup:</strong> {% if admin_user.is_first_login %}Pending First Login{% else %}Completed{% endif %}</p>
+
+    </div>
+
+</div>
+
+{% endblock %}

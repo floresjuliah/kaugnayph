@@ -14,8 +14,8 @@ SMS_COPY = {
         "jurisdiction ({jurisdiction}). Please proceed to that barangay."
     ),
     "Ongoing": (
-        "KaugnayPH: Your complaint {case_number} is now marked as Ongoing. "
-        "You will be notified regarding the mediation schedule."
+        "KaugnayPH: Your complaint {case_number} has been classified and is now "
+        "being processed by Barangay 761. Please wait for further updates."
     ),
     "Mediation Scheduled": (
         "KaugnayPH: You are requested to appear at the Barangay Hall on "

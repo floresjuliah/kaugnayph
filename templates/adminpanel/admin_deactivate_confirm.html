@@ -1,0 +1,45 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Deactivate Admin{% endblock %}
+
+{% block admin_content %}
+
+<div class="admins-page">
+
+    <div class="admins-header">
+        <h1 class="admins-title">Deactivate Admin</h1>
+
+        <a href="{% url 'admins_list' %}" class="add-admin-btn">
+            Back to Admins
+        </a>
+    </div>
+
+    <div class="admins-card" style="padding: 28px;">
+
+        <h3>Are you sure you want to deactivate this admin account?</h3>
+
+        <p><strong>Name:</strong> {{ admin_user.firstname }} {{ admin_user.lastname }}</p>
+        <p><strong>Username:</strong> {{ admin_user.username }}</p>
+        <p><strong>Position:</strong> {{ admin_user.position.name|default:"—" }}</p>
+        <p><strong>Role:</strong> {{ admin_user.role.rolename|default:"—" }}</p>
+
+        <p style="margin-top: 18px;">
+            This account will no longer be able to log in to KaugnayPH.
+        </p>
+
+        <form method="POST" style="margin-top: 24px;">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-danger">
+                Yes, Deactivate
+            </button>
+
+            <a href="{% url 'admins_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

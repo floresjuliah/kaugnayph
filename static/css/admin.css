@@ -3391,3 +3391,74 @@ EDIT RESIDENT PROFILE PAGE
     border: none;
     padding: 8px 20px;
 }
+
+/* ======================================================
+   ADMIN ACTION DROPDOWN
+   Used in Admin Management table.
+
+   Contains:
+   - Edit Roles
+   - Deactivate Account
+
+   Hidden by default and displayed when the
+   user hovers over the 3-dot action button.
+====================================================== */
+
+/* Wrapper for action button and dropdown */
+.admin-action-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+
+/* Admin table action icons */
+.admin-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.admin-action-btn {
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.admin-action-btn:hover {
+    opacity: 0.75;
+}
+
+/* Status badge for admin accounts */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Active admin account */
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Inactive/deactivated admin account */
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Disabled action icon for inactive accounts */
+.admin-action-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* Keeps Admin action icons aligned and prevents the column from becoming too cramped */
+.actions-col {
+    width: 160px;
+    text-align: center;
+}

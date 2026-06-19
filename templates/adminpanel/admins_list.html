@@ -9,7 +9,7 @@
 
         <h1 class="admins-title">Admins</h1>
 
-        <a href="{% url 'admin_register' %}" class="add-admin-btn">
+        <a href="/admin/register/" class="add-admin-btn">
             + Add Admin
         </a>
 
@@ -22,7 +22,7 @@
                 <tr>
                     <th>OFFICIAL</th>
                     <th>POSITION</th>
-                    <th>ROLE</th>
+                    <th>STATUS</th>
                     <th class="actions-col">ACTIONS</th>
                 </tr>
             </thead>
@@ -30,37 +30,69 @@
             <tbody>
                 {% for admin in admins %}
                 <tr>
-                    <td>{{ admin.name }}</td>
-                    <td>{{ admin.position }}</td>
-                    <td>{{ admin.role }}</td>
+                    <td>{{ admin.firstname }} {{ admin.lastname }}</td>
+
+                    <td>{{ admin.position.name|default:"—" }}</td>
+
+                    <td>
+                        {% if admin.is_active %}
+                            <span class="status-badge active">Active</span>
+                        {% else %}
+                            <span class="status-badge inactive">Inactive</span>
+                        {% endif %}
+                    </td>
 
                     <td class="actions-col">
-                        <div class="admin-action-wrapper">
-                            <button class="admin-dots-btn">⋮</button>
+                        <div class="admin-actions">
 
-                            <div class="admin-action-menu">
-                                <a href="#" class="edit-role-btn">
-                                    ✎ <span>Edit Roles</span>
+                            <a href="{% url 'admin_detail' admin.userid %}"
+                               class="admin-action-btn"
+                               title="View">
+                                👁️
+                            </a>
+
+                            <a href="{% url 'admin_edit' admin.userid %}"
+                               class="admin-action-btn"
+                               title="Edit">
+                                ✎
+                            </a>
+
+                            {% if admin.is_active %}
+                                <a href="{% url 'admin_deactivate' admin.userid %}"
+                                   class="admin-action-btn delete"
+                                   title="Deactivate">
+                                    🗑️
                                 </a>
-                                <a href="#" class="deactivate-btn">
-                                    🗑 <span>Deactivate</span>
+                            {% else %}
+                                <a href="{% url 'admin_reactivate' admin.userid %}"
+                                   class="admin-action-btn"
+                                   title="Reactivate">
+                                    🔄
                                 </a>
-                            </div>
+                            {% endif %}
+
                         </div>
                     </td>
                 </tr>
 
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="no-admins">No admins found.</td>
+                    <td colspan="4" class="no-admins">
+                        No admins found.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
         <div class="admins-pagination">
-            <p>Showing {{ total_admins|default:"0" }} records</p>
-            
+            <p>
+                Showing {{ total_admins|default:"0" }} admins
+                {% if active_admins is not None and inactive_admins is not None %}
+                    ({{ active_admins }} active, {{ inactive_admins }} inactive)
+                {% endif %}
+            </p>
+
             <div class="pagination-buttons">
                 <button>Previous</button>
                 <button class="active-page">1</button>

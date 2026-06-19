@@ -492,6 +492,30 @@ def _send_admin_login_otp(request, user, otp):
         send_email_otp(user.email, otp.code)
         request.session["otp_method"] = "email"
 
+def get_role_for_position(position):
+    if not position:
+        return None
+
+    mapping = {
+        "Barangay Chairman": "Barangay Chairman",
+        "Kagawad": "Barangay Kagawad",
+        "Barangay Secretary": "Barangay Secretary",
+        "Barangay Treasurer": "Barangay Treasurer",
+        "Barangay Tanod": "Barangay Tanod",
+        "Lupon Tagapamayapa": "Lupong Tagapamayapa",
+        "SK Chairman": "SK Chairman",
+    }
+
+    role_name = mapping.get(position.name)
+
+    if not role_name:
+        return None
+
+    try:
+        return Roles.objects.get(rolename=role_name)
+    except Roles.DoesNotExist:
+        return None
+
 
 # RESIDENT LOGIN
 
@@ -1146,26 +1170,55 @@ def logout_view(request):
 def admin_register(request):
     if request.method != "POST":
         return render(request, "auth/admin_register.html", {
-            "roles":     Roles.objects.all(),
             "positions": Positions.objects.all(),
         })
 
     firstname   = request.POST.get("firstname", "").strip()
     lastname    = request.POST.get("lastname", "").strip()
     contact_no  = request.POST.get("contact_no", "").strip()
-    role_id     = request.POST.get("role_id", "").strip()
+    email       = request.POST.get("email", "").strip()
     position_id = request.POST.get("position_id", "").strip()
 
-    if not all([firstname, lastname, contact_no, role_id]):
+    if not all([firstname, lastname, contact_no, email, position_id]):
         messages.error(request, "All required fields must be filled.")
+        return redirect("admin_register")
+
+    if not contact_no.startswith("09") or len(contact_no) != 11:
+        messages.error(request, "Enter a valid 11-digit PH mobile number.")
         return redirect("admin_register")
 
     if Users.objects.filter(contactno=contact_no).exists():
         messages.error(request, "Contact number already exists.")
         return redirect("admin_register")
 
+    if Users.objects.filter(email=email).exists():
+        messages.error(request, "Email already exists.")
+        return redirect("admin_register")
+
+    try:
+        admin_type = UserTypes.objects.get(type_name="Admin")
+    except UserTypes.DoesNotExist:
+        messages.error(request, "Admin user type not found.")
+        return redirect("admin_register")
+
+    try:
+        position = Positions.objects.get(positionid=position_id)
+    except Positions.DoesNotExist:
+        messages.error(request, "Invalid position selected.")
+        return redirect("admin_register")
+
+    role = get_role_for_position(position)
+
+    if not role:
+        messages.error(
+            request,
+            "No matching system role found for the selected position."
+        )
+        return redirect("admin_register")
+
     suffix   = ''.join(random.choices(_string.digits, k=4))
     username = (lastname.lower().replace(" ", "") + suffix)[:20]
+
     while Users.objects.filter(username=username).exists():
         suffix   = ''.join(random.choices(_string.digits, k=4))
         username = (lastname.lower().replace(" ", "") + suffix)[:20]
@@ -1174,24 +1227,11 @@ def admin_register(request):
         _string.ascii_letters + _string.digits, k=10
     ))
 
-    try:
-        admin_type = UserTypes.objects.get(type_name="Admin")
-        role       = Roles.objects.get(roleid=role_id)
-    except (UserTypes.DoesNotExist, Roles.DoesNotExist):
-        messages.error(request, "Invalid role selected.")
-        return redirect("admin_register")
-
-    position = None
-    if position_id:
-        try:
-            position = Positions.objects.get(positionid=position_id)
-        except Positions.DoesNotExist:
-            pass
-
     current_admin = get_current_user(request)
 
     new_user = Users.objects.create(
         username=username,
+        email=email,
         password=hash_password(temp_password),
         firstname=firstname,
         lastname=lastname,
@@ -1205,7 +1245,8 @@ def admin_register(request):
         is_password_changed=False,
     )
 
-    send_sms(contact_no,
+    send_sms(
+        contact_no,
         f"KaugnayPH: Account created. "
         f"Username: {username} | Temp Password: {temp_password} "
         f"Log in and change your password immediately.",
@@ -1213,18 +1254,263 @@ def admin_register(request):
     )
 
     AuditLogs.objects.create(
-        user=current_admin, action="Create Staff Account",
-        module_name="UserManagement", table_name="Users",
+        user=current_admin,
+        action="Create Staff Account",
+        module_name="UserManagement",
+        table_name="Users",
         record_id=new_user.userid,
-        new_value=f"Staff '{username}' created by {current_admin.username}.",
+        new_value=(
+            f"Staff '{username}' created by {current_admin.username}. "
+            f"Position: {position.name}. System Role: {role.rolename}."
+        ),
         created_at=timezone.now()
     )
 
-    messages.success(request,
+    messages.success(
+        request,
         f"Staff account created! Username: {username} | "
-        f"Temp Password: {temp_password} (also sent via SMS)")
-    return redirect("admin_register")
+        f"Temp Password: {temp_password} (also sent via SMS)"
+    )
 
+    return redirect("admins_list")
+
+#ADMIN DETAILS VIEW
+@admin_login_required
+@permission_required('create_users')
+def admin_detail_view(request, user_id):
+    try:
+        admin_user = Users.objects.select_related(
+            "role",
+            "position",
+            "user_type"
+        ).get(
+            userid=user_id,
+            user_type__type_name="Admin"
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Admin account not found.")
+        return redirect("admins_list")
+
+    return render(request, "adminpanel/admin_detail.html", {
+        "admin_user": admin_user,
+        "user": get_current_user(request),
+    })
+
+# ADMIN DEACTIVATE ADMIN
+@admin_login_required
+@permission_required('create_users')
+def admin_deactivate_view(request, user_id):
+    current_admin = get_current_user(request)
+
+    try:
+        admin_user = Users.objects.select_related(
+            "role",
+            "position",
+            "user_type"
+        ).get(
+            userid=user_id,
+            user_type__type_name="Admin",
+            is_active=True
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Admin account not found.")
+        return redirect("admins_list")
+
+    # Prevent current admin from deactivating their own account
+    if admin_user.userid == current_admin.userid:
+        messages.error(request, "You cannot deactivate your own account.")
+        return redirect("admins_list")
+
+    # Prevent deactivating the last active Barangay Chairman account
+    if (
+        admin_user.position
+        and admin_user.position.name == "Barangay Chairman"
+    ):
+        active_chairmen_count = Users.objects.filter(
+            user_type__type_name="Admin",
+            position__name="Barangay Chairman",
+            is_active=True
+        ).count()
+
+        if active_chairmen_count <= 1:
+            messages.error(
+                request,
+                "You cannot deactivate the last active Barangay Chairman account."
+            )
+            return redirect("admins_list")
+
+    if request.method == "POST":
+        admin_user.is_active = False
+        admin_user.save(update_fields=["is_active"])
+
+        AuditLogs.objects.create(
+            user=current_admin,
+            action="Deactivate Admin Account",
+            module_name="UserManagement",
+            table_name="Users",
+            record_id=admin_user.userid,
+            old_value="is_active=True",
+            new_value="is_active=False",
+            created_at=timezone.now()
+        )
+
+        messages.success(
+            request,
+            f"Admin account for {admin_user.firstname} {admin_user.lastname} has been deactivated."
+        )
+        return redirect("admins_list")
+
+    return render(request, "adminpanel/admin_deactivate_confirm.html", {
+        "admin_user": admin_user,
+        "user": current_admin,
+    })
+
+# ADMIN EDIT ADMIN
+@admin_login_required
+@permission_required('create_users')
+def admin_edit_view(request, user_id):
+    try:
+        admin_user = Users.objects.select_related(
+            "role",
+            "position",
+            "user_type"
+        ).get(
+            userid=user_id,
+            user_type__type_name="Admin"
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Admin account not found.")
+        return redirect("admins_list")
+
+    positions = Positions.objects.all()
+    current_admin = get_current_user(request)
+
+    if request.method != "POST":
+        return render(request, "adminpanel/admin_edit.html", {
+            "admin_user": admin_user,
+            "positions": positions,
+            "user": current_admin,
+        })
+
+    firstname   = request.POST.get("firstname", "").strip()
+    lastname    = request.POST.get("lastname", "").strip()
+    email       = request.POST.get("email", "").strip()
+    contact_no  = request.POST.get("contact_no", "").strip()
+    position_id = request.POST.get("position_id", "").strip()
+
+    if not all([firstname, lastname, email, contact_no, position_id]):
+        messages.error(request, "All required fields must be filled.")
+        return redirect("admin_edit", user_id=user_id)
+
+    if not contact_no.startswith("09") or len(contact_no) != 11:
+        messages.error(request, "Enter a valid 11-digit PH mobile number.")
+        return redirect("admin_edit", user_id=user_id)
+
+    if Users.objects.filter(email=email).exclude(userid=user_id).exists():
+        messages.error(request, "Email is already in use.")
+        return redirect("admin_edit", user_id=user_id)
+
+    if Users.objects.filter(contactno=contact_no).exclude(userid=user_id).exists():
+        messages.error(request, "Contact number is already in use.")
+        return redirect("admin_edit", user_id=user_id)
+
+    try:
+        position = Positions.objects.get(positionid=position_id)
+    except Positions.DoesNotExist:
+        messages.error(request, "Invalid position selected.")
+        return redirect("admin_edit", user_id=user_id)
+
+    role = get_role_for_position(position)
+
+    if not role:
+        messages.error(
+            request,
+            "No matching system role found for the selected position."
+        )
+        return redirect("admin_edit", user_id=user_id)
+
+    old_value = (
+        f"Name: {admin_user.firstname} {admin_user.lastname}, "
+        f"Email: {admin_user.email}, "
+        f"Contact: {admin_user.contactno}, "
+        f"Position: {admin_user.position.name if admin_user.position else 'None'}, "
+        f"System Role: {admin_user.role.rolename if admin_user.role else 'None'}"
+    )
+
+    admin_user.firstname = firstname
+    admin_user.lastname = lastname
+    admin_user.email = email
+    admin_user.contactno = contact_no
+    admin_user.position = position
+    admin_user.role = role
+    admin_user.save()
+
+    new_value = (
+        f"Name: {admin_user.firstname} {admin_user.lastname}, "
+        f"Email: {admin_user.email}, "
+        f"Contact: {admin_user.contactno}, "
+        f"Position: {admin_user.position.name if admin_user.position else 'None'}, "
+        f"System Role: {admin_user.role.rolename if admin_user.role else 'None'}"
+    )
+
+    AuditLogs.objects.create(
+        user=current_admin,
+        action="Edit Admin Account",
+        module_name="UserManagement",
+        table_name="Users",
+        record_id=admin_user.userid,
+        old_value=old_value,
+        new_value=new_value,
+        created_at=timezone.now()
+    )
+
+    messages.success(
+        request,
+        f"Admin account for {admin_user.firstname} {admin_user.lastname} has been updated."
+    )
+
+    return redirect("admins_list")
+
+#ADMIN REACTIVATE ADMIN
+@admin_login_required
+@permission_required('create_users')
+def admin_reactivate_view(request, user_id):
+    current_admin = get_current_user(request)
+
+    try:
+        admin_user = Users.objects.select_related(
+            "role",
+            "position",
+            "user_type"
+        ).get(
+            userid=user_id,
+            user_type__type_name="Admin",
+            is_active=False
+        )
+    except Users.DoesNotExist:
+        messages.error(request, "Inactive admin account not found.")
+        return redirect("admins_list")
+
+    admin_user.is_active = True
+    admin_user.save(update_fields=["is_active"])
+
+    AuditLogs.objects.create(
+        user=current_admin,
+        action="Reactivate Admin Account",
+        module_name="UserManagement",
+        table_name="Users",
+        record_id=admin_user.userid,
+        old_value="is_active=False",
+        new_value="is_active=True",
+        created_at=timezone.now()
+    )
+
+    messages.success(
+        request,
+        f"Admin account for {admin_user.firstname} {admin_user.lastname} has been reactivated."
+    )
+
+    return redirect("admins_list")
 
 # RESIDENT RECORDS
 
@@ -3197,13 +3483,28 @@ def admin_toggle_faq(request, faq_id):
 
     return redirect('admin_faqs')
 
-# ADMIN REGISTER
+# ADMIN REGISTER / ADMIN LIST
 @admin_login_required
+@permission_required('create_users')
 def admins_list_view(request):
+    admins = Users.objects.filter(
+        user_type__type_name="Admin"
+    ).select_related(
+        "role",
+        "position"
+    ).order_by(
+        "role__roleid",
+        "lastname",
+        "firstname"
+    )
 
     context = {
-        "admins": [],
-        "total_admins": 0,
+        "admins": admins,
+        "total_admins": admins.count(),
+        "active_admins": admins.filter(is_active=True).count(),
+        "inactive_admins": admins.filter(is_active=False).count(),
+        "user": get_current_user(request),
     }
 
     return render(request, "adminpanel/admins_list.html", context)
+

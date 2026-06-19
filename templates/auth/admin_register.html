@@ -1,54 +1,101 @@
 {% extends "admin_base.html" %}
-{% block content %}
+
+{% block admin_title %}Create Admin{% endblock %}
+
+{% block admin_content %}
+
 <div class="container mt-4">
-  <h2>Create Staff Account</h2>
 
-  {% if messages %}
+
+<h2>Create Staff Account</h2>
+
+{% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
     {% endfor %}
-  {% endif %}
+{% endif %}
 
-  <form method="POST">
+<form method="POST">
     {% csrf_token %}
 
     <div class="mb-3">
-      <label>First Name *</label>
-      <input type="text" name="firstname" class="form-control" required>
+        <label>First Name *</label>
+        <input
+            type="text"
+            name="firstname"
+            class="form-control"
+            required
+        >
     </div>
 
     <div class="mb-3">
-      <label>Last Name *</label>
-      <input type="text" name="lastname" class="form-control" required>
+        <label>Last Name *</label>
+        <input
+            type="text"
+            name="lastname"
+            class="form-control"
+            required
+        >
     </div>
 
     <div class="mb-3">
-      <label>Contact No. *</label>
-      <input type="text" name="contact_no" class="form-control" placeholder="09XXXXXXXXX" required>
+        <label>Contact No. *</label>
+        <input
+            type="text"
+            name="contact_no"
+            class="form-control"
+            placeholder="09XXXXXXXXX"
+            required
+        >
     </div>
 
     <div class="mb-3">
-      <label>Role *</label>
-      <select name="role_id" class="form-select" required>
-        <option value="">-- Select Role --</option>
-        {% for role in roles %}
-          <option value="{{ role.roleid }}">{{ role.rolename }}</option>
-        {% endfor %}
-      </select>
+        <label>Email *</label>
+        <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="example@email.com"
+            required
+        >
     </div>
 
     <div class="mb-3">
-      <label>Position</label>
-      <select name="position_id" class="form-select">
-        <option value="">-- Select Position (optional) --</option>
-        {% for pos in positions %}
-          <option value="{{ pos.positionid }}">{{ pos.name }}</option>
-        {% endfor %}
-      </select>
+        <label>Position *</label>
+        <select
+            name="position_id"
+            class="form-select"
+            required
+        >
+            <option value="">
+                -- Select Position --
+            </option>
+
+            {% for pos in positions %}
+                <option value="{{ pos.positionid }}">
+                    {{ pos.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <small class="text-muted">
+            System permissions will automatically be assigned based on the selected position.
+        </small>
     </div>
 
-    <button type="submit" class="btn btn-primary">Create Account</button>
-    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
-  </form>
+    <button type="submit" class="btn btn-primary">
+        Create Account
+    </button>
+
+    <a href="{% url 'admins_list' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+
+
 </div>
+
 {% endblock %}
