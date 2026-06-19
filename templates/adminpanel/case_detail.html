@@ -24,7 +24,7 @@
 
             {% if complaint.status == "Submitted" %}
             <select name="complaint_type" required style="padding:8px;border-radius:6px;border:1px solid #ccc;">
-                <option value="">-- Classify Complaint --</option>
+                <option value="">-- Select Complaint Type --</option>
                 {% for ct in complaint_types %}
                     <option value="{{ ct.ctid }}">{{ ct.type }}</option>
                 {% endfor %}
@@ -35,7 +35,7 @@
                 value="mark_recorded"
                 style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
             >
-                Classify &amp; Mark as Ongoing
+                Save Classification
             </button>
             {% endif %}
 
