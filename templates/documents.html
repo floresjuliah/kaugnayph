@@ -10,64 +10,59 @@
     <h1>Documents & Requirements</h1>
     <div class="ann-hero-divider"></div>
 
-```
-<p>
-  For requests and applications, please refer to the list below for the required
-  documents needed when availing barangay services.
-</p>
-```
-
+    <p>
+      For requests and applications, please refer to the list below for the required
+      documents needed when availing barangay services.
+    </p>
   </div>
 </section>
 
 <section class="available-docs">
   <div class="available-docs__container">
 
-```
-<div class="available-docs__header">
-  <h2>Available Documents</h2>
-  <p>Select a document to view its requirements and submit a request</p>
-</div>
-
-<div class="available-docs__grid">
-
-  {% for document_type in document_types %}
-    <div class="doc-card">
-      <h3 class="doc-card__title">{{ document_type.name }}</h3>
-      <div class="doc-card__divider"></div>
-
-      <div class="doc-card__actions">
-        <button
-          type="button"
-          class="doc-card__btn doc-card__btn--primary"
-          onclick="openModal('{{ document_type.dtid }}', '{{ document_type.name|escapejs }}')"
-        >
-          Online Application
-        </button>
-
-        <a href="{% static 'forms/placeholderfile.pdf' %}"
-           class="doc-card__btn doc-card__btn--primary"
-           download>
-          Downloadable Form
-        </a>
-      </div>
-
-      <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
+    <div class="available-docs__header">
+      <h2>Available Documents</h2>
+      <p>Select a document to view its requirements and submit a request</p>
     </div>
-  {% endfor %}
 
-</div>
+    <div class="available-docs__grid">
 
-<div class="available-docs__notice">
-  <span class="notice-icon">&#9432;</span>
-  <p>Please ensure all required documents are complete to lessen delays in processing your request.</p>
-</div>
+      {% for document_type in document_types %}
+        <div class="doc-card">
+          <h3 class="doc-card__title">{{ document_type.name }}</h3>
+          <div class="doc-card__divider"></div>
 
-<p class="available-docs__track">
-  Already submitted a request? You can track its status in the
-  <a href="{% url 'tracksub' %}">Track Submissions</a> section.
-</p>
-```
+          <div class="doc-card__actions">
+            <button
+              type="button"
+              class="doc-card__btn doc-card__btn--primary"
+              onclick="openModal('{{ document_type.dtid }}', '{{ document_type.name|escapejs }}')"
+            >
+              Online Application
+            </button>
+
+            <a href="{% static 'forms/placeholderfile.pdf' %}"
+               class="doc-card__btn doc-card__btn--primary"
+               download>
+              Downloadable Form
+            </a>
+          </div>
+
+          <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
+        </div>
+      {% endfor %}
+
+    </div>
+
+    <div class="available-docs__notice">
+      <span class="notice-icon">&#9432;</span>
+      <p>Please ensure all required documents are complete to lessen delays in processing your request.</p>
+    </div>
+
+    <p class="available-docs__track">
+      Already submitted a request? You can track its status in the
+      <a href="{% url 'tracksub' %}">Track Submissions</a> section.
+    </p>
 
   </div>
 </section>
@@ -88,27 +83,28 @@
   >
     {% csrf_token %}
 
-```
-<input type="hidden" id="document_type_id" name="document_type_id">
-<input type="hidden" id="purpose-hidden" name="purpose">
+    <input type="hidden" id="document_type_id" name="document_type_id">
+    <input type="hidden" id="purpose-hidden" name="purpose">
 
-<div class="modal__body" id="modal-body"></div>
+    <div class="modal__body">
+      <div id="modal-body"></div>
+    </div>
 
-<div class="modal__footer">
-  <button type="submit" class="modal__submit">Submit</button>
-</div>
-```
+    <div class="modal__footer">
+      <button type="submit" class="modal__submit">Submit</button>
+    </div>
 
   </form>
 </div>
 
 <script>
-  const fullnameParts = "{{ request.session.fullname|default:'' }}".split(' ');
-
   const sessionUser = {
-    firstname: fullnameParts[0] || '',
-    middlename: '',
-    lastname: fullnameParts.slice(1).join(' ') || '',
+    firstname: "{{ resident.firstname|default:''|escapejs }}",
+    middlename: "",
+    lastname: "{{ resident.lastname|default:''|escapejs }}",
+    contactno: "{{ resident.contactno|default:''|escapejs }}",
+    email: "{{ resident.email|default:''|escapejs }}",
+    address: "{{ resident.address|default:''|escapejs }}",
   };
 
   const selectOptions = {
@@ -216,6 +212,25 @@
 
         if (lowerLabel.includes('last name')) {
           input.value = sessionUser.lastname;
+        }
+
+        if (
+          lowerLabel.includes('mobile number') ||
+          lowerLabel.includes('contact number') ||
+          lowerLabel.includes('contact no')
+        ) {
+          input.value = sessionUser.contactno;
+        }
+
+        if (lowerLabel.includes('email')) {
+          input.value = sessionUser.email;
+        }
+
+        if (
+          lowerLabel.includes('address') ||
+          lowerLabel.includes('tirahan')
+        ) {
+          input.value = sessionUser.address;
         }
 
         if (lowerLabel === 'purpose' || lowerLabel.includes('purpose')) {

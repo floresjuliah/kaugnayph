@@ -76,11 +76,17 @@ class Users(models.Model):
         unique=True
     )
 
-
     email = models.CharField(
         db_column='Email',
         max_length=255,
         unique=True,
+        null=True,
+        blank=True,
+    )
+
+    address = models.CharField(
+        db_column='Address',
+        max_length=255,
         null=True,
         blank=True,
     )
