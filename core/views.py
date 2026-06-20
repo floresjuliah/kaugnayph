@@ -225,7 +225,12 @@ def aboutus(request):
 
 def documents(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
-    return render(request, 'documents.html', {"document_types": document_types})
+    current_user = get_current_user(request)
+
+    return render(request, 'documents.html', {
+        "document_types": document_types,
+        "resident": current_user,
+    })
 
 def faqs(request):
     faqs = FAQs.objects.filter(is_active=True)
@@ -1044,6 +1049,7 @@ def resident_register_view(request):
         'toid':        request.POST.get("type_of_id", "").strip(),
         'receive_sms': request.POST.get("receive_sms") == "on",
         'email': request.POST.get("email_address", "").strip(),
+        'address': request.POST.get("address", "").strip(),
     }
     files = {
         'id_image': request.FILES.get("id_image"),
@@ -1069,6 +1075,7 @@ def resident_register_view(request):
     new_user = Users.objects.create(
         username=data['contact_no'],
         email=data['email'],
+        address=data['address'],
         password=hash_password(data['password']),
         firstname=data['firstname'],
         lastname=data['lastname'],
@@ -2245,6 +2252,7 @@ def case_records_view(request):
 @resident_required
 def document_request_view(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
+    current_user = get_current_user(request)
 
     if request.method == "POST":
         document_type_id = request.POST.get("document_type_id", "").strip()
@@ -2252,13 +2260,19 @@ def document_request_view(request):
 
         if not document_type_id:
             messages.error(request, "Please select a document type.")
-            return render(request, "documents.html", {"document_types": document_types})
+            return render(request, "documents.html", {
+                "document_types": document_types,
+                "resident": current_user,
+            })
 
         try:
             document_type = DocumentTypes.objects.get(dtid=document_type_id, is_active=True)
         except DocumentTypes.DoesNotExist:
             messages.error(request, "Invalid document type selected.")
-            return render(request, "documents.html", {"document_types": document_types})
+            return render(request, "documents.html", {
+                "document_types": document_types,
+                "resident": current_user,
+            })
 
         fields = DocumentFields.objects.filter(document_type=document_type)
 
@@ -2285,6 +2299,7 @@ def document_request_view(request):
 
             return render(request, "documents.html", {
                 "document_types": document_types,
+                "resident": current_user,
                 "selected_type": document_type,
                 "fields": fields,
             })
@@ -2294,9 +2309,10 @@ def document_request_view(request):
 
         if text_check["flagged"]:
             messages.error(request, "Your request contains inappropriate content and could not be submitted.")
-            return render(request, "documents.html", {"document_types": document_types})
-
-        current_user = get_current_user(request)
+            return render(request, "documents.html", {
+                "document_types": document_types,
+                "resident": current_user,
+            })
 
         # SAVE MAIN REQUEST
         doc_request = DocumentRequests.objects.create(
@@ -2325,6 +2341,7 @@ def document_request_view(request):
                         doc_request.delete()
                         return render(request, "documents.html", {
                             "document_types": document_types,
+                            "resident": current_user,
                             "selected_type": document_type,
                             "fields": fields,
                         })
@@ -2370,7 +2387,10 @@ def document_request_view(request):
         messages.success(request, "Document request submitted successfully. You can track its status under Track Submissions.")
         return redirect("tracksub")
 
-    return render(request, "documents.html", {"document_types": document_types})
+    return render(request, "documents.html", {
+        "document_types": document_types,
+        "resident": current_user,
+    })
 
 
 # DOCUMENT FIELDS API: returns fields for a selected doc type
