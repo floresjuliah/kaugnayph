@@ -78,19 +78,19 @@
         <div class="edit-profile-row">
           <div class="edit-profile-group">
             <label for="current_password">Current Password</label>
-            <input type="password" id="current_password" name="current_password" required>
+            <input type="password" id="current_password" name="current_password">
           </div>
         </div>
 
         <div class="edit-profile-row">
           <div class="edit-profile-group">
             <label for="new_password">New Password</label>
-            <input type="password" id="new_password" name="new_password" required>
+            <input type="password" id="new_password" name="new_password">
           </div>
 
           <div class="edit-profile-group">
             <label for="confirm_password">Confirm New Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
+            <input type="password" id="confirm_password" name="confirm_password">
           </div>
         </div>
 
@@ -115,6 +115,7 @@
 
     <form method="POST" id="avatarForm">
       {% csrf_token %}
+      <input type="hidden" name="form_type" value="avatar">
 
       <div class="avatar-grid">
 
@@ -164,18 +165,24 @@
   }
 
   // Password match validation
-  document.getElementById('passwordForm').addEventListener('submit', function(e) {
-    const newPass = document.getElementById('new_password').value;
-    const confirmPass = document.getElementById('confirm_password').value;
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+  const newPass = document.getElementById('new_password').value;
+  const confirmPass = document.getElementById('confirm_password').value;
 
-    if (newPass !== confirmPass) {
-      e.preventDefault();
-      alert('New password and confirmation do not match.');
-    } else if (newPass.length < 8) {
-      e.preventDefault();
-      alert('Password must be at least 8 characters.');
-    }
-  });
+  // Skip validation if user isn't trying to change password
+  if (newPass === '' && confirmPass === '') {
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    e.preventDefault();
+    alert('New password and confirmation do not match.');
+  } else if (newPass.length < 8) {
+    e.preventDefault();
+    alert('Password must be at least 8 characters.');
+  }
+});
+
 </script>
 
 {% endblock %}

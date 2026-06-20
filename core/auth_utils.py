@@ -152,6 +152,8 @@ def set_user_session(request, user):
     request.session['role']      = user.role.rolename if user.role else None
     request.session['username']  = user.username
     request.session['fullname']  = f'{user.firstname} {user.lastname}'
+    request.session['avatar_path'] = user.avatar.image_path if user.avatar else None
+
 
 def get_current_user(request):
     uid = request.session.get('user_id')

@@ -1707,37 +1707,72 @@ def residentprofile(request):
         'latest_announcements': latest_announcements,
     })
 
+    
 @login_required
 @resident_required
 def editprofile_view(request):
     user = get_current_user(request)
 
     if request.method == "POST":
-        user.firstname = request.POST.get("firstname", "").strip()
-        user.lastname = request.POST.get("lastname", "").strip()
-        user.contactno = request.POST.get("contact_no", "").strip()
-        user.email = request.POST.get("email", "").strip()
+        form_type = request.POST.get("form_type")
 
-        avatar_id = request.POST.get("avatar_id", "").strip()
-        if avatar_id:
-            try:
-                user.avatar = AvatarOptions.objects.get(avatarid=avatar_id, is_active=True)
-            except AvatarOptions.DoesNotExist:
-                messages.error(request, "Invalid avatar selected.")
+        if form_type == "avatar":
+            avatar_id = request.POST.get("avatar_id", "").strip()
+            if avatar_id:
+                try:
+                    user.avatar = AvatarOptions.objects.get(avatarid=avatar_id, is_active=True)
+                except AvatarOptions.DoesNotExist:
+                    messages.error(request, "Invalid avatar selected.")
+                    return render(request, "editprofile.html", {
+                        "user": user,
+                        "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+                    })
+            else:
+                user.avatar = None
+
+            user.save()
+            request.session['avatar_path'] = user.avatar.image_path if user.avatar else None
+
+            messages.success(request, "Avatar updated successfully!")
+            return redirect("editprofile")
+
+        elif form_type == "password":
+            current_password = request.POST.get("current_password", "")
+            new_password = request.POST.get("new_password", "")
+            confirm_password = request.POST.get("confirm_password", "")
+
+            if not check_password(current_password, user.password):
+                messages.error(request, "Current password is incorrect.")
                 return render(request, "editprofile.html", {
                     "user": user,
                     "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
                 })
 
-        user.save()
+            if new_password != confirm_password:
+                messages.error(request, "New passwords do not match.")
+                return render(request, "editprofile.html", {
+                    "user": user,
+                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+                })
 
-        messages.success(request, "Profile updated successfully!")
-        return redirect("residentprofile")
+            if len(new_password) < 8:
+                messages.error(request, "Password must be at least 8 characters.")
+                return render(request, "editprofile.html", {
+                    "user": user,
+                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+                })
+
+            user.password = hash_password(new_password)
+            user.save()
+
+            messages.success(request, "Password updated successfully!")
+            return redirect("editprofile")
 
     return render(request, "editprofile.html", {
         "user": user,
         "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
     })
+
 
 @admin_login_required
 @permission_required('view_residents')

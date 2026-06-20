@@ -3539,13 +3539,13 @@ footer ul li a:hover {
 }
 
 .edit-profile-alert {
-  background: #FDEAEA;
-  color: var(--red);
+  background: #e5fdf2;
+  color: var(--green  );
   padding: 10px 14px;
   border-radius: var(--radius);
   font-size: 0.85rem;
   margin-bottom: 20px;
-  border: 1px solid #f5c6c6;
+  border: 1px var(--green  );
 }
 
 /* AVATAR PREVIEW */
