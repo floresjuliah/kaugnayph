@@ -1600,6 +1600,24 @@ def residentprofile(request):
         'latest_announcements': latest_announcements,
     })
 
+@login_required
+@resident_required
+def editprofile_view(request):
+    user = get_current_user(request)
+
+    if request.method == "POST":
+        user.firstname = request.POST.get("firstname", "").strip()
+        user.lastname = request.POST.get("lastname", "").strip()
+        user.contactno = request.POST.get("contact_no", "").strip()
+        user.email = request.POST.get("email", "").strip()
+        user.avatar = request.POST.get("avatar", "")
+        user.save()
+
+        messages.success(request, "Profile updated successfully!")
+        return redirect("residentprofile")
+
+    return render(request, "editprofile.html", {"user": user})
+
 @admin_login_required
 @permission_required('view_residents')
 def resident_record_view(request, user_id):

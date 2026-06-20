@@ -54,6 +54,7 @@ urlpatterns = [
 
     # Resident profile
     path('residentprofile/', views.residentprofile, name='residentprofile'),
+    path('profile/edit/', views.editprofile_view, name='editprofile'),
 
    
     # App includes

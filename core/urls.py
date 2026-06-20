@@ -32,6 +32,7 @@ urlpatterns = [
     path('announcements/<int:announcement_id>/', views.announcement_detail, name='announcement_detail'),
     path('track/', views.tracksub, name='tracksub'),
     
+    
     path(
     'track/complaint/<int:complaint_id>/',
     views.complaint_timeline_view,
