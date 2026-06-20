@@ -1039,8 +1039,7 @@ def _validate_register_form(data, files):
 def resident_register_view(request):
     if request.method != "POST":
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all(),
-            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+            "id_types": TypeOfID.objects.all()
         })
 
     data = {
@@ -1052,7 +1051,6 @@ def resident_register_view(request):
         'receive_sms': request.POST.get("receive_sms") == "on",
         'email': request.POST.get("email_address", "").strip(),
         'address': request.POST.get("address", "").strip(),
-        'avatar_id': request.POST.get("avatar_id", "").strip(),
     }
     files = {
         'id_image': request.FILES.get("id_image"),
@@ -1064,8 +1062,7 @@ def resident_register_view(request):
         for e in errors:
             messages.error(request, e)
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all(),
-            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+            "id_types": TypeOfID.objects.all()
         })
 
     try:
@@ -1073,16 +1070,8 @@ def resident_register_view(request):
     except UserTypes.DoesNotExist:
         messages.error(request, "System error. Please contact admin.")
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all(),
-            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+            "id_types": TypeOfID.objects.all()
         })
-    # Resolve chosen avatar, falling back to the first active one if none/invalid was sent
-    chosen_avatar = AvatarOptions.objects.filter(
-        avatarid=data['avatar_id'], is_active=True
-    ).first() if data['avatar_id'] else None
-
-    if not chosen_avatar:
-        chosen_avatar = AvatarOptions.objects.filter(is_active=True).order_by("avatarid").first()
 
     new_user = Users.objects.create(
         username=data['contact_no'],
@@ -1093,7 +1082,6 @@ def resident_register_view(request):
         lastname=data['lastname'],
         contactno=data['contact_no'],
         user_type=resident_type,
-        avatar=chosen_avatar,
         is_verified=False,
         is_active=True,
         is_first_login=False,
@@ -1630,13 +1618,27 @@ def editprofile_view(request):
         user.lastname = request.POST.get("lastname", "").strip()
         user.contactno = request.POST.get("contact_no", "").strip()
         user.email = request.POST.get("email", "").strip()
-        user.avatar = request.POST.get("avatar", "")
+
+        avatar_id = request.POST.get("avatar_id", "").strip()
+        if avatar_id:
+            try:
+                user.avatar = AvatarOptions.objects.get(avatarid=avatar_id, is_active=True)
+            except AvatarOptions.DoesNotExist:
+                messages.error(request, "Invalid avatar selected.")
+                return render(request, "editprofile.html", {
+                    "user": user,
+                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+                })
+
         user.save()
 
         messages.success(request, "Profile updated successfully!")
         return redirect("residentprofile")
 
-    return render(request, "editprofile.html", {"user": user})
+    return render(request, "editprofile.html", {
+        "user": user,
+        "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
+    })
 
 @admin_login_required
 @permission_required('view_residents')
