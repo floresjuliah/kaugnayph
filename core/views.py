@@ -1700,6 +1700,7 @@ def residentprofile(request):
     latest_announcements = Announcements.objects.order_by('-announcement_id')[:3]
 
     return render(request, 'residentprofile.html', {
+        'user': current_user,
         'recent_complaints': recent_complaints,
         'active_complaints': active_complaints,
         'recent_requests': recent_requests,

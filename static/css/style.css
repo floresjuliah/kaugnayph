@@ -3592,11 +3592,15 @@ footer ul li a:hover {
   font-size: 0.85rem;
   color: var(--text);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+   gap: 5px;
 }
 
 .avatar-preview__label:hover {
   color: var(--blue);
   text-decoration: underline;
+
 }
 
 /* SECTIONS */
@@ -3655,7 +3659,7 @@ footer ul li a:hover {
   background: #f0f2f6;
   font-family: 'Poppins', sans-serif;
   font-size: 0.9rem;
-  color: var(--text);
+  color: var(--muted);
 }
 
 .edit-profile-note {
@@ -3677,6 +3681,8 @@ footer ul li a:hover {
 .edit-profile-note a:hover {
   text-decoration: underline;
 }
+
+
 
 /* ACTIONS */
 

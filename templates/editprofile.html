@@ -19,18 +19,18 @@
     <div class="avatar-preview-wrap">
       <button type="button" class="avatar-preview" id="avatarPreviewBtn" onclick="openAvatarModal()">
         {% if user.avatar %}
-          <img src="{% static 'images/avatars/' %}{{ user.avatar }}.png" alt="Your avatar" id="avatarPreviewImg">
+          <img src="{% static user.avatar.image_path %}" alt="Your avatar" id="avatarPreviewImg">
         {% else %}
           <div class="avatar-preview__placeholder" id="avatarPreviewPlaceholder"></div>
         {% endif %}
       </button>
       <p class="avatar-preview__label" onclick="openAvatarModal()">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.2601 3.59997L5.0501 12.29C4.7401 12.62 4.4401 13.27 4.3801 13.72L4.0101 16.96C3.8801 18.13 4.7201 18.93 5.8801 18.73L9.1001 18.18C9.5501 18.1 10.1801 17.77 10.4901 17.43L18.7001 8.73997C20.1201 7.23997 20.7601 5.52997 18.5501 3.43997C16.3501 1.36997 14.6801 2.09997 13.2601 3.59997Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M11.8899 5.04999C12.3199 7.80999 14.5599 9.91999 17.3399 10.2" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M3 22H21" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.2601 3.59997L5.0501 12.29C4.7401 12.62 4.4401 13.27 4.3801 13.72L4.0101 16.96C3.8801 18.13 4.7201 18.93 5.8801 18.73L9.1001 18.18C9.5501 18.1 10.1801 17.77 10.4901 17.43L18.7001 8.73997C20.1201 7.23997 20.7601 5.52997 18.5501 3.43997C16.3501 1.36997 14.6801 2.09997 13.2601 3.59997Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11.8899 5.04999C12.3199 7.80999 14.5599 9.91999 17.3399 10.2" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Change your profile picture</p>
+        Change your profile picture
+      </p>
     </div>
 
     <!-- PERSONAL INFO (READ ONLY) -->
@@ -115,42 +115,22 @@
 
     <form method="POST" id="avatarForm">
       {% csrf_token %}
-      <input type="hidden" name="form_type" value="avatar">
 
       <div class="avatar-grid">
 
+        {% for avatar in avatars %}
         <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar1" {% if user.avatar == "avatar1" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar1.png' %}" alt="Avatar 1">
+          <input type="radio" name="avatar_id" value="{{ avatar.avatarid }}"
+            {% if user.avatar.avatarid == avatar.avatarid %}checked{% endif %}
+            onchange="this.form.submit()">
+          <img src="{% static avatar.image_path %}" alt="{{ avatar.name }}">
         </label>
-
-        <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar2" {% if user.avatar == "avatar2" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar2.png' %}" alt="Avatar 2">
-        </label>
-
-        <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar3" {% if user.avatar == "avatar3" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar3.png' %}" alt="Avatar 3">
-        </label>
-
-        <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar4" {% if user.avatar == "avatar4" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar4.png' %}" alt="Avatar 4">
-        </label>
-
-        <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar5" {% if user.avatar == "avatar5" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar5.png' %}" alt="Avatar 5">
-        </label>
-
-        <label class="avatar-option">
-          <input type="radio" name="avatar" value="avatar6" {% if user.avatar == "avatar6" %}checked{% endif %} onchange="this.form.submit()">
-          <img src="{% static 'images/avatars/avatar6.png' %}" alt="Avatar 6">
-        </label>
+        {% endfor %}
 
         <label class="avatar-option avatar-option--none">
-          <input type="radio" name="avatar" value="" {% if not user.avatar %}checked{% endif %} onchange="this.form.submit()">
+          <input type="radio" name="avatar_id" value=""
+            {% if not user.avatar %}checked{% endif %}
+            onchange="this.form.submit()">
           <div class="avatar-none-icon">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <line x1="18" y1="6" x2="6" y2="18"/>
