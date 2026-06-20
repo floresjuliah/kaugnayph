@@ -5,8 +5,12 @@
 <section class="edit-profile-page">
 
   <div class="edit-profile-container">
-
-    <h2 class="edit-profile-title">Edit Profile</h2>
+    <div class="edit-profile-header">
+      <svg class="edit-profile-back" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="window.location.href='{% url 'residentprofile' %}'">
+        <path d="M15.0001 19.9201L8.48009 13.4001C7.71009 12.6301 7.71009 11.3701 8.48009 10.6001L15.0001 4.08008" stroke="#292D32" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="edit-profile-title">Edit Profile</h2>
+    </div>
     <p class="edit-profile-subtitle">Update your personal information and avatar</p>
 
     {% if messages %}
@@ -96,7 +100,7 @@
 
         <div class="edit-profile-actions">
           <a href="{% url 'residentprofile' %}" class="edit-profile-btn edit-profile-btn--cancel">Cancel</a>
-          <button type="submit" class="edit-profile-btn edit-profile-btn--save">Save Changes</button>
+          <button type="submit" class="edit-profile-btn edit-profile-btn--save">Save</button>
         </div>
 
       </form>
@@ -163,26 +167,48 @@
       closeAvatarModal();
     }
   }
+// Password match validation - runs live as user types, only after they start typing
+const currentPasswordInput = document.getElementById('current_password');
+const newPasswordInput = document.getElementById('new_password');
+const confirmPasswordInput = document.getElementById('confirm_password');
 
-  // Password match validation
-document.getElementById('passwordForm').addEventListener('submit', function(e) {
-  const newPass = document.getElementById('new_password').value;
-  const confirmPass = document.getElementById('confirm_password').value;
+function validatePasswordForm() {
+  const current = currentPasswordInput.value;
+  const newPass = newPasswordInput.value;
+  const confirmPass = confirmPasswordInput.value;
 
-  // Skip validation if user isn't trying to change password
-  if (newPass === '' && confirmPass === '') {
-    return;
+  // If user hasn't touched any password field, don't require anything
+  if (current === '' && newPass === '' && confirmPass === '') {
+    return true;
   }
 
+  // Once they start typing in any field, all become required
+  if (current === '') {
+    return 'Please enter your current password.';
+  }
+  if (newPass === '') {
+    return 'Please enter a new password.';
+  }
+  if (newPass.length < 8) {
+    return 'New password must be at least 8 characters.';
+  }
+  if (confirmPass === '') {
+    return 'Please confirm your new password.';
+  }
   if (newPass !== confirmPass) {
+    return 'New password and confirmation do not match.';
+  }
+
+  return true;
+}
+
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+  const result = validatePasswordForm();
+  if (result !== true) {
     e.preventDefault();
-    alert('New password and confirmation do not match.');
-  } else if (newPass.length < 8) {
-    e.preventDefault();
-    alert('Password must be at least 8 characters.');
+    alert(result);
   }
 });
-
 </script>
 
 {% endblock %}
