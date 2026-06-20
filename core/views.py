@@ -1128,9 +1128,11 @@ def resident_register_view(request):
 
 @admin_login_required
 def admin_dashboard_view(request):
+    from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+
     user = get_current_user(request)
 
-    # Live stats from DB
+    # ---- TOP STAT CARDS ----
     total_residents = Users.objects.filter(
         user_type__type_name="Resident"
     ).count()
@@ -1139,13 +1141,109 @@ def admin_dashboard_view(request):
         status="Pending"
     ).count()
 
+    total_requests = DocumentRequests.objects.count()
+    total_cases = Complaints.objects.count()
+    total_inquiries = Inquiry.objects.count()
     total_sms = SMSOutbox.objects.count()
+
+    # ---- ANNOUNCEMENT ANALYTICS ----
+    total_announcements = Announcements.objects.count()
+    most_viewed_announcement = Announcements.objects.annotate(
+        feedback_count=Count("announcementfeedback")
+    ).order_by("-feedback_count").first()
+
+    # ---- CASE ANALYTICS (pie chart data) ----
+    cases_pending = Complaints.objects.filter(
+        status__in=["Submitted", "For Chairman Review"]
+    ).count()
+    cases_ongoing = Complaints.objects.exclude(
+        status__in=[
+            "Submitted", "For Chairman Review",
+            "Resolved", "Dismissed", "Settled",
+            "Certificate Issued", "Resolved Outside Barangay",
+            "Settled in Court",
+        ]
+    ).count()
+    cases_resolved = Complaints.objects.filter(
+        status__in=[
+            "Resolved", "Dismissed", "Settled",
+            "Certificate Issued", "Resolved Outside Barangay",
+            "Settled in Court",
+        ]
+    ).count()
+
+    # Average resolution time for cases that have a datefinish
+    resolved_cases = Complaints.objects.filter(
+        datefinish__isnull=False,
+        dateadded__isnull=False,
+    ).annotate(
+        resolution_duration=ExpressionWrapper(
+            F("datefinish") - F("dateadded"),
+            output_field=fields.DurationField(),
+        )
+    )
+    avg_case_resolution = resolved_cases.aggregate(
+        avg=Avg("resolution_duration")
+    )["avg"]
+    avg_resolution_days = (
+        round(avg_case_resolution.total_seconds() / 86400, 1)
+        if avg_case_resolution else 0
+    )
+
+    # ---- DOCUMENT REQUEST ANALYTICS (bar chart data) ----
+    docreq_pending = DocumentRequests.objects.filter(status="Pending").count()
+    docreq_processing = DocumentRequests.objects.filter(status="Processing").count()
+    docreq_completed = DocumentRequests.objects.filter(status="Completed").count()
+    docreq_rejected = DocumentRequests.objects.filter(status="Rejected").count()
+
+    completed_requests = DocumentRequests.objects.filter(
+        processed_at__isnull=False,
+        requested_at__isnull=False,
+    ).annotate(
+        processing_duration=ExpressionWrapper(
+            F("processed_at") - F("requested_at"),
+            output_field=fields.DurationField(),
+        )
+    )
+    avg_docreq_duration = completed_requests.aggregate(
+        avg=Avg("processing_duration")
+    )["avg"]
+    avg_processing_days = (
+        round(avg_docreq_duration.total_seconds() / 86400, 1)
+        if avg_docreq_duration else 0
+    )
+
+    completion_rate = (
+        round((docreq_completed / total_requests) * 100)
+        if total_requests else 0
+    )
 
     return render(request, "adminpanel/dashboard.html", {
         "user":                  user,
         "total_residents":       total_residents,
         "pending_verifications": pending_verifications,
+        "total_requests":        total_requests,
+        "total_cases":           total_cases,
+        "total_inquiries":       total_inquiries,
         "total_sms":             total_sms,
+
+        # Announcements
+        "total_announcements":      total_announcements,
+        "most_viewed_announcement": most_viewed_announcement,
+
+        # Case analytics
+        "cases_pending":      cases_pending,
+        "cases_ongoing":       cases_ongoing,
+        "cases_resolved":     cases_resolved,
+        "avg_resolution_days": avg_resolution_days,
+
+        # Document requests
+        "docreq_pending":      docreq_pending,
+        "docreq_processing":   docreq_processing,
+        "docreq_completed":    docreq_completed,
+        "docreq_rejected":     docreq_rejected,
+        "avg_processing_days": avg_processing_days,
+        "completion_rate":     completion_rate,
     })
 
 
