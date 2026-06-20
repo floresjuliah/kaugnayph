@@ -16,7 +16,7 @@ from django.db.models import Q
 
 
 from core.complaint_workflow import apply_status_change, build_sms_for_status, _complaint_contact_numbers
-from .models import HearingAttendance, CertificateToFileAction
+from .models import AvatarOptions, HearingAttendance, CertificateToFileAction
 from core.utils import (
     validate_upload,
     generate_case_number,
@@ -46,6 +46,7 @@ from .models import (
     AnnouncementCategories,
     FAQs,
     FAQCategories,
+    AvatarOptions, 
 )
  
 from .auth_utils import (
@@ -1038,7 +1039,8 @@ def _validate_register_form(data, files):
 def resident_register_view(request):
     if request.method != "POST":
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all()
+            "id_types": TypeOfID.objects.all(),
+            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
         })
 
     data = {
@@ -1050,6 +1052,7 @@ def resident_register_view(request):
         'receive_sms': request.POST.get("receive_sms") == "on",
         'email': request.POST.get("email_address", "").strip(),
         'address': request.POST.get("address", "").strip(),
+        'avatar_id': request.POST.get("avatar_id", "").strip(),
     }
     files = {
         'id_image': request.FILES.get("id_image"),
@@ -1061,7 +1064,8 @@ def resident_register_view(request):
         for e in errors:
             messages.error(request, e)
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all()
+            "id_types": TypeOfID.objects.all(),
+            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
         })
 
     try:
@@ -1069,8 +1073,16 @@ def resident_register_view(request):
     except UserTypes.DoesNotExist:
         messages.error(request, "System error. Please contact admin.")
         return render(request, "auth/register.html", {
-            "id_types": TypeOfID.objects.all()
+            "id_types": TypeOfID.objects.all(),
+            "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
         })
+    # Resolve chosen avatar, falling back to the first active one if none/invalid was sent
+    chosen_avatar = AvatarOptions.objects.filter(
+        avatarid=data['avatar_id'], is_active=True
+    ).first() if data['avatar_id'] else None
+
+    if not chosen_avatar:
+        chosen_avatar = AvatarOptions.objects.filter(is_active=True).order_by("avatarid").first()
 
     new_user = Users.objects.create(
         username=data['contact_no'],
@@ -1081,6 +1093,7 @@ def resident_register_view(request):
         lastname=data['lastname'],
         contactno=data['contact_no'],
         user_type=resident_type,
+        avatar=chosen_avatar,
         is_verified=False,
         is_active=True,
         is_first_login=False,
