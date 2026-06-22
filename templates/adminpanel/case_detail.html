@@ -4,258 +4,480 @@
 
 {% block admin_content %}
 
+<style>
+    .case-page { padding: 24px 28px; font-family: 'Segoe UI', Arial, sans-serif; }
+    .case-back-link { color: #2563eb; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 14px; }
+
+    .case-detail-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+    }
+    .case-detail-title {
+        font-size: 24px; font-weight: 700; color: #111827; margin: 0;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .case-status-pill, .case-status-pill-inline {
+        font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px;
+        background: #e5e7eb; color: #374151; vertical-align: middle;
+    }
+    .status-pending      { background: #fef3c7; color: #92400e; }
+    .status-review       { background: #fef3c7; color: #92400e; }
+    .status-ongoing      { background: #dbeafe; color: #1e40af; }
+    .status-eligible     { background: #fed7aa; color: #9a3412; }
+    .status-resolved     { background: #d1fae5; color: #065f46; }
+    .status-referred     { background: #e5e7eb; color: #374151; }
+    .status-dismissed    { background: #fee2e2; color: #991b1b; }
+
+    .case-detail-actions button, .case-detail-actions select {
+        padding: 9px 16px; border-radius: 7px; font-size: 13px; cursor: pointer; margin-left: 6px;
+    }
+    .btn-primary   { background: #2563eb; color: #fff; border: none; }
+    .btn-success   { background: #137333; color: #fff; border: none; }
+    .btn-outline-danger { background: #fff; color: #dc2626; border: 1px solid #dc2626; }
+    .btn-outline   { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
+    .btn-primary-sm { background: #2563eb; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .case-inline-select { padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; margin-right: 6px; }
+
+    .case-table-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; }
+    .case-stepper-card { padding: 24px 18px; margin-bottom: 20px; }
+
+    .case-stepper { display: flex; align-items: flex-start; }
+    .stepper-node { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; min-width: 90px; }
+    .stepper-circle {
+        width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; font-size: 14px; font-weight: 700; margin-bottom: 8px;
+        background: #e5e7eb; color: #9ca3af;
+    }
+    .stepper-complete .stepper-circle { background: #137333; color: #fff; }
+    .stepper-current .stepper-circle { background: #f59e0b; color: #fff; }
+    .stepper-skipped .stepper-circle { background: #e5e7eb; color: #9ca3af; }
+    .stepper-label { font-size: 13px; font-weight: 600; color: #111827; }
+    .stepper-sublabel { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .stepper-current .stepper-sublabel { color: #f59e0b; font-weight: 600; }
+    .stepper-connector { flex: 0.4; height: 2px; background: #e5e7eb; margin-top: 17px; }
+
+    .case-info-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px;
+    }
+    .case-info-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px;
+    }
+    .case-info-card h3 { margin: 0 0 12px; font-size: 14px; color: #111827; }
+    .case-info-card p { margin: 0 0 8px; font-size: 13px; color: #374151; line-height: 1.5; }
+
+    .case-details-timeline-row {
+        display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin-bottom: 18px;
+    }
+    .case-description-box {
+        border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; font-size: 13px;
+        line-height: 1.6; color: #374151; background: #fafafa;
+    }
+
+    .timeline { display: flex; flex-direction: column; gap: 14px; }
+    .timeline-entry { border-left: 2px solid #e5e7eb; padding-left: 12px; position: relative; }
+    .timeline-entry::before {
+        content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px;
+        border-radius: 50%; background: #2563eb;
+    }
+    .timeline-date { display: block; font-size: 11px; color: #9ca3af; }
+    .timeline-status { display: block; font-size: 13px; font-weight: 600; color: #111827; margin-top: 2px; }
+    .timeline-remarks { font-size: 12px; color: #6b7280; margin: 4px 0; }
+    .timeline-by { font-size: 11px; color: #9ca3af; }
+
+    .case-action-form {
+        display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+        padding: 10px 0; border-bottom: 1px solid #f3f4f6; margin-bottom: 10px;
+    }
+    .case-action-form:last-child { border-bottom: none; }
+    .case-action-form label { font-size: 13px; font-weight: 600; color: #374151; min-width: 160px; }
+    .case-action-form input, .case-action-form select {
+        padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
+    }
+    .case-advanced-toggle { margin-top: 10px; }
+    .case-advanced-toggle summary { cursor: pointer; font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+
+    .case-bottom-row {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+    }
+    .case-card-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .case-card-header-row h3 { margin: 0; font-size: 14px; }
+    .case-note-form, .hearing-summary-row, .official-row { font-size: 13px; }
+    .case-note-form { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .case-note-form input[type="text"], .case-note-form select { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+    .muted { color: #9ca3af; font-size: 13px; }
+    .link-danger { background: none; border: none; color: #dc2626; cursor: pointer; margin-left: 8px; font-size: 12px; }
+    .hearing-summary-row, .official-row { margin: 0 0 8px; color: #374151; }
+
+    @media (max-width: 1100px) {
+        .case-info-grid { grid-template-columns: repeat(2, 1fr); }
+        .case-details-timeline-row { grid-template-columns: 1fr; }
+        .case-bottom-row { grid-template-columns: 1fr; }
+    }
+</style>
+
 <div class="case-page">
 
-<a href="{% url 'case_records' %}" class="case-view-link">← Back to Cases</a>
+<a href="{% url 'case_records' %}" class="case-back-link">← Back to Cases</a>
 
-<h1 class="case-title">
-    Case:<br>
-    {{ case_id }}
-</h1>
+<div class="case-detail-header">
+    <h1 class="case-detail-title">
+        Case: {{ case_id }}
+        <span class="case-status-pill
+            {% if complaint.status == 'For Chairman Review' %}status-review
+            {% elif complaint.status == 'Submitted' %}status-pending
+            {% elif complaint.status == 'Mediation Scheduled' or complaint.status == 'Mediation Ongoing' %}status-ongoing
+            {% elif complaint.status == 'For 1st Hearing' or complaint.status == 'For 2nd Hearing' or complaint.status == 'For 3rd Hearing' %}status-ongoing
+            {% elif complaint.status == 'Eligible for Certificate to File Action' %}status-eligible
+            {% elif complaint.status == 'Settled' or complaint.status == 'Resolved' or complaint.status == 'Resolved Outside Barangay' or complaint.status == 'Settled in Court' %}status-resolved
+            {% elif complaint.status == 'Certificate Issued' %}status-resolved
+            {% elif complaint.status == 'Referred to Proper Barangay' %}status-referred
+            {% elif complaint.status == 'Dismissed' %}status-dismissed
+            {% endif %}
+        ">{{ complaint.status }}</span>
+    </h1>
 
-<div class="case-table-card" style="padding: 30px;">
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-
-        <h2>Case Details: {{ case_id }}</h2>
-
-        <form method="POST">
+    <div class="case-detail-actions">
+        <form method="POST" style="display:inline;">
             {% csrf_token %}
 
-            {% if complaint.status == "Submitted" %}
-            <select name="complaint_type" required style="padding:8px;border-radius:6px;border:1px solid #ccc;">
+            {% if complaint.status == "Submitted" or complaint.status == "For Chairman Review" %}
+            <select name="complaint_type" required class="case-inline-select">
                 <option value="">-- Select Complaint Type --</option>
                 {% for ct in complaint_types %}
                     <option value="{{ ct.ctid }}">{{ ct.type }}</option>
                 {% endfor %}
             </select>
-            <button
-                type="submit"
-                name="action"
-                value="mark_recorded"
-                style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
-            >
+            <button type="submit" name="action" value="mark_recorded" class="btn-primary">
                 Save Classification
             </button>
             {% endif %}
 
-            {% if complaint.status != "Settled" and complaint.status != "Dismissed" and complaint.status != "Certificate Issued" and complaint.status != "Resolved Outside Barangay" and complaint.status != "Settled in Court" %}
-            <button
-                type="submit"
-                name="action"
-                value="resolve"
-                style="background:#137333;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;"
-            >
+            {% if complaint.status != "Settled" and complaint.status != "Dismissed" and complaint.status != "Certificate Issued" and complaint.status != "Resolved Outside Barangay" and complaint.status != "Settled in Court" and complaint.status != "Resolved" %}
+            <button type="submit" name="action" value="resolve" class="btn-success">
                 Resolve Case
             </button>
             {% endif %}
 
-            <button
-                type="submit"
-                name="action"
-                value="dismiss"
-                style="background:white;color:#dc2626;padding:10px 18px;border:1px solid #dc2626;border-radius:6px;cursor:pointer;"
-            >
+            <button type="submit" name="action" value="dismiss" class="btn-outline-danger">
                 Reject Case
             </button>
+        </form>
+    </div>
+</div>
 
+<!-- STEPPER -->
+<div class="case-table-card case-stepper-card">
+    <div class="case-stepper">
+        {% for node in stepper_nodes %}
+        <div class="stepper-node stepper-{{ node.state }}">
+            <div class="stepper-circle">
+                {% if node.state == 'complete' %}✓
+                {% elif node.state == 'current' %}●
+                {% elif node.state == 'skipped' %}—
+                {% else %}○{% endif %}
+            </div>
+            <div class="stepper-label">{{ node.label }}</div>
+            <div class="stepper-sublabel">
+                {% if node.key == 'submitted' %}{{ complaint.dateadded|date:"M d, Y" }}
+                {% elif node.state == 'current' %}Current
+                {% elif node.state == 'skipped' %}Skipped
+                {% else %}Pending{% endif %}
+            </div>
+        </div>
+        {% if not forloop.last %}<div class="stepper-connector"></div>{% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- INFO CARD GRID -->
+<div class="case-info-grid">
+
+    <div class="case-info-card">
+        <h3>Case Information</h3>
+        <p><strong>Case Number:</strong> {{ case_id }}</p>
+        <p><strong>Complaint Type:</strong> {{ complaint.complaint_type.type|default:"Unclassified" }}</p>
+        <p><strong>Title:</strong> {{ complaint.title }}</p>
+        <p><strong>Incident Date:</strong> {{ complaint.incident_date|date:"F d, Y"|default:"—" }}</p>
+        <p><strong>Date Submitted:</strong> {{ complaint.dateadded|date:"F d, Y h:i A" }}</p>
+        {% if complaint.jurisdiction_barangay %}
+        <p><strong>Jurisdiction Barangay:</strong> {{ complaint.jurisdiction_barangay }}</p>
+        {% endif %}
+        <p><strong>Handled By:</strong> {{ complaint.handled_by.firstname|default:"" }} {{ complaint.handled_by.lastname|default:"Unassigned" }}</p>
+    </div>
+
+    <div class="case-info-card">
+        <h3>👤 Complainant</h3>
+        <p><strong>Name:</strong> {{ complaint.complainant_user.firstname|default:"" }} {{ complaint.complainant_user.lastname|default:"—" }}</p>
+        <p><strong>Address:</strong> {{ complaint.complainant_user.address|default:"—" }}</p>
+        <p><strong>Contact:</strong> {{ complaint.complainant_user.contactno|default:"—" }}</p>
+    </div>
+
+    <div class="case-info-card">
+        <h3>👤 Complainee</h3>
+        <p><strong>Name:</strong> {{ complaint.complainee|default:"—" }}</p>
+        <p><strong>Address:</strong> {{ complaint.complainee_address|default:"—" }}</p>
+        <p><strong>Contact:</strong> {{ complainee_contact }}</p>
+    </div>
+
+    <div class="case-info-card">
+        <h3>Case Status &amp; Actions</h3>
+        <p><strong>Current Status:</strong> <span class="case-status-pill-inline">{{ complaint.status }}</span></p>
+        <p><strong>Status Since:</strong>
+            {% with last_update=complaint_updates.first %}
+                {{ last_update.updated_at|date:"F d, Y h:i A"|default:complaint.dateadded }}
+            {% endwith %}
+        </p>
+        <p><strong>Flagged:</strong> {% if complaint.is_flagged %}Yes — {{ complaint.flagged_reason }}{% else %}No{% endif %}</p>
+    </div>
+
+</div>
+
+<!-- DETAILS + TIMELINE -->
+<div class="case-details-timeline-row">
+
+    <div class="case-info-card case-details-card">
+        <h3>Complaint Details</h3>
+        <p><strong>Description:</strong></p>
+        <div class="case-description-box">{{ complaint.description }}</div>
+
+        <p style="margin-top:15px;"><strong>Primary Accused:</strong> {{ complaint.complainee }}</p>
+
+        {% if complaint.file_path %}
+        <p style="margin-top: 15px;">
+            <strong>Evidence:</strong>
+            <a href="/media/{{ complaint.file_path }}" target="_blank">View Attachment</a>
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="case-info-card case-timeline-card">
+        <h3>Case Timeline</h3>
+        <div class="timeline">
+            {% for update in complaint_updates %}
+            <div class="timeline-entry">
+                <span class="timeline-date">{{ update.updated_at|date:"M d, Y g:i A" }}</span>
+                <span class="timeline-status">{{ update.status }}</span>
+                {% if update.remarks %}<p class="timeline-remarks">{{ update.remarks }}</p>{% endif %}
+                <span class="timeline-by">by {{ update.updated_by.firstname }} {{ update.updated_by.lastname }}</span>
+            </div>
+            {% empty %}
+            <p>No timeline entries yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- HEARING / DECISION ACTION PANEL -->
+<div class="case-info-card" style="margin-bottom:20px;">
+    <h3>Hearing &amp; Process Actions</h3>
+
+    {% if complaint.status == "Ongoing" %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="refer_jurisdiction">
+            <label>Refer to Proper Barangay:</label>
+            <input type="text" name="target_barangay" placeholder="Barangay name" required>
+            <button type="submit" class="btn-outline-danger">Refer Case</button>
         </form>
 
-    </div>
-
-    <p><strong>Case Type:</strong> {{ complaint.complaint_type.type }}</p>
-    <p><strong>Date Submitted:</strong> {{ complaint.dateadded|date:"F d, Y" }}</p>
-    <p><strong>Status:</strong> {{ complaint.status }}</p>
-
-    <hr style="margin: 25px 0;">
-
-    <div style="display: flex; gap: 45px; align-items: flex-start;">
-
-        <div style="flex: 1.2;">
-
-            <h3 style="margin-bottom: 20px;">Incident Information</h3>
-
-            <p><strong>Resident Name:</strong> {{ complaint.complainant_user.firstname }} {{ complaint.complainant_user.lastname }}</p>
-            <p><strong>Title:</strong> {{ complaint.title }}</p>
-            <p><strong>Primary Accused:</strong> {{ complaint.complainee }}</p>
-            <p><strong>Complainee Address:</strong> {{ complaint.complainee_address }}</p>
-            <p><strong>Incident Date:</strong> {{ complaint.incident_date|date:"F d, Y" }}</p>
-
-            <p><strong>Full Description:</strong></p>
-
-            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; max-width: 520px; line-height: 1.5;">
-                {{ complaint.description }}
-            </div>
-
-            {% if complaint.file_path %}
-            <p style="margin-top: 20px;">
-                <strong>Evidence:</strong>
-                <a href="/media/{{ complaint.file_path }}" target="_blank">View Attachment</a>
-            </p>
-            {% endif %}
-
-        </div>
-
-        <div style="flex: 0.9; border-left: 1px solid #ddd; padding-left: 35px;">
-
-            <h3 style="margin-bottom: 20px;">Hearing</h3>
-
-            {% if existing_hearing %}
-                <div id="hearingSummary" style="margin-bottom: 20px; line-height: 1.8;">
-                    <p><strong>Hearing Level:</strong> {{ existing_hearing.hearing_level.level_type }}</p>
-                    <p><strong>Hearing Status:</strong> {{ existing_hearing.status.statustype }}</p>
-                    <p><strong>Hearing Date:</strong> {{ existing_hearing.hearing_date|date:"F d, Y h:i A" }}</p>
-
-                    <button
-                        type="button"
-                        onclick="toggleHearingEdit()"
-                        style="background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; margin-top: 5px;"
-                    >
-                        Edit Hearing Details
-                    </button>
-                </div>
-
-                <div id="hearingEditForm" style="display: none;">
-            {% endif %}
-
-            <form method="POST" style="margin-bottom: 30px;">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update_hearing">
-
-                <label><strong>Hearing Level:</strong></label><br>
-                <select name="hearing_level_id" required style="padding: 10px; width: 100%; margin: 8px 0 15px;">
-                    <option value="">-- Select Hearing Level --</option>
-                    {% for level in hearing_levels %}
-                        <option value="{{ level.hearinglevelid }}"
-                            {% if existing_hearing and existing_hearing.hearing_level.hearinglevelid == level.hearinglevelid %}selected{% endif %}
-                        >
-                            {{ level.level_type }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <label><strong>Hearing Status:</strong></label><br>
-                <select name="hearing_status_id" required style="padding: 10px; width: 100%; margin: 8px 0 15px;">
-                    <option value="">-- Select Hearing Status --</option>
-                    {% for hearing_status in hearing_statuses %}
-                        <option value="{{ hearing_status.statusid }}"
-                            {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}
-                        >
-                            {{ hearing_status.statustype }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <label><strong>Hearing Date:</strong></label><br>
-                <input
-                    type="datetime-local"
-                    name="hearing_date"
-                    value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}"
-                >
-
-                <button type="submit" style="padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    {% if existing_hearing %}Update Hearing Details{% else %}Save Hearing Details{% endif %}
-                </button>
-
-                {% if existing_hearing %}
-                    <button
-                        type="button"
-                        onclick="toggleHearingEdit()"
-                        style="padding: 10px 18px; background: white; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; cursor: pointer; margin-left: 8px;"
-                    >
-                        Cancel
-                    </button>
-                {% endif %}
-            </form>
-
-            {% if existing_hearing %}
-                </div>
-            {% else %}
-                <p>No hearing details set yet.</p>
-            {% endif %}
-
-            <hr style="margin: 25px 0;">
-            
-            <!--FOR TESTING-->
-            <h3>Progress Timeline</h3>
-            <div class="timeline">
-                {% for update in complaint_updates %}
-                <div class="timeline-entry">
-                    <span class="timeline-date">{{ update.updated_at|date:"M d, Y g:i A" }}</span>
-                    <span class="timeline-status">{{ update.status }}</span>
-                    {% if update.remarks %}<p class="timeline-remarks">{{ update.remarks }}</p>{% endif %}
-                    <span class="timeline-by">by {{ update.updated_by.firstname }} {{ update.updated_by.lastname }}</span>
-                </div>
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="schedule_mediation">
+            <label>Schedule Mediation:</label>
+            <input type="datetime-local" name="hearing_date" required>
+            <select name="lupon_user_id">
+                <option value="">-- Assign Lupon Member (optional) --</option>
+                {% for admin in admin_users %}
+                    <option value="{{ admin.userid }}">{{ admin.firstname }} {{ admin.lastname }}</option>
                 {% endfor %}
-            </div>
-            <!--END TEST-->
-            <h3 style="margin-bottom: 20px;">Barangay Official</h3>
+            </select>
+            <button type="submit" class="btn-primary">Schedule Mediation</button>
+        </form>
+    {% endif %}
 
-            {% if assigned_officials %}
-                <div style="margin-bottom: 18px;">
-                    {% for official in assigned_officials %}
-                        <p style="margin-bottom: 10px;">
-                            <strong>Assigned Official:</strong>
-                            {{ official.user_officials.firstname }} {{ official.user_officials.lastname }}
-                            ({{ official.role }})
+    {% if complaint.status == "Mediation Scheduled" or complaint.status == "Mediation Ongoing" %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="record_mediation_outcome">
+            <label>Mediation Outcome:</label>
+            <select name="outcome" required>
+                <option value="Settled">Settled</option>
+                <option value="Not Settled">Not Settled</option>
+            </select>
+            <input type="text" name="remarks" placeholder="Remarks">
+            <button type="submit" class="btn-primary">Record Outcome</button>
+        </form>
+    {% endif %}
 
-                            <form method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="remove_official">
-                                <input type="hidden" name="hoid" value="{{ official.hoid }}">
+    {% if complaint.status == "For 1st Hearing" or complaint.status == "For 2nd Hearing" or complaint.status == "For 3rd Hearing" %}
+        {% if not existing_hearing or existing_hearing.outcome %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="schedule_hearing">
+            <label>Schedule Hearing:</label>
+            <select name="hearing_number" required>
+                <option value="1" {% if complaint.status == "For 1st Hearing" %}selected{% endif %}>Hearing 1</option>
+                <option value="2" {% if complaint.status == "For 2nd Hearing" %}selected{% endif %}>Hearing 2</option>
+                <option value="3" {% if complaint.status == "For 3rd Hearing" %}selected{% endif %}>Hearing 3</option>
+            </select>
+            <input type="datetime-local" name="hearing_date" required>
+            <button type="submit" class="btn-primary">Schedule Hearing</button>
+        </form>
+        {% else %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="record_hearing_outcome">
+            <input type="hidden" name="hearing_id" value="{{ existing_hearing.chid }}">
+            <label>Record Hearing Outcome:</label>
+            <select name="outcome" required>
+                <option value="Settled">Settled</option>
+                <option value="Not Settled">Not Settled</option>
+                <option value="No Show">No Show</option>
+                <option value="Rescheduled">Rescheduled / Postponed</option>
+            </select>
+            <select name="complainant_attendance">
+                <option value="">Complainant Attendance</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Excused">Excused</option>
+                <option value="Refused">Refused</option>
+            </select>
+            <select name="respondent_attendance">
+                <option value="">Respondent Attendance</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Excused">Excused</option>
+                <option value="Refused">Refused</option>
+            </select>
+            <input type="text" name="remarks" placeholder="Remarks">
+            <button type="submit" class="btn-primary">Record Outcome</button>
+        </form>
+        {% endif %}
+    {% endif %}
 
-                                <button type="submit" style="margin-left:10px; color:red; border:none; background:none; cursor:pointer;">
-                                    Remove
-                                </button>
-                            </form>
-                        </p>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>No official assigned yet.</p>
-            {% endif %}
+    {% if complaint.status == "Eligible for Certificate to File Action" %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="issue_certificate">
+            <input type="text" name="remarks" placeholder="Remarks (optional)">
+            <button type="submit" class="btn-primary">Issue Certificate to File Action</button>
+        </form>
+    {% endif %}
 
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="assign_official">
+    {% if not complaint.status or complaint.status == "Ongoing" or complaint.status == "Referred to Proper Barangay" %}
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="record_external_resolution">
+            <label>Record External Resolution:</label>
+            <select name="external_status" required>
+                <option value="Resolved Outside Barangay">Resolved Outside Barangay</option>
+                <option value="Settled in Court">Settled in Court</option>
+            </select>
+            <input type="date" name="external_date">
+            <input type="text" name="external_notes" placeholder="Notes">
+            <button type="submit" class="btn-primary">Record Resolution</button>
+        </form>
+    {% endif %}
 
-                <select name="official_user_id" required style="padding: 10px; width: 100%; margin-bottom: 10px;">
-                    <option value="">-- Select Official --</option>
-                    {% for admin in admin_users %}
-                        <option value="{{ admin.userid }}">
-                            {{ admin.firstname }} {{ admin.lastname }}
-                        </option>
-                    {% endfor %}
-                </select>
+    {% if not complaint.status == "Submitted" %}
+    <details class="case-advanced-toggle">
+        <summary>Advanced: Manually set hearing level/status</summary>
+        <form method="POST" class="case-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_hearing">
+            <select name="hearing_level_id" required>
+                <option value="">-- Select Hearing Level --</option>
+                {% for level in hearing_levels %}
+                    <option value="{{ level.hearinglevelid }}" {% if existing_hearing and existing_hearing.hearing_level.hearinglevelid == level.hearinglevelid %}selected{% endif %}>{{ level.level_type }}</option>
+                {% endfor %}
+            </select>
+            <select name="hearing_status_id" required>
+                <option value="">-- Select Hearing Status --</option>
+                {% for hearing_status in hearing_statuses %}
+                    <option value="{{ hearing_status.statusid }}" {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}>{{ hearing_status.statustype }}</option>
+                {% endfor %}
+            </select>
+            <input type="datetime-local" name="hearing_date" value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
+            <button type="submit" class="btn-outline">Update Hearing Details</button>
+        </form>
+    </details>
+    {% endif %}
+</div>
 
-                <input type="hidden" name="official_role" value="Mediator">
+<!-- BOTTOM ROW: Notes / Hearing Summary / Officials -->
+<div class="case-bottom-row">
 
-                <button type="submit" style="padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    Assign Official
-                </button>
-            </form>
-
+    <div class="case-info-card">
+        <div class="case-card-header-row">
+            <h3>Case Notes</h3>
         </div>
+        <form method="POST" class="case-note-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_note">
+            <input type="text" name="note_text" placeholder="Add a note...">
+            <button type="submit" class="btn-primary-sm">Add Note</button>
+        </form>
+        {% with note_updates=complaint_updates %}
+            {% if not note_updates %}
+                <p class="muted">No notes yet.</p>
+            {% endif %}
+        {% endwith %}
+    </div>
 
+    <div class="case-info-card">
+        <div class="case-card-header-row">
+            <h3>Hearing Summary</h3>
+        </div>
+        {% if all_hearings %}
+            {% for hearing in all_hearings %}
+            <p class="hearing-summary-row">
+                <strong>{{ hearing.hearing_level.level_type }}</strong> —
+                {{ hearing.hearing_date|date:"M d, Y h:i A" }}
+                ({{ hearing.status.statustype }}{% if hearing.outcome %} · {{ hearing.outcome }}{% endif %})
+            </p>
+            {% endfor %}
+        {% else %}
+            <p class="muted">No hearings scheduled yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="case-info-card">
+        <div class="case-card-header-row">
+            <h3>Barangay Official</h3>
+        </div>
+        {% if assigned_officials %}
+            {% for official in assigned_officials %}
+                <p class="official-row">
+                    {{ official.user_officials.firstname }} {{ official.user_officials.lastname }} ({{ official.role }})
+                    <form method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_official">
+                        <input type="hidden" name="hoid" value="{{ official.hoid }}">
+                        <button type="submit" class="link-danger">Remove</button>
+                    </form>
+                </p>
+            {% endfor %}
+        {% else %}
+            <p class="muted">No official assigned yet.</p>
+        {% endif %}
+
+        <form method="POST" class="case-note-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_official">
+            <select name="official_user_id" required>
+                <option value="">-- Select Official --</option>
+                {% for admin in admin_users %}
+                    <option value="{{ admin.userid }}">{{ admin.firstname }} {{ admin.lastname }}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="official_role" value="Mediator">
+            <button type="submit" class="btn-primary-sm">Assign</button>
+        </form>
     </div>
 
 </div>
 
 </div>
-
-<script>
-function toggleHearingEdit() {
-    const summary = document.getElementById("hearingSummary");
-    const form = document.getElementById("hearingEditForm");
-
-    if (form.style.display === "none") {
-        form.style.display = "block";
-        summary.style.display = "none";
-    } else {
-        form.style.display = "none";
-        summary.style.display = "block";
-    }
-}
-</script>
 
 {% endblock %}
