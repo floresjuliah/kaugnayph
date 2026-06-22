@@ -4,63 +4,198 @@
 
 {% block admin_content %}
 
+<style>
+    .case-page { padding: 24px 28px; font-family: 'Segoe UI', Arial, sans-serif; }
+    .case-title { font-size: 28px; font-weight: 700; margin: 0 0 4px; color: #111827; }
+    .case-subtitle { color: #6b7280; margin: 0 0 20px; font-size: 14px; }
+
+    .case-stats-row {
+        display: flex; gap: 14px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .case-stat {
+        flex: 1; min-width: 160px; background: #fff; border: 1px solid #e5e7eb;
+        border-radius: 10px; padding: 16px 18px; display: flex;
+        justify-content: space-between; align-items: center;
+    }
+    .case-stat-text p { margin: 0 0 4px; color: #6b7280; font-size: 13px; }
+    .case-stat-text h3 { margin: 0; font-size: 24px; color: #111827; }
+    .case-stat-icon { font-size: 20px; opacity: 0.8; }
+
+    .case-filter-row {
+        display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .case-search-box {
+        flex: 1; min-width: 240px; display: flex; align-items: center; gap: 8px;
+        border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; background: #fff;
+    }
+    .case-search-box input { border: none; outline: none; flex: 1; font-size: 14px; }
+    .case-filter-select, .case-filter-date {
+        border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px;
+        font-size: 14px; background: #fff; color: #374151;
+    }
+    .case-filter-btn, .case-export-btn {
+        border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 16px;
+        background: #fff; color: #374151; cursor: pointer; font-size: 14px; text-decoration: none;
+    }
+
+    .case-table-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
+    }
+    .case-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .case-table thead { background: #f9fafb; }
+    .case-table th {
+        text-align: left; padding: 12px 14px; color: #6b7280; font-weight: 600;
+        text-transform: uppercase; font-size: 11px; letter-spacing: 0.03em;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .case-table td {
+        padding: 12px 14px; border-bottom: 1px solid #f3f4f6; color: #111827;
+    }
+    .case-table tbody tr:hover { background: #fafafa; }
+
+    .case-type {
+        background: #f3f4f6; padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    }
+
+    .case-status {
+        padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+        display: inline-block;
+    }
+    .status-pending      { background: #fef3c7; color: #92400e; }
+    .status-review       { background: #fef3c7; color: #92400e; }
+    .status-ongoing      { background: #dbeafe; color: #1e40af; }
+    .status-eligible     { background: #fed7aa; color: #9a3412; }
+    .status-resolved     { background: #d1fae5; color: #065f46; }
+    .status-referred     { background: #e5e7eb; color: #374151; }
+    .status-dismissed    { background: #fee2e2; color: #991b1b; }
+
+    .case-actions-cell { white-space: nowrap; }
+    .case-action-icon {
+        text-decoration: none; margin-right: 10px; font-size: 15px; cursor: pointer;
+    }
+
+    .case-table-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 18px; font-size: 13px; color: #6b7280;
+    }
+    .case-pagination { display: flex; gap: 4px; }
+    .case-pagination a, .case-pagination span {
+        padding: 6px 11px; border-radius: 6px; text-decoration: none; color: #374151; font-size: 13px;
+    }
+    .case-pagination span.active { background: #2563eb; color: #fff; }
+    .case-pagination span.disabled { color: #d1d5db; }
+
+    .empty-row { text-align: center; color: #9ca3af; padding: 30px 0; }
+</style>
+
 <div class="case-page">
 
     <h1 class="case-title">Cases</h1>
+    <p class="case-subtitle">Manage and track all submitted complaints</p>
 
-    <div class="case-top-row">
+    <div class="case-stats-row">
 
-        <form method="GET" class="case-search-box">
-            <span>⌕</span>
-            <input 
-                type="text"
-                name="search"
-                value="{{ search_query|default:'' }}"
-                placeholder="Search Case ID"
-            >
-        </form>
-
-        <div class="case-stats">
-
-            <div class="case-stat">
+        <div class="case-stat">
+            <div class="case-stat-text">
                 <p>Total Cases</p>
                 <h3>{{ total_cases|default:"0" }}</h3>
             </div>
+            <span class="case-stat-icon icon-total">💬</span>
+        </div>
 
-            <div class="case-stat">
-                <p>Pending</p>
-                <h3>{{ pending_cases|default:"0" }}</h3>
+        <div class="case-stat">
+            <div class="case-stat-text">
+                <p>For Review</p>
+                <h3>{{ for_review_cases|default:"0" }}</h3>
             </div>
+            <span class="case-stat-icon icon-review">🕐</span>
+        </div>
 
-            <div class="case-stat">
-                <p>Under Review</p>
-                <h3>{{ under_review_cases|default:"0" }}</h3>
+        <div class="case-stat">
+            <div class="case-stat-text">
+                <p>Ongoing</p>
+                <h3>{{ ongoing_cases|default:"0" }}</h3>
             </div>
+            <span class="case-stat-icon icon-ongoing">⚙️</span>
+        </div>
 
-            <div class="case-stat">
+        <div class="case-stat">
+            <div class="case-stat-text">
                 <p>Resolved</p>
-                <h3>{{ completed_cases|default:"0" }}</h3>
+                <h3>{{ resolved_cases|default:"0" }}</h3>
             </div>
+            <span class="case-stat-icon icon-resolved">✅</span>
+        </div>
 
-            <div class="case-stat">
-                <p>Avg Processing Time</p>
-                <h3>{{ avg_processing_time|default:"0%" }}</h3>
+        <div class="case-stat">
+            <div class="case-stat-text">
+                <p>Certificates Issued</p>
+                <h3>{{ certificates_issued_count|default:"0" }}</h3>
             </div>
-
+            <span class="case-stat-icon icon-certificate">📋</span>
         </div>
 
     </div>
+
+    <form method="GET" class="case-filter-row">
+
+        <div class="case-search-box">
+            <span>⌕</span>
+            <input
+                type="text"
+                name="search"
+                value="{{ search_query|default:'' }}"
+                placeholder="Search case number, complainant, complainee..."
+            >
+        </div>
+
+        <select name="status" class="case-filter-select" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="type" class="case-filter-select" onchange="this.form.submit()">
+            <option value="">All Complaint Types</option>
+            {% for ct in complaint_types %}
+                <option value="{{ ct.ctid }}" {% if type_filter == ct.ctid|stringformat:"s" %}selected{% endif %}>{{ ct.type }}</option>
+            {% endfor %}
+        </select>
+
+        <input
+            type="date"
+            name="date_from"
+            value="{{ date_from|default:'' }}"
+            class="case-filter-date"
+            title="Incident date from"
+        >
+        <input
+            type="date"
+            name="date_to"
+            value="{{ date_to|default:'' }}"
+            class="case-filter-date"
+            title="Incident date to"
+        >
+
+        <button type="submit" class="case-filter-btn">⏷ Filter</button>
+        <a href="?{{ request.GET.urlencode }}&export=1" class="case-export-btn">⭳ Export</a>
+
+    </form>
 
     <div class="case-table-card">
 
         <table class="case-table">
             <thead>
                 <tr>
-                    <th>Case ID</th>
-                    <th>Case Type</th>
+                    <th>Case Number</th>
+                    <th>Complainant</th>
+                    <th>Complainee</th>
+                    <th>Type</th>
                     <th>Title</th>
-                    <th>Date Submitted</th>
+                    <th>Incident Date</th>
                     <th>Status</th>
+                    <th>Date Submitted</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -69,83 +204,47 @@
                 {% for case in cases %}
                 <tr>
                     <td>{{ case.case_id }}</td>
+                    <td>{{ case.complainant_name }}</td>
+                    <td>{{ case.complainee_name }}</td>
 
                     <td>
-                        <span class="case-type 
-                            {% if case.case_type == 'Blotter Report' %}
-                                case-type-blotter
-                            {% elif case.case_type == 'Incident Report' %}
-                                case-type-incident
-                            {% else %}
-                                {{ case.type_class }}
-                            {% endif %}
-                        ">
-                            {{ case.case_type }}
-                        </span>
+                        <span class="case-type">{{ case.case_type }}</span>
                     </td>
 
                     <td>{{ case.title }}</td>
-                    <td>{{ case.date_submitted }}</td>
+                    <td>{{ case.incident_date }}</td>
 
                     <td>
                         <span class="case-status
-
-                            {% if case.status == 'Submitted' %}
-                                status-pending
-
-                            {% elif case.status == 'Recorded' %}
-                                status-review
-
-                            {% elif case.status == 'Mediation Scheduled' %}
-                                status-review
-
-                            {% elif case.status == 'For 1st Hearing' %}
-                                status-review
-
-                            {% elif case.status == 'For 2nd Hearing' %}
-                                status-review
-
-                            {% elif case.status == 'For 3rd Hearing' %}
-                                status-review
-
-                            {% elif case.status == 'Eligible for Certificate to File Action' %}
-                                status-review
-
-                            {% elif case.status == 'Settled' %}
-                                status-resolved
-
-                            {% elif case.status == 'Certificate Issued' %}
-                                status-resolved
-
-                            {% elif case.status == 'Resolved' %}
-                                status-resolved
-
-                            {% elif case.status == 'Resolved Outside Barangay' %}
-                                status-resolved
-
-                            {% elif case.status == 'Settled in Court' %}
-                                status-resolved
-
-                            {% elif case.status == 'Dismissed' %}
-                                status-dismissed
-
-                            {% else %}
-                                {{ case.status_class }}
+                            {% if case.status == 'For Chairman Review' %}status-review
+                            {% elif case.status == 'Submitted' %}status-pending
+                            {% elif case.status == 'Mediation Scheduled' or case.status == 'Mediation Ongoing' %}status-ongoing
+                            {% elif case.status == 'For 1st Hearing' or case.status == 'For 2nd Hearing' or case.status == 'For 3rd Hearing' %}status-ongoing
+                            {% elif case.status == 'Eligible for Certificate to File Action' %}status-eligible
+                            {% elif case.status == 'Settled' or case.status == 'Resolved' or case.status == 'Resolved Outside Barangay' or case.status == 'Settled in Court' %}status-resolved
+                            {% elif case.status == 'Certificate Issued' %}status-resolved
+                            {% elif case.status == 'Referred to Proper Barangay' %}status-referred
+                            {% elif case.status == 'Dismissed' %}status-dismissed
+                            {% else %}{{ case.status_class }}
                             {% endif %}
-
                         ">
                             {{ case.status }}
                         </span>
                     </td>
 
-                    <td>
-                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">View</a>
+                    <td>{{ case.date_submitted }}</td>
+
+                    <td class="case-actions-cell">
+                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-action-icon" title="View">👁</a>
+                        {% if case.status == 'Submitted' or case.status == 'For Chairman Review' %}
+                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-action-icon" title="Review">✎</a>
+                        {% endif %}
                     </td>
                 </tr>
 
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="empty-row">
+                    <td colspan="9" class="empty-row">
                         No case records found.
                     </td>
                 </tr>
@@ -156,20 +255,34 @@
         <div class="case-table-footer">
 
             <p>
-                Showing 
+                Showing
                 {{ page_obj.start_index|default:"0" }}–
                 {{ page_obj.end_index|default:"0" }}
-                of 
+                of
                 {{ page_obj.paginator.count|default:"0" }}
-                concerns
+                entries
             </p>
 
             <div class="case-pagination">
-                <button type="button">Previous</button>
-                <button type="button" class="active">1</button>
-                <button type="button">2</button>
-                <button type="button">3</button>
-                <button type="button" class="next">Next</button>
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">Previous</a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="active">{{ num }}</span>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                        <a href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}" class="next">Next</a>
+                {% else %}
+                    <span class="disabled next">Next</span>
+                {% endif %}
             </div>
 
         </div>

@@ -2324,15 +2324,30 @@ def case_records_view(request):
 
     search_query = request.GET.get("search", "").strip()
     flagged_only = request.GET.get("flagged", "") == "1"
+    status_filter = request.GET.get("status", "").strip()
+    type_filter = request.GET.get("type", "").strip()
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
 
     complaints = Complaints.objects.select_related(
-    "complaint_type",
-    "complainant_user",
-    "handled_by"
-    )   
+        "complaint_type",
+        "complainant_user",
+        "handled_by"
+    )
 
     if flagged_only:
         complaints = complaints.filter(is_flagged=True)
+
+    if status_filter:
+        complaints = complaints.filter(status=status_filter)
+
+    if type_filter:
+        complaints = complaints.filter(complaint_type__ctid=type_filter)
+
+    if date_from:
+        complaints = complaints.filter(incident_date__gte=date_from)
+    if date_to:
+        complaints = complaints.filter(incident_date__lte=date_to)
 
     if search_query:
         case_id_match = re.search(r"(\d+)$", search_query)
@@ -2343,7 +2358,10 @@ def case_records_view(request):
             Q(description__icontains=search_query) |
             Q(complainee__icontains=search_query) |
             Q(status__icontains=search_query) |
-            Q(complaint_type__type__icontains=search_query)
+            Q(case_number__icontains=search_query) |
+            Q(complaint_type__type__icontains=search_query) |
+            Q(complainant_user__firstname__icontains=search_query) |
+            Q(complainant_user__lastname__icontains=search_query)
         )
 
         if case_id_number is not None:
@@ -2361,10 +2379,16 @@ def case_records_view(request):
         case_records.append({
             "complaint_id": complaint.complaintsid,
             "case_id": complaint.case_number or f"CMP-{complaint.dateadded.year}-{complaint.complaintsid:04d}",
-            "case_type": complaint.complaint_type.type if complaint.complaint_type else "Complaint",
+            "case_type": complaint.complaint_type.type if complaint.complaint_type else "Unclassified",
             "type_class": "complaint",
             "title": complaint.title,
-            "date_submitted": complaint.dateadded.strftime("%b %d, %Y") if complaint.dateadded else "",
+            "complainant_name": (
+                f"{complaint.complainant_user.firstname} {complaint.complainant_user.lastname}"
+                if complaint.complainant_user else "—"
+            ),
+            "complainee_name": complaint.complainee or "—",
+            "incident_date": complaint.incident_date.strftime("%b %d, %Y") if complaint.incident_date else "—",
+            "date_submitted": complaint.dateadded.strftime("%b %d, %Y %I:%M %p") if complaint.dateadded else "",
             "status": status,
             "status_class": status.lower().replace(" ", "-"),
             "is_flagged": complaint.is_flagged,
@@ -2375,11 +2399,30 @@ def case_records_view(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    total_cases = complaints.count()
-    pending_cases = complaints.filter(status="Submitted").count()
-    under_review_cases = complaints.filter(status="Under Review").count()
-    completed_cases = complaints.filter(status="Resolved").count()
-    flagged_count = Complaints.objects.filter(is_flagged=True).count()
+    # Base queryset (unfiltered by search/status/etc) for the top stat cards,
+    # so the cards always reflect totals, not the current filtered view.
+    all_complaints = Complaints.objects.all()
+
+    total_cases = all_complaints.count()
+    for_review_cases = all_complaints.filter(status="For Chairman Review").count()
+    ongoing_cases = all_complaints.filter(
+        status__in=[
+            "Ongoing",
+            "Mediation Scheduled",
+            "Mediation Ongoing",
+            "For 1st Hearing",
+            "For 2nd Hearing",
+            "For 3rd Hearing",
+            "Eligible for Certificate to File Action",
+        ]
+    ).count()
+    resolved_cases = all_complaints.filter(
+        status__in=["Resolved", "Settled", "Resolved Outside Barangay", "Settled in Court"]
+    ).count()
+    certificates_issued_count = all_complaints.filter(status="Certificate Issued").count()
+    flagged_count = all_complaints.filter(is_flagged=True).count()
+
+    complaint_types = ComplaintType.objects.all()
 
     return render(request, "adminpanel/case_records.html", {
         "cases": page_obj,
@@ -2388,12 +2431,97 @@ def case_records_view(request):
         "search_query": search_query,
         "flagged_only": flagged_only,
         "flagged_count": flagged_count,
+        "status_filter": status_filter,
+        "type_filter": type_filter,
+        "date_from": date_from,
+        "date_to": date_to,
+        "complaint_types": complaint_types,
+        "status_choices": Complaints.STATUS_CHOICES,
         "total_cases": total_cases,
-        "pending_cases": pending_cases,
-        "under_review_cases": under_review_cases,
-        "completed_cases": completed_cases,
-        "avg_processing_time": "0%",
+        "for_review_cases": for_review_cases,
+        "ongoing_cases": ongoing_cases,
+        "resolved_cases": resolved_cases,
+        "certificates_issued_count": certificates_issued_count,
     })
+
+
+# Stepper stage mapping for case_detail_view
+
+# Maps every Complaints.status value to one of 7 stepper nodes used in
+# the case detail UI: submitted, chairman_review, decision, mediation,
+# hearing, certificate, closed.
+#
+# "decision" has no distinct status of its own in the current single
+# classify+record flow (mark_recorded jumps straight from
+# "For Chairman Review"/"Submitted" to "Ongoing"), so it is treated as
+# already-passed the moment status is anything past "For Chairman Review".
+STEPPER_STAGE_MAP = {
+    "Submitted": "submitted",
+    "For Chairman Review": "chairman_review",
+    "Ongoing": "decision",
+    "Referred to Proper Barangay": "decision",
+    "Mediation Scheduled": "mediation",
+    "Mediation Ongoing": "mediation",
+    "For 1st Hearing": "hearing",
+    "For 2nd Hearing": "hearing",
+    "For 3rd Hearing": "hearing",
+    "Non-Cooperative Party": "hearing",
+    "Eligible for Certificate to File Action": "certificate",
+    "Certificate Issued": "closed",
+    "Settled": "closed",
+    "Resolved": "closed",
+    "Resolved Outside Barangay": "closed",
+    "Settled in Court": "closed",
+    "Under Review": "decision",
+    "Dismissed": "closed",
+}
+
+STEPPER_ORDER = ["submitted", "chairman_review", "decision", "mediation", "hearing", "certificate", "closed"]
+
+STEPPER_LABELS = {
+    "submitted": "Submitted",
+    "chairman_review": "Chairman Review",
+    "decision": "Decision",
+    "mediation": "Mediation",
+    "hearing": "Hearing (1-3)",
+    "certificate": "Certificate",
+    "closed": "Closed",
+}
+
+
+def _build_stepper(complaint):
+    """
+    Returns a list of dicts describing each stepper node's state
+    (complete / current / pending) for the case detail template.
+
+    Special case: 'Dismissed' and 'Referred to Proper Barangay' short-circuit
+    the normal mediation/hearing/certificate nodes since those paths were
+    never entered -- they're marked pending rather than complete to avoid
+    implying the case went through steps it didn't.
+    """
+    current_stage = STEPPER_STAGE_MAP.get(complaint.status, "submitted")
+    current_index = STEPPER_ORDER.index(current_stage)
+
+    skipped_path = complaint.status in ("Dismissed", "Referred to Proper Barangay")
+
+    nodes = []
+    for i, stage_key in enumerate(STEPPER_ORDER):
+        if skipped_path and stage_key not in ("submitted", "chairman_review", "decision", "closed"):
+            state = "skipped"
+        elif i < current_index:
+            state = "complete"
+        elif i == current_index:
+            state = "current"
+        else:
+            state = "pending"
+
+        nodes.append({
+            "key": stage_key,
+            "label": STEPPER_LABELS[stage_key],
+            "state": state,
+        })
+
+    return nodes
 
 
 # DOCUMENT REQUEST FOR RESIDENT 
@@ -2847,7 +2975,8 @@ def admin_document_request_detail_view(request, drid):
 def case_detail_view(request, complaint_id):
     """
     Full complaint lifecycle management per the barangay complaint process:
-    Submitted -> Referred/Recorded -> Mediation -> Hearings 1-3 -> Settled/Certificate -> External.
+    Submitted -> Chairman Review -> Decision -> Mediation -> Hearings 1-3 ->
+    Certificate -> Closed (or External Resolution).
     """
     try:
         complaint = Complaints.objects.select_related(
@@ -2893,7 +3022,7 @@ def case_detail_view(request, complaint_id):
         action = request.POST.get("action")
         case_number = complaint.case_number or generate_case_number(complaint.complaintsid)
 
-        #STEP 2: Initial Review outcome 
+        # STEP 2: Initial Review outcome
         if action == "refer_jurisdiction":
             target_barangay = request.POST.get("target_barangay", "").strip()
             if not target_barangay:
@@ -2949,7 +3078,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"Complaint classified as {chosen_type.type} and marked as Ongoing.")
 
-        #STEP 4: Schedule Mediation
+        # STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
             hearing_date = request.POST.get("hearing_date", "").strip()
             lupon_user_id = request.POST.get("lupon_user_id", "").strip()
@@ -3000,7 +3129,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "Mediation scheduled.")
 
-        #STEP 5: First Mediation Session outcome
+        # STEP 5: First Mediation Session outcome
         elif action == "record_mediation_outcome":
             outcome = request.POST.get("outcome", "").strip()  # "Settled" or "Not Settled"
             remarks = request.POST.get("remarks", "").strip()
@@ -3036,7 +3165,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"Mediation outcome recorded: {outcome}.")
 
-        #STEP 6: Schedule a numbered hearing (1, 2, or 3)
+        # STEP 6: Schedule a numbered hearing (1, 2, or 3)
         elif action == "schedule_hearing":
             hearing_number = request.POST.get("hearing_number", "").strip()  # "1", "2", "3"
             hearing_date = request.POST.get("hearing_date", "").strip()
@@ -3075,7 +3204,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"{level_name} scheduled.")
 
-        #Record attendance + outcome for a specific hearing
+        # Record attendance + outcome for a specific hearing
         elif action == "record_hearing_outcome":
             hearing_id = request.POST.get("hearing_id", "").strip()
             outcome = request.POST.get("outcome", "").strip()
@@ -3087,6 +3216,26 @@ def case_detail_view(request, complaint_id):
                 hearing = ComplaintHearing.objects.get(chid=hearing_id, complaint=complaint)
             except ComplaintHearing.DoesNotExist:
                 messages.error(request, "Hearing record not found.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            # "Rescheduled" (postponement): keep the hearing's status as Scheduled
+            # rather than Completed, since the hearing itself didn't happen yet.
+            # This does NOT advance the case past the current "For Nth Hearing"
+            # status and does NOT count toward the 3-hearing limit, per the
+            # documented process ("Possible postponements" is a distinct outcome
+            # from a hearing actually occurring and failing).
+            if outcome == "Rescheduled":
+                hearing.outcome = "Rescheduled"
+                hearing.remarks = remarks or None
+                hearing.save()
+
+                ComplaintUpdates.objects.create(
+                    complaint=complaint, updated_by=current_admin,
+                    status=complaint.status,
+                    remarks=f"{hearing.hearing_level.level_type} postponed/rescheduled. {remarks}".strip(),
+                    updated_at=timezone.now(),
+                )
+                messages.success(request, "Hearing marked as rescheduled. Please set a new date.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             completed_status = HearingStatus.objects.filter(statustype="Completed").first()
@@ -3106,7 +3255,7 @@ def case_detail_view(request, complaint_id):
                     attendance_status=respondent_attendance,
                 )
 
-            #Failed Attendance Tracking — flag non-cooperative party
+            # Failed Attendance Tracking — flag non-cooperative party
             unexcused_count = HearingAttendance.objects.filter(
                 hearing__complaint=complaint,
                 participant_type="Respondent",
@@ -3143,7 +3292,7 @@ def case_detail_view(request, complaint_id):
                         send_sms(party_contact, sms_body, sent_by=current_admin)
 
             elif hearing.hearing_level.level_type == "Hearing 3":
-                #Final Outcome After Hearing 3, no settlement
+                # Final Outcome After Hearing 3, no settlement
                 apply_status_change(
                     complaint, "Eligible for Certificate to File Action", current_admin,
                     remarks="No settlement reached after 3 hearings.",
@@ -3160,7 +3309,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "Hearing outcome recorded.")
 
-        #Issue Certificate to File Action
+        # Issue Certificate to File Action
         elif action == "issue_certificate":
             remarks = request.POST.get("remarks", "").strip()
 
@@ -3197,7 +3346,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, f"Certificate {cert.certificate_no} issued.")
 
-        #External Resolution (either "Resolved Outside Barangay" or "Settled in Court")
+        # External Resolution (either "Resolved Outside Barangay" or "Settled in Court")
         elif action == "record_external_resolution":
             ext_status = request.POST.get("external_status", "").strip()  # "Resolved Outside Barangay" or "Settled in Court"
             ext_notes = request.POST.get("external_notes", "").strip()
@@ -3219,7 +3368,7 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "External resolution recorded.")
 
-        #Existing simple status changes (kept for flexibility)
+        # Existing simple status changes (kept for flexibility)
         elif action in ("resolve", "review", "dismiss"):
             remarks = request.POST.get("remarks", "").strip()
             status_map = {"resolve": "Resolved", "review": "Under Review", "dismiss": "Dismissed"}
@@ -3235,7 +3384,7 @@ def case_detail_view(request, complaint_id):
                 send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Case status updated successfully.")
 
-        #Existing hearing level / official management
+        # Existing hearing level / official management
         elif action == "update_hearing":
             hearing_level_id = request.POST.get("hearing_level_id", "").strip()
             hearing_date     = request.POST.get("hearing_date", "").strip()
@@ -3287,7 +3436,6 @@ def case_detail_view(request, complaint_id):
 
             messages.success(request, "Hearing level updated.")
 
-
         elif action == "assign_official":
             official_user_id = request.POST.get("official_user_id", "").strip()
             official_role    = request.POST.get("official_role", "Mediator").strip()
@@ -3305,6 +3453,8 @@ def case_detail_view(request, complaint_id):
             already_assigned = HearingOfficials.objects.filter(
                 complaint=complaint, user_officials=official_user
             ).exists()
+
+            sms_body = None
 
             if already_assigned:
                 messages.warning(request, "This official is already assigned to this case.")
@@ -3325,14 +3475,14 @@ def case_detail_view(request, complaint_id):
                     f"to your complaint {case_number}. "
                     "Please check your account for updates."
                 )
+                messages.success(request, "Official assigned successfully.")
 
-            if complaint.complainant_user and complaint.complainant_user.contactno:
+            if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
                 send_sms(
                     complaint.complainant_user.contactno,
                     sms_body,
                     sent_by=current_admin
                 )
-                messages.success(request, "Official assigned successfully.")
 
         elif action == "remove_official":
             hoid = request.POST.get("hoid", "").strip()
@@ -3343,10 +3493,32 @@ def case_detail_view(request, complaint_id):
             except HearingOfficials.DoesNotExist:
                 messages.error(request, "Official record not found.")
 
+        # Add a free-text case note (admin-side log entry, no status change)
+        elif action == "add_note":
+            note_text = request.POST.get("note_text", "").strip()
+            if not note_text:
+                messages.error(request, "Note cannot be empty.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            ComplaintUpdates.objects.create(
+                complaint=complaint, updated_by=current_admin,
+                status=complaint.status,
+                remarks=note_text,
+                updated_at=timezone.now(),
+            )
+            messages.success(request, "Note added.")
+
         else:
             messages.error(request, "Invalid action.")
 
         return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+    stepper_nodes = _build_stepper(complaint)
+
+    # Complainee has no linked Users FK (free-text only on Complaints model),
+    # so there is no contact number to display -- the detail template shows
+    # an explicit "Not on file" fallback instead of leaving the field blank.
+    complainee_contact = "Not on file"
 
     return render(request, "adminpanel/case_detail.html", {
         "complaint":           complaint,
@@ -3363,7 +3535,10 @@ def case_detail_view(request, complaint_id):
         "certificate":         certificate,
         "hearings_completed":  hearings_completed,
         "complaint_types":     complaint_types,
+        "stepper_nodes":       stepper_nodes,
+        "complainee_contact":  complainee_contact,
     })
+
 
 def _complaint_contact_numbers(complaint):
     """
