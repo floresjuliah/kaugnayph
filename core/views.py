@@ -22,7 +22,7 @@ from core.utils import (
     generate_case_number,
     generate_certificate_number,
 )
-from datetime import date
+from datetime import date, timedelta
 import uuid
 from core.moderation import moderate_text, moderate_image
 from core.sla_utils import (
@@ -48,7 +48,9 @@ from .models import (
     FAQCategories,
     AvatarOptions, 
 )
- 
+
+from django.utils.dateparse import parse_datetime 
+
 from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, send_email_otp,
@@ -93,6 +95,10 @@ def filecomplaint(request):
     incident_date = None
     current_user = get_current_user(request)
 
+    today = date.today()
+    min_incident_date = today - timedelta(days=7)
+    max_incident_date = today
+
     def complaint_context(captcha_form=None):
         initial_data = {
             "firstname": current_user.firstname,
@@ -103,6 +109,8 @@ def filecomplaint(request):
         return {
             "initial_data": initial_data,
             "captcha_form": captcha_form or CaptchaOnlyForm(),
+            "min_incident_date": min_incident_date,
+            "max_incident_date": max_incident_date,
         }
 
     if request.method == "POST":
@@ -115,7 +123,7 @@ def filecomplaint(request):
                 complaint_context(captcha_form)
             )
 
-        incident_date       = request.POST.get("incident_date")
+        incident_date_raw    = request.POST.get("incident_date", "").strip()
         complainee          = request.POST.get("complainee", "").strip()
         complainee_address  = request.POST.get("complainee_address", "").strip()
         jurisdiction_barangay = request.POST.get("jurisdiction_barangay", "").strip()
@@ -135,9 +143,26 @@ def filecomplaint(request):
             messages.error(request, "Description is required.")
             return render(request, "filecomplaint.html", complaint_context())
 
-        if incident_date and incident_date > str(date.today()):
-            messages.error(request, "Incident date cannot be in the future.")
-            return render(request, "filecomplaint.html", complaint_context())
+        incident_date = None
+        if incident_date_raw:
+            try:
+                incident_date = date.fromisoformat(incident_date_raw)
+            except ValueError:
+                messages.error(request, "Invalid incident date format.")
+                return render(request, "filecomplaint.html", complaint_context())
+
+            if incident_date > max_incident_date:
+                messages.error(request, "Incident date cannot be in the future.")
+                return render(request, "filecomplaint.html", complaint_context())
+
+            if incident_date < min_incident_date:
+                messages.error(
+                    request,
+                    f"Incident date cannot be earlier than "
+                    f"{min_incident_date.strftime('%B %d, %Y')}. "
+                    "For older incidents, please visit the barangay office directly."
+                )
+                return render(request, "filecomplaint.html", complaint_context())
 
         # FILE VALIDATION & SAVE
         file_path = None
@@ -173,7 +198,7 @@ def filecomplaint(request):
             jurisdiction_barangay=jurisdiction_barangay or None,
             title=title,
             description=description,
-            incident_date=incident_date or None,
+            incident_date=incident_date,
             file_path=file_path,
             status="Submitted",
             is_flagged=is_flagged,
@@ -1269,7 +1294,7 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     if user_type == "Admin":
         return redirect("admin_login")
-    return redirect("login")
+    return redirect("landing")
 
 
 # ADMIN — CREATE STAFF (Chairman only)
@@ -2448,85 +2473,6 @@ def case_records_view(request):
     })
 
 
-# Stepper stage mapping for case_detail_view
-
-# Maps every Complaints.status value to one of 7 stepper nodes used in
-# the case detail UI: submitted, chairman_review, decision, mediation,
-# hearing, certificate, closed.
-#
-# "decision" has no distinct status of its own in the current single
-# classify+record flow (mark_recorded jumps straight from
-# "For Chairman Review"/"Submitted" to "Ongoing"), so it is treated as
-# already-passed the moment status is anything past "For Chairman Review".
-STEPPER_STAGE_MAP = {
-    "Submitted": "submitted",
-    "For Chairman Review": "chairman_review",
-    "Ongoing": "decision",
-    "Referred to Proper Barangay": "decision",
-    "Mediation Scheduled": "mediation",
-    "Mediation Ongoing": "mediation",
-    "For 1st Hearing": "hearing",
-    "For 2nd Hearing": "hearing",
-    "For 3rd Hearing": "hearing",
-    "Non-Cooperative Party": "hearing",
-    "Eligible for Certificate to File Action": "certificate",
-    "Certificate Issued": "closed",
-    "Settled": "closed",
-    "Resolved": "closed",
-    "Resolved Outside Barangay": "closed",
-    "Settled in Court": "closed",
-    "Under Review": "decision",
-    "Dismissed": "closed",
-}
-
-STEPPER_ORDER = ["submitted", "chairman_review", "decision", "mediation", "hearing", "certificate", "closed"]
-
-STEPPER_LABELS = {
-    "submitted": "Submitted",
-    "chairman_review": "Chairman Review",
-    "decision": "Decision",
-    "mediation": "Mediation",
-    "hearing": "Hearing (1-3)",
-    "certificate": "Certificate",
-    "closed": "Closed",
-}
-
-
-def _build_stepper(complaint):
-    """
-    Returns a list of dicts describing each stepper node's state
-    (complete / current / pending) for the case detail template.
-
-    Special case: 'Dismissed' and 'Referred to Proper Barangay' short-circuit
-    the normal mediation/hearing/certificate nodes since those paths were
-    never entered -- they're marked pending rather than complete to avoid
-    implying the case went through steps it didn't.
-    """
-    current_stage = STEPPER_STAGE_MAP.get(complaint.status, "submitted")
-    current_index = STEPPER_ORDER.index(current_stage)
-
-    skipped_path = complaint.status in ("Dismissed", "Referred to Proper Barangay")
-
-    nodes = []
-    for i, stage_key in enumerate(STEPPER_ORDER):
-        if skipped_path and stage_key not in ("submitted", "chairman_review", "decision", "closed"):
-            state = "skipped"
-        elif i < current_index:
-            state = "complete"
-        elif i == current_index:
-            state = "current"
-        else:
-            state = "pending"
-
-        nodes.append({
-            "key": stage_key,
-            "label": STEPPER_LABELS[stage_key],
-            "state": state,
-        })
-
-    return nodes
-
-
 # DOCUMENT REQUEST FOR RESIDENT 
 @login_required
 @resident_required
@@ -3119,11 +3065,18 @@ def case_detail_view(request, complaint_id):
 
         # STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
-            hearing_date = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
             lupon_user_id = request.POST.get("lupon_user_id", "").strip()
 
-            if not hearing_date:
+            if not hearing_date_raw:
                 messages.error(request, "Please provide a mediation date/time.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing_date = parse_datetime(hearing_date_raw)
+            if hearing_date and timezone.is_naive(hearing_date):
+                hearing_date = timezone.make_aware(hearing_date)
+            if not hearing_date:
+                messages.error(request, "Invalid mediation date/time format.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             mediation_level = HearingLevel.objects.filter(level_type="Mediation").first()
@@ -3207,15 +3160,30 @@ def case_detail_view(request, complaint_id):
         # STEP 6: Schedule a numbered hearing (1, 2, or 3)
         elif action == "schedule_hearing":
             hearing_number = request.POST.get("hearing_number", "").strip()  # "1", "2", "3"
-            hearing_date = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
 
-            level_name = f"Hearing {hearing_number}"
+            # The lookup table stores full descriptive labels rather than
+            # plain "Hearing N", so map the number to the exact level_type
+            # text instead of building the string from hearing_number.
+            HEARING_LEVEL_BY_NUMBER = {
+                "1": "1st Hearing - Lupong Tagapamayapa (Chairman Present)",
+                "2": "2nd Hearing - Lupong Tagapamayapa (Same Lupons, Chairman Present)",
+                "3": "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)",
+            }
             status_label = f"For {hearing_number}{'st' if hearing_number == '1' else 'nd' if hearing_number == '2' else 'rd'} Hearing"
 
-            if not hearing_date or hearing_number not in ("1", "2", "3"):
+            if not hearing_date_raw or hearing_number not in ("1", "2", "3"):
                 messages.error(request, "Please provide a valid hearing number (1-3) and date.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
+            hearing_date = parse_datetime(hearing_date_raw)
+            if hearing_date and timezone.is_naive(hearing_date):
+                hearing_date = timezone.make_aware(hearing_date)
+            if not hearing_date:
+                messages.error(request, "Invalid hearing date/time format.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            level_name = HEARING_LEVEL_BY_NUMBER[hearing_number]
             hearing_level = HearingLevel.objects.filter(level_type=level_name).first()
             scheduled_status = HearingStatus.objects.filter(statustype="Scheduled").first()
 
@@ -3330,7 +3298,7 @@ def case_detail_view(request, complaint_id):
                     for party_contact in _complaint_contact_numbers(complaint):
                         send_sms(party_contact, sms_body, sent_by=current_admin)
 
-            elif hearing.hearing_level.level_type == "Hearing 3":
+            elif hearing.hearing_level.level_type == "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)":
                 # Final Outcome After Hearing 3, no settlement
                 apply_status_change(
                     complaint, "Eligible for Certificate to File Action", current_admin,
@@ -3426,7 +3394,7 @@ def case_detail_view(request, complaint_id):
         # Existing hearing level / official management
         elif action == "update_hearing":
             hearing_level_id = request.POST.get("hearing_level_id", "").strip()
-            hearing_date     = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
             hearing_status_id = request.POST.get("hearing_status_id", "").strip()
 
             if not hearing_level_id:
@@ -3439,6 +3407,15 @@ def case_detail_view(request, complaint_id):
             except (HearingLevel.DoesNotExist, HearingStatus.DoesNotExist):
                 messages.error(request, "Invalid hearing level or status.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing_date = None
+            if hearing_date_raw:
+                hearing_date = parse_datetime(hearing_date_raw)
+                if hearing_date and timezone.is_naive(hearing_date):
+                    hearing_date = timezone.make_aware(hearing_date)
+                if not hearing_date:
+                    messages.error(request, "Invalid hearing date/time format.")
+                    return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             if existing_hearing:
                 existing_hearing.hearing_level = hearing_level
@@ -3552,8 +3529,6 @@ def case_detail_view(request, complaint_id):
 
         return redirect("case_detail", complaint_id=complaint.complaintsid)
 
-    stepper_nodes = _build_stepper(complaint)
-
     # Complainee has no linked Users FK (free-text only on Complaints model),
     # so there is no contact number to display -- the detail template shows
     # an explicit "Not on file" fallback instead of leaving the field blank.
@@ -3574,7 +3549,6 @@ def case_detail_view(request, complaint_id):
         "certificate":         certificate,
         "hearings_completed":  hearings_completed,
         "complaint_types":     complaint_types,
-        "stepper_nodes":       stepper_nodes,
         "complainee_contact":  complainee_contact,
     })
 

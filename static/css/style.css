@@ -916,6 +916,7 @@ section {
 .notice-card {
   padding: 18px;
   border: 1.5px solid #e8ecf4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .notice-header {
@@ -934,8 +935,6 @@ section {
   color: var(--navy);
   
 }
-
-
 
 .badge {
   font-size: 0.72rem;
@@ -1346,7 +1345,7 @@ footer ul li a:hover {
 .ann-card {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(27,44,107,0.09);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 22px 24px 16px;
   transition: box-shadow 0.2s, transform 0.2s;
   border: 1.5px solid transparent;
@@ -1410,6 +1409,7 @@ footer ul li a:hover {
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .badge-general {
@@ -3781,10 +3781,15 @@ footer ul li a:hover {
 
 .avatar-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
+
+.avatar-option--none {
+  grid-column: 2;
+}
+
 
 .avatar-option {
   position: relative;
@@ -3984,4 +3989,37 @@ footer ul li a:hover {
   .about-mv__grid {
     grid-template-columns: 1fr;
   }
+}
+
+.language-menu-item {
+  padding: 0 18px;
+}
+
+.language-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.language-toggle {
+  display: flex;
+  gap: 5px;
+}
+
+.lang-btn {
+  border: 1px solid #172964;
+  background: #fff;
+  color: #172964;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: #172964;
+  color: #fff;
 }

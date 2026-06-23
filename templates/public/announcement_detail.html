@@ -5,7 +5,7 @@
 <div class="ann-detail-page">
 
   <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-    <a href="{% url 'announcementslist' %}" class="btn btn-secondary-detail">
+    <a href="{% url 'announcementslist' %}" class="btn btn-secondary-detail" title="Back to Announcements">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M15.0001 19.9201L8.48009 13.4001C7.71009 12.6301 7.71009 11.3701 8.48009 10.6001L15.0001 4.08008" stroke="#292D32" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -32,7 +32,10 @@
           Barangay Admin
         {% endif %}
       </span>
-      <span class="ann-time">{{ announcement.created_at|timesince }} ago</span>
+      <span class="ann-time">
+        {{ announcement.created_at|timesince }}
+        <span data-en="ago" data-tl="nakalipas">ago</span>
+      </span>
     </div>
   </div>
 
@@ -50,8 +53,9 @@
 
     <!-- Footer -->
     <div class="ann-card-footer">
-      <button class="ann-action-btn" title="Feedback"
-        onclick="{% if is_resident %}openFeedback(){% else %}alert('Please log in as a resident to leave feedback.'){% endif %}">
+      <button class="ann-action-btn"
+              title="Feedback"
+              onclick="{% if is_resident %}openFeedback(){% else %}showFeedbackLoginAlert(){% endif %}">
         <svg width="16" height="16" fill="none"
              stroke="currentColor" stroke-width="2"
              viewBox="0 0 24 24">
@@ -77,44 +81,87 @@
 <div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
   <div class="ann-modal">
 
-    <h3>How helpful is this announcement?</h3>
-    <p class="ann-modal-sub">( Not Helpful at all → Very Helpful )</p>
+    <h3 data-en="How helpful is this announcement?"
+        data-tl="Gaano nakatulong ang anunsyong ito?">
+      How helpful is this announcement?
+    </h3>
+
+    <p class="ann-modal-sub"
+       data-en="( Not Helpful at all → Very Helpful )"
+       data-tl="( Hindi Nakatulong → Lubhang Nakatulong )">
+      ( Not Helpful at all → Very Helpful )
+    </p>
 
     <div class="ann-emoji-row" id="emojiRow">
       <button class="emoji-btn" onclick="selectEmoji(this, 1)" title="Not Helpful at all">
         <img src="{% static 'images/emoji-1.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 2)" title="Slightly Helpful">
         <img src="{% static 'images/emoji-2.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 3)" title="Somewhat Helpful">
         <img src="{% static 'images/emoji-3.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 4)" title="Helpful">
         <img src="{% static 'images/emoji-4.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 5)" title="Very Helpful">
         <img src="{% static 'images/emoji-5.png' %}" width="50" height="50" />
       </button>
     </div>
 
     <div id="thankYouMsg" style="display:none; text-align:center; padding: 16px 0;">
-      <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Thank you for your feedback!</p>
-      <p style="font-size: 0.85rem; color: var(--muted);">Your response has been recorded.</p>
+      <p data-en="Thank you for your feedback!"
+         data-tl="Salamat sa iyong feedback!"
+         style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">
+        Thank you for your feedback!
+      </p>
+
+      <p data-en="Your response has been recorded."
+         data-tl="Naitala na ang iyong tugon."
+         style="font-size: 0.85rem; color: var(--muted);">
+        Your response has been recorded.
+      </p>
     </div>
 
     <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
-    <button class="ann-modal-close" onclick="closeFeedback()">Close</button>
+
+    <button class="ann-modal-close"
+            onclick="closeFeedback()"
+            data-en="Close"
+            data-tl="Isara">
+      Close
+    </button>
 
   </div>
 </div>
 
 <script>
   const currentAnnouncementId = {{ announcement.announcement_id }};
+
+  function getCurrentLanguage() {
+    return localStorage.getItem("kaugnay_lang") || "en";
+  }
+
+  function translatedAlert(enText, tlText) {
+    const lang = getCurrentLanguage();
+    alert(lang === "tl" ? tlText : enText);
+  }
+
+  function showFeedbackLoginAlert() {
+    translatedAlert(
+      "Please log in as a resident to leave feedback.",
+      "Mangyaring mag-login bilang residente upang makapagbigay ng feedback."
+    );
+  }
 
   function openFeedback() {
     document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
@@ -149,28 +196,40 @@
       if (data.success) {
         document.getElementById('emojiRow').style.display = 'none';
         document.getElementById('thankYouMsg').style.display = 'block';
+
         setTimeout(() => {
           closeFeedback();
           document.getElementById('emojiRow').style.display = 'flex';
           document.getElementById('thankYouMsg').style.display = 'none';
         }, 2000);
       } else {
-        alert(data.error || 'Something went wrong. Please try again.');
+        translatedAlert(
+          data.error || "Something went wrong. Please try again.",
+          data.error || "May naging problema. Pakisubukan muli."
+        );
       }
     })
-    .catch(() => alert('Network error. Please try again.'));
+    .catch(() => {
+      translatedAlert(
+        "Network error. Please try again.",
+        "Network error. Pakisubukan muli."
+      );
+    });
   }
 
   function getCookie(name) {
     let value = null;
+
     if (document.cookie) {
       document.cookie.split(';').forEach(function(c) {
         c = c.trim();
+
         if (c.startsWith(name + '=')) {
           value = decodeURIComponent(c.substring(name.length + 1));
         }
       });
     }
+
     return value;
   }
 </script>

@@ -6,9 +6,15 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Track Submissions</h1>
+    <h1 data-en="Track Submissions"
+        data-tl="Subaybayan ang Mga Isinumite">
+      Track Submissions
+    </h1>
+
     <div class="ann-hero-divider"></div>
-    <p>
+
+    <p data-en="For submitted complaints, requests, or registrations, please use this feature to track their status and stay updated on their progress."
+       data-tl="Para sa mga naisumiteng reklamo at request, gamitin ang feature na ito upang subaybayan ang kanilang status at progreso.">
       For submitted complaints, requests, or registrations, please use this feature to track their
       status and stay updated on their progress.
     </p>
@@ -18,7 +24,10 @@
 <section class="track-section">
   <div class="track-container">
 
-    <h2>My Submissions</h2>
+    <h2 data-en="My Submissions"
+        data-tl="Aking Mga Isinumite">
+      My Submissions
+    </h2>
 
     {% if messages %}
       {% for message in messages %}
@@ -29,29 +38,79 @@
     <div class="track-layout">
 
       <div class="track-sidebar">
-        <h3>Case Overview</h3>
-        <a href="#complaints" onclick="event.preventDefault(); showSection('complaints')" class="sidebar-link active">Complaints</a>
-        <a href="#documents" onclick="event.preventDefault(); showSection('documents')" class="sidebar-link">Documents / Requirements</a>
+        <h3 data-en="Case Overview"
+            data-tl="Buod ng mga Kaso">
+          Case Overview
+        </h3>
+
+        <a href="#complaints"
+           onclick="event.preventDefault(); showSection('complaints')"
+           class="sidebar-link active"
+           data-en="Complaints"
+           data-tl="Mga Reklamo">
+          Complaints
+        </a>
+
+        <a href="#documents"
+           onclick="event.preventDefault(); showSection('documents')"
+           class="sidebar-link"
+           data-en="Documents / Requirements"
+           data-tl="Mga Dokumento / Requirements">
+          Documents / Requirements
+        </a>
       </div>
 
       <div class="track-main">
 
         <div class="track-card" id="complaints">
-          <h3 class="track-card__title">Complaints</h3>
+          <h3 class="track-card__title"
+              data-en="Complaints"
+              data-tl="Mga Reklamo">
+            Complaints
+          </h3>
 
           {% for complaint in complaints %}
             <div class="submission-card">
               <h4>{{ complaint.case_number|default:complaint.title }}</h4>
-              <p>Status: <span class="status-badge">{{ complaint.status }}</span></p>
+
+              <p>
+                <span data-en="Status:" data-tl="Status:">Status:</span>
+                <span class="status-badge status-text">{{ complaint.status }}</span>
+              </p>
 
               {% with hearing_info=hearing_by_complaint|get_item:complaint.complaintsid %}
               {% if hearing_info %}
               <div class="hearing-summary">
-                <p><strong>Hearing Level:</strong> {{ hearing_info.latest_hearing.hearing_level.level_type }}</p>
-                <p><strong>Hearing Status:</strong> {{ hearing_info.latest_hearing.status.statustype }}</p>
-                <p><strong>Schedule:</strong> {{ hearing_info.latest_hearing.hearing_date|date:"M d, Y g:i A" }}</p>
+                <p>
+                  <strong data-en="Hearing Level:"
+                          data-tl="Antas ng Pagdinig:">
+                    Hearing Level:
+                  </strong>
+                  {{ hearing_info.latest_hearing.hearing_level.level_type }}
+                </p>
+
+                <p>
+                  <strong data-en="Hearing Status:"
+                          data-tl="Status ng Pagdinig:">
+                    Hearing Status:
+                  </strong>
+                  {{ hearing_info.latest_hearing.status.statustype }}
+                </p>
+
+                <p>
+                  <strong data-en="Schedule:"
+                          data-tl="Iskedyul:">
+                    Schedule:
+                  </strong>
+                  {{ hearing_info.latest_hearing.hearing_date|date:"M d, Y g:i A" }}
+                </p>
+
                 {% if hearing_info.officials %}
-                <p><strong>Assigned Official(s):</strong>
+                <p>
+                  <strong data-en="Assigned Official(s):"
+                          data-tl="Itinalagang Opisyal:">
+                    Assigned Official(s):
+                  </strong>
                   {% for official in hearing_info.officials %}
                     {{ official.user_officials.firstname }} {{ official.user_officials.lastname }}{% if not forloop.last %}, {% endif %}
                   {% endfor %}
@@ -61,25 +120,56 @@
               {% endif %}
               {% endwith %}
 
-              <a href="{% url 'complaint_timeline' complaint.complaintsid %}">View Full Timeline</a>
+              <a href="{% url 'complaint_timeline' complaint.complaintsid %}"
+                 data-en="View Full Timeline"
+                 data-tl="Tingnan ang Buong Timeline">
+                View Full Timeline
+              </a>
             </div>
           {% empty %}
-            <p class="track-empty">No complaints filed yet.</p>
+            <p class="track-empty"
+               data-en="No complaints filed yet."
+               data-tl="Wala pang naisusumiteng reklamo.">
+              No complaints filed yet.
+            </p>
           {% endfor %}
 
         </div>
 
         <div class="track-card" id="documents" style="display:none">
-          <h3 class="track-card__title">Documents / Requirements</h3>
+          <h3 class="track-card__title"
+              data-en="Documents / Requirements"
+              data-tl="Mga Dokumento / Requirements">
+            Documents / Requirements
+          </h3>
 
           <table class="track-table">
             <thead>
               <tr>
-                <th>Request ID</th>
-                <th>Document Type</th>
-                <th>Date Submitted</th>
-                <th>Status</th>
-                <th>Remarks</th>
+                <th data-en="Request ID"
+                    data-tl="Request ID">
+                  Request ID
+                </th>
+
+                <th data-en="Document Type"
+                    data-tl="Uri ng Dokumento">
+                  Document Type
+                </th>
+
+                <th data-en="Date Submitted"
+                    data-tl="Petsa ng Pagsumite">
+                  Date Submitted
+                </th>
+
+                <th data-en="Status"
+                    data-tl="Status">
+                  Status
+                </th>
+
+                <th data-en="Remarks"
+                    data-tl="Mga Tala">
+                  Remarks
+                </th>
               </tr>
             </thead>
 
@@ -93,7 +183,7 @@
                   <td>{{ doc.requested_at|date:"M d, Y" }}</td>
 
                   <td>
-                    <span class="track-status
+                    <span class="track-status status-text
                       {% if doc.status == 'Pending' %}pending
                       {% elif doc.status == 'Processing' %}under-review
                       {% elif doc.status == 'Ready' %}scheduled
@@ -109,13 +199,20 @@
                     {% if doc.admin_remarks %}
                       {{ doc.admin_remarks }}
                     {% else %}
-                      <span style="color:#777;">No remarks yet</span>
+                      <span style="color:#777;"
+                            data-en="No remarks yet"
+                            data-tl="Wala pang tala">
+                        No remarks yet
+                      </span>
                     {% endif %}
                   </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="track-empty">
+                  <td colspan="5"
+                      class="track-empty"
+                      data-en="No document requests found."
+                      data-tl="Walang document requests na nakita.">
                     No document requests found.
                   </td>
                 </tr>
@@ -131,6 +228,52 @@
 </section>
 
 <script>
+  const statusTranslations = {
+    "Pending": "Nakabinbin",
+    "Processing": "Pinoproseso",
+    "Ready": "Handa na",
+    "Released": "Na-release",
+    "Completed": "Nakumpleto",
+    "Rejected": "Tinanggihan",
+    "Under Review": "Sinusuri",
+    "Resolved": "Naresolba",
+    "Dismissed": "Na-dismiss",
+    "Ongoing": "Kasalukuyang Pinoproseso",
+    "Mediation Scheduled": "May Naka-schedule na Mediation",
+    "Settled": "Naayos na",
+    "For 1st Hearing": "Para sa Unang Pagdinig",
+    "For 2nd Hearing": "Para sa Ikalawang Pagdinig",
+    "For 3rd Hearing": "Para sa Ikatlong Pagdinig",
+    "Rejected": "Tinanggihan"
+  };
+
+  function translateStatuses() {
+    const lang = localStorage.getItem("kaugnay_lang") || "en";
+
+    document.querySelectorAll(".status-text").forEach(statusEl => {
+      if (!statusEl.dataset.originalStatus) {
+        statusEl.dataset.originalStatus = statusEl.textContent.trim();
+      }
+
+      const originalStatus = statusEl.dataset.originalStatus;
+
+      if (lang === "tl" && statusTranslations[originalStatus]) {
+        statusEl.textContent = statusTranslations[originalStatus];
+      } else {
+        statusEl.textContent = originalStatus;
+      }
+    });
+  }
+
+  const originalSetLanguage = window.setLanguage;
+
+  if (typeof originalSetLanguage === "function") {
+    window.setLanguage = function(lang) {
+      originalSetLanguage(lang);
+      translateStatuses();
+    };
+  }
+
   function showSection(id) {
     document.querySelectorAll('.track-card').forEach(card => {
       card.style.display = 'none';
@@ -143,7 +286,13 @@
     });
 
     document.querySelector(`[href="#${id}"]`).classList.add('active');
+
+    translateStatuses();
   }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    translateStatuses();
+  });
 </script>
 
 {% endblock %}

@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from .models import ComplaintUpdates, AuditLogs
 
 
@@ -48,15 +49,47 @@ SMS_COPY = {
 }
 
 
+def _coerce_to_datetime(value):
+    """
+    Accepts a datetime, a date, or a string (e.g. from request.POST or an
+    HTML datetime-local input) and returns a datetime object, or None if it
+    can't be parsed. This guards build_sms_for_status against ever calling
+    .strftime() on a plain string.
+    """
+    if value is None or value == "":
+        return None
+    if hasattr(value, "strftime"):
+        return value
+
+    if isinstance(value, str):
+        # datetime-local inputs send "YYYY-MM-DDTHH:MM" with no seconds;
+        # parse_datetime handles that, but fall back to a manual parse too.
+        parsed = parse_datetime(value)
+        if parsed is None:
+            try:
+                parsed = timezone.datetime.strptime(value, "%Y-%m-%dT%H:%M")
+            except ValueError:
+                logger.warning("Could not parse hearing_date string: %r", value)
+                return None
+        if parsed and timezone.is_naive(parsed):
+            parsed = timezone.make_aware(parsed)
+        return parsed
+
+    return None
+
+
 def build_sms_for_status(status, case_number, jurisdiction=None, hearing_date=None):
     """Returns the SMS body for a status, or None if no SMS should be sent."""
     template = SMS_COPY.get(status)
     if not template:
         return None
+
+    parsed_date = _coerce_to_datetime(hearing_date)
+
     return template.format(
         case_number=case_number,
         jurisdiction=jurisdiction or "the proper barangay",
-        hearing_date=hearing_date.strftime("%B %d, %Y at %I:%M %p") if hearing_date else "a date to be announced",
+        hearing_date=parsed_date.strftime("%B %d, %Y at %I:%M %p") if parsed_date else "a date to be announced",
     )
 
 def _complaint_contact_numbers(complaint):

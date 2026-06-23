@@ -4,116 +4,9 @@
 
 {% block admin_content %}
 
-<style>
-    .case-page { padding: 24px 28px; font-family: 'Segoe UI', Arial, sans-serif; }
-    .case-back-link { color: #2563eb; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 14px; }
-
-    .case-detail-header {
-        display: flex; justify-content: space-between; align-items: flex-start;
-        margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
-    }
-    .case-detail-title {
-        font-size: 24px; font-weight: 700; color: #111827; margin: 0;
-        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-    .case-status-pill, .case-status-pill-inline {
-        font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px;
-        background: #e5e7eb; color: #374151; vertical-align: middle;
-    }
-    .status-pending      { background: #fef3c7; color: #92400e; }
-    .status-review       { background: #fef3c7; color: #92400e; }
-    .status-ongoing      { background: #dbeafe; color: #1e40af; }
-    .status-eligible     { background: #fed7aa; color: #9a3412; }
-    .status-resolved     { background: #d1fae5; color: #065f46; }
-    .status-referred     { background: #e5e7eb; color: #374151; }
-    .status-dismissed    { background: #fee2e2; color: #991b1b; }
-
-    .case-detail-actions button, .case-detail-actions select {
-        padding: 9px 16px; border-radius: 7px; font-size: 13px; cursor: pointer; margin-left: 6px;
-    }
-    .btn-primary   { background: #2563eb; color: #fff; border: none; }
-    .btn-success   { background: #137333; color: #fff; border: none; }
-    .btn-outline-danger { background: #fff; color: #dc2626; border: 1px solid #dc2626; }
-    .btn-outline   { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
-    .btn-primary-sm { background: #2563eb; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-    .case-inline-select { padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; margin-right: 6px; }
-
-    .case-table-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; }
-    .case-stepper-card { padding: 24px 18px; margin-bottom: 20px; }
-
-    .case-stepper { display: flex; align-items: flex-start; }
-    .stepper-node { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; min-width: 90px; }
-    .stepper-circle {
-        width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
-        justify-content: center; font-size: 14px; font-weight: 700; margin-bottom: 8px;
-        background: #e5e7eb; color: #9ca3af;
-    }
-    .stepper-complete .stepper-circle { background: #137333; color: #fff; }
-    .stepper-current .stepper-circle { background: #f59e0b; color: #fff; }
-    .stepper-skipped .stepper-circle { background: #e5e7eb; color: #9ca3af; }
-    .stepper-label { font-size: 13px; font-weight: 600; color: #111827; }
-    .stepper-sublabel { font-size: 11px; color: #9ca3af; margin-top: 2px; }
-    .stepper-current .stepper-sublabel { color: #f59e0b; font-weight: 600; }
-    .stepper-connector { flex: 0.4; height: 2px; background: #e5e7eb; margin-top: 17px; }
-
-    .case-info-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px;
-    }
-    .case-info-card {
-        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px;
-    }
-    .case-info-card h3 { margin: 0 0 12px; font-size: 14px; color: #111827; }
-    .case-info-card p { margin: 0 0 8px; font-size: 13px; color: #374151; line-height: 1.5; }
-
-    .case-details-timeline-row {
-        display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin-bottom: 18px;
-    }
-    .case-description-box {
-        border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; font-size: 13px;
-        line-height: 1.6; color: #374151; background: #fafafa;
-    }
-
-    .timeline { display: flex; flex-direction: column; gap: 14px; }
-    .timeline-entry { border-left: 2px solid #e5e7eb; padding-left: 12px; position: relative; }
-    .timeline-entry::before {
-        content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px;
-        border-radius: 50%; background: #2563eb;
-    }
-    .timeline-date { display: block; font-size: 11px; color: #9ca3af; }
-    .timeline-status { display: block; font-size: 13px; font-weight: 600; color: #111827; margin-top: 2px; }
-    .timeline-remarks { font-size: 12px; color: #6b7280; margin: 4px 0; }
-    .timeline-by { font-size: 11px; color: #9ca3af; }
-
-    .case-action-form {
-        display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-        padding: 10px 0; border-bottom: 1px solid #f3f4f6; margin-bottom: 10px;
-    }
-    .case-action-form:last-child { border-bottom: none; }
-    .case-action-form label { font-size: 13px; font-weight: 600; color: #374151; min-width: 160px; }
-    .case-action-form input, .case-action-form select {
-        padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
-    }
-    .case-advanced-toggle { margin-top: 10px; }
-    .case-advanced-toggle summary { cursor: pointer; font-size: 13px; color: #6b7280; margin-bottom: 8px; }
-
-    .case-bottom-row {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
-    }
-    .case-card-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .case-card-header-row h3 { margin: 0; font-size: 14px; }
-    .case-note-form, .hearing-summary-row, .official-row { font-size: 13px; }
-    .case-note-form { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-    .case-note-form input[type="text"], .case-note-form select { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
-    .muted { color: #9ca3af; font-size: 13px; }
-    .link-danger { background: none; border: none; color: #dc2626; cursor: pointer; margin-left: 8px; font-size: 12px; }
-    .hearing-summary-row, .official-row { margin: 0 0 8px; color: #374151; }
-
-    @media (max-width: 1100px) {
-        .case-info-grid { grid-template-columns: repeat(2, 1fr); }
-        .case-details-timeline-row { grid-template-columns: 1fr; }
-        .case-bottom-row { grid-template-columns: 1fr; }
-    }
-</style>
+{% load static %}
+<link rel="stylesheet"
+href="{% static 'css/admin_case_detail.css' %}">
 
 <div class="case-page">
 
@@ -165,35 +58,12 @@
     </div>
 </div>
 
-<!-- STEPPER -->
-<div class="case-table-card case-stepper-card">
-    <div class="case-stepper">
-        {% for node in stepper_nodes %}
-        <div class="stepper-node stepper-{{ node.state }}">
-            <div class="stepper-circle">
-                {% if node.state == 'complete' %}✓
-                {% elif node.state == 'current' %}●
-                {% elif node.state == 'skipped' %}—
-                {% else %}○{% endif %}
-            </div>
-            <div class="stepper-label">{{ node.label }}</div>
-            <div class="stepper-sublabel">
-                {% if node.key == 'submitted' %}{{ complaint.dateadded|date:"M d, Y" }}
-                {% elif node.state == 'current' %}Current
-                {% elif node.state == 'skipped' %}Skipped
-                {% else %}Pending{% endif %}
-            </div>
-        </div>
-        {% if not forloop.last %}<div class="stepper-connector"></div>{% endif %}
-        {% endfor %}
-    </div>
-</div>
 
 <!-- INFO CARD GRID -->
 <div class="case-info-grid">
 
     <div class="case-info-card">
-        <h3>Case Information</h3>
+        <h3 style="font-weight: bold;">Case Information</h3>
         <p><strong>Case Number:</strong> {{ case_id }}</p>
         <p><strong>Complaint Type:</strong> {{ complaint.complaint_type.type|default:"Unclassified" }}</p>
         <p><strong>Title:</strong> {{ complaint.title }}</p>
@@ -205,38 +75,28 @@
         <p><strong>Handled By:</strong> {{ complaint.handled_by.firstname|default:"" }} {{ complaint.handled_by.lastname|default:"Unassigned" }}</p>
     </div>
 
-    <div class="case-info-card">
-        <h3>👤 Complainant</h3>
-        <p><strong>Name:</strong> {{ complaint.complainant_user.firstname|default:"" }} {{ complaint.complainant_user.lastname|default:"—" }}</p>
-        <p><strong>Address:</strong> {{ complaint.complainant_user.address|default:"—" }}</p>
-        <p><strong>Contact:</strong> {{ complaint.complainant_user.contactno|default:"—" }}</p>
-    </div>
+    <div class="case-info-card parties-card">
+        <div class="party-section">
+            <h3 style="font-weight: bold;">Complainant</h3>
+            <p><strong>Name:</strong> {{ complaint.complainant_user.firstname|default:"" }} {{ complaint.complainant_user.lastname|default:"—" }}</p>
+            <p><strong>Address:</strong> {{ complaint.complainant_user.address|default:"—" }}</p>
+            <p><strong>Contact:</strong> {{ complaint.complainant_user.contactno|default:"—" }}</p>
+        </div>
 
-    <div class="case-info-card">
-        <h3>👤 Complainee</h3>
-        <p><strong>Name:</strong> {{ complaint.complainee|default:"—" }}</p>
-        <p><strong>Address:</strong> {{ complaint.complainee_address|default:"—" }}</p>
-        <p><strong>Contact:</strong> {{ complainee_contact }}</p>
+        <div class="party-section">
+            <h3 style="font-weight: bold;">Complainee</h3>
+            <p><strong>Name:</strong> {{ complaint.complainee|default:"—" }}</p>
+            <p><strong>Address:</strong> {{ complaint.complainee_address|default:"—" }}</p>
+            <p><strong>Contact:</strong> {{ complainee_contact }}</p>
+        </div>
     </div>
-
-    <div class="case-info-card">
-        <h3>Case Status &amp; Actions</h3>
-        <p><strong>Current Status:</strong> <span class="case-status-pill-inline">{{ complaint.status }}</span></p>
-        <p><strong>Status Since:</strong>
-            {% with last_update=complaint_updates.first %}
-                {{ last_update.updated_at|date:"F d, Y h:i A"|default:complaint.dateadded }}
-            {% endwith %}
-        </p>
-        <p><strong>Flagged:</strong> {% if complaint.is_flagged %}Yes — {{ complaint.flagged_reason }}{% else %}No{% endif %}</p>
-    </div>
-
 </div>
 
 <!-- DETAILS + TIMELINE -->
 <div class="case-details-timeline-row">
 
     <div class="case-info-card case-details-card">
-        <h3>Complaint Details</h3>
+        <h3 style="font-weight: bold;">Complaint Details</h3>
         <p><strong>Description:</strong></p>
         <div class="case-description-box">{{ complaint.description }}</div>
 
@@ -245,13 +105,15 @@
         {% if complaint.file_path %}
         <p style="margin-top: 15px;">
             <strong>Evidence:</strong>
-            <a href="/media/{{ complaint.file_path }}" target="_blank">View Attachment</a>
+            <a href="/media/{{ complaint.file_path }}">
+                View Attachment
+            </a>
         </p>
         {% endif %}
     </div>
 
     <div class="case-info-card case-timeline-card">
-        <h3>Case Timeline</h3>
+        <h3 style="font-weight: bold;">Case Timeline</h3>
         <div class="timeline">
             {% for update in complaint_updates %}
             <div class="timeline-entry">
@@ -270,7 +132,7 @@
 
 <!-- HEARING / DECISION ACTION PANEL -->
 <div class="case-info-card" style="margin-bottom:20px;">
-    <h3>Hearing &amp; Process Actions</h3>
+    <h3 style="font-weight: bold;">Hearing &amp; Process Actions</h3>
 
     {% if complaint.status == "Ongoing" %}
         <form method="POST" class="case-action-form">
@@ -344,7 +206,7 @@
                 <option value="Refused">Refused</option>
             </select>
             <select name="respondent_attendance">
-                <option value="">Respondent Attendance</option>
+                <option value="">Complainee Attendance</option>
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Excused">Excused</option>
@@ -407,23 +269,6 @@
 
 <!-- BOTTOM ROW: Notes / Hearing Summary / Officials -->
 <div class="case-bottom-row">
-
-    <div class="case-info-card">
-        <div class="case-card-header-row">
-            <h3>Case Notes</h3>
-        </div>
-        <form method="POST" class="case-note-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_note">
-            <input type="text" name="note_text" placeholder="Add a note...">
-            <button type="submit" class="btn-primary-sm">Add Note</button>
-        </form>
-        {% with note_updates=complaint_updates %}
-            {% if not note_updates %}
-                <p class="muted">No notes yet.</p>
-            {% endif %}
-        {% endwith %}
-    </div>
 
     <div class="case-info-card">
         <div class="case-card-header-row">

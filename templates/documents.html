@@ -7,10 +7,14 @@
   <div class="hero-bg"></div>
 
   <div class="hero-content">
-    <h1>Documents & Requirements</h1>
+    <h1 data-en="Documents & Requirements"
+        data-tl="Mga Dokumento at Requirements">
+      Documents & Requirements
+    </h1>
     <div class="ann-hero-divider"></div>
 
-    <p>
+    <p data-en="For requests and applications, please refer to the list below for the required documents needed when availing barangay services."
+       data-tl="Para sa mga request at aplikasyon, tingnan ang listahan sa ibaba para sa mga kinakailangang dokumento sa pag-avail ng serbisyo ng barangay.">
       For requests and applications, please refer to the list below for the required
       documents needed when availing barangay services.
     </p>
@@ -21,8 +25,15 @@
   <div class="available-docs__container">
 
     <div class="available-docs__header">
-      <h2>Available Documents</h2>
-      <p>Select a document to view its requirements and submit a request</p>
+      <h2 data-en="Available Documents"
+          data-tl="Mga Dokumentong Maaaring I-request">
+        Available Documents
+      </h2>
+
+      <p data-en="Select a document to view its requirements and submit a request"
+         data-tl="Pumili ng dokumento upang makita ang mga requirement at magsumite ng request.">
+        Select a document to view its requirements and submit a request
+      </p>
     </div>
 
     <div class="available-docs__grid">
@@ -37,18 +48,26 @@
               type="button"
               class="doc-card__btn doc-card__btn--primary"
               onclick="openModal('{{ document_type.dtid }}', '{{ document_type.name|escapejs }}')"
+              data-en="Online Application"
+              data-tl="Online na Aplikasyon"
             >
               Online Application
             </button>
 
             <a href="{% static 'forms/placeholderfile.pdf' %}"
                class="doc-card__btn doc-card__btn--primary"
-               download>
+               download
+               data-en="Downloadable Form"
+               data-tl="Form na Maaaring I-download">
               Downloadable Form
             </a>
           </div>
 
-          <p class="doc-card__eta">Estimated Processing Time: 1–2 days</p>
+          <p class="doc-card__eta"
+             data-en="Estimated Processing Time: 1–2 days"
+             data-tl="Tinatayang Processing Time: 1–2 araw">
+            Estimated Processing Time: 1–2 days
+          </p>
         </div>
       {% endfor %}
 
@@ -56,12 +75,26 @@
 
     <div class="available-docs__notice">
       <span class="notice-icon">&#9432;</span>
-      <p>Please ensure all required documents are complete to lessen delays in processing your request.</p>
+      <p data-en="Please ensure all required documents are complete to lessen delays in processing your request."
+         data-tl="Siguraduhing kumpleto ang lahat ng kinakailangang dokumento upang maiwasan ang delay sa pagproseso ng iyong request.">
+        Please ensure all required documents are complete to lessen delays in processing your request.
+      </p>
     </div>
 
     <p class="available-docs__track">
-      Already submitted a request? You can track its status in the
-      <a href="{% url 'tracksub' %}">Track Submissions</a> section.
+      <span data-en="Already submitted a request? You can track its status in the"
+            data-tl="Nakapagsumite na ng request? Maaari mong subaybayan ang status nito sa">
+        Already submitted a request? You can track its status in the
+      </span>
+      <a href="{% url 'tracksub' %}"
+         data-en="Track Submissions"
+         data-tl="Subaybayan ang Mga Isinumite">
+        Track Submissions
+      </a>
+      <span data-en="section."
+            data-tl="section.">
+        section.
+      </span>
     </p>
 
   </div>
@@ -91,7 +124,12 @@
     </div>
 
     <div class="modal__footer">
-      <button type="submit" class="modal__submit">Submit</button>
+      <button type="submit"
+              class="modal__submit"
+              data-en="Submit"
+              data-tl="Isumite">
+        Submit
+      </button>
     </div>
 
   </form>
@@ -128,20 +166,28 @@
     ]
   };
 
+  function getCurrentLanguage() {
+    return localStorage.getItem("kaugnay_lang") || "en";
+  }
+
+  function translateText(enText, tlText) {
+    return getCurrentLanguage() === "tl" ? tlText : enText;
+  }
+
   async function openModal(documentTypeId, documentTitle) {
     document.getElementById('modal-title').textContent = documentTitle;
     document.getElementById('document_type_id').value = documentTypeId;
     document.getElementById('purpose-hidden').value = "";
 
     const body = document.getElementById('modal-body');
-    body.innerHTML = '<p>Loading form fields...</p>';
+    body.innerHTML = `<p>${translateText('Loading form fields...', 'Nilo-load ang form fields...')}</p>`;
 
     try {
       const response = await fetch(`/documents/fields/${documentTypeId}/`);
       const data = await response.json();
 
       if (!response.ok) {
-        body.innerHTML = '<p>Unable to load document fields.</p>';
+        body.innerHTML = `<p>${translateText('Unable to load document fields.', 'Hindi ma-load ang document fields.')}</p>`;
         return;
       }
 
@@ -172,7 +218,7 @@
 
           const defaultOption = document.createElement('option');
           defaultOption.value = '';
-          defaultOption.textContent = 'Select an option';
+          defaultOption.textContent = translateText('Select an option', 'Pumili ng option');
           input.appendChild(defaultOption);
 
           const options = selectOptions[field.field_label] || [];
@@ -248,7 +294,7 @@
       });
 
     } catch (error) {
-      body.innerHTML = '<p>Something went wrong while loading the form.</p>';
+      body.innerHTML = `<p>${translateText('Something went wrong while loading the form.', 'May naging problema habang nilo-load ang form.')}</p>`;
     }
 
     const overlay = document.getElementById('modal-overlay');

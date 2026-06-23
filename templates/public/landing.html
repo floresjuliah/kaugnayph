@@ -10,20 +10,25 @@
   <div class="hero-bg"></div>
 
   <div class="hero-content">
-    <h1>Stay Connected with<br>Barangay 761</h1>
+    <h1 data-en="Stay Connected with Barangay 761"
+        data-tl="Manatiling Konektado sa Barangay 761">
+      Stay Connected with<br>Barangay 761
+    </h1>
 
-    <p>
+    <p data-en="A faster, easier way to connect with Barangay 761 and access services."
+       data-tl="Mas mabilis at mas madaling paraan upang makipag-ugnayan sa Barangay 761 at magamit ang mga serbisyo nito.">
       A faster, easier way to connect with Barangay 761
       and access services.
     </p>
 
     <a href="{% url 'contactus' %}" class="btn-primary">
-      Contact Us
+      <span data-en="Contact Us" data-tl="Makipag-ugnayan">
+        Contact Us
+      </span>
 
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#ffffff" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-
     </a>
   </div>
 </section>
@@ -31,9 +36,15 @@
 <!-- ── ANNOUNCEMENTS ── -->
 <section class="announcements">
 
-  <h2 class="section-title">Latest Announcements</h2>
+  <h2 class="section-title"
+      data-en="Latest Announcements"
+      data-tl="Mga Pinakabagong Anunsyo">
+    Latest Announcements
+  </h2>
 
-  <p class="section-sub">
+  <p class="section-sub"
+     data-en="Latest updates, events, and important barangay notices."
+     data-tl="Mga pinakabagong balita, kaganapan, at mahahalagang paunawa ng barangay.">
     Latest updates, events, and important barangay notices.
   </p>
 
@@ -72,20 +83,28 @@
         </span>
 
         <a href="{% url 'announcementslist' %}" class="read-more">
-          Read More →
+          <span data-en="Read More →" data-tl="Basahin Pa →">
+            Read More →
+          </span>
         </a>
       </div>
 
     </div>
     {% empty %}
-    <p>No announcements available.</p>
+    <p data-en="No announcements available."
+       data-tl="Wala pang available na anunsyo.">
+      No announcements available.
+    </p>
     {% endfor %}
 
   </div>
 
   <div class="center">
     <a href="{% url 'announcementslist' %}" class="btn-outline">
-      View All Announcements 
+      <span data-en="View All Announcements" data-tl="Tingnan Lahat ng Anunsyo">
+        View All Announcements
+      </span>
+
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#2E3A59" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -99,12 +118,14 @@
 
   <div class="services-left">
 
-    <h2>
+    <h2 data-en="Quick Services"
+        data-tl="Mga Mabilis na Serbisyo">
       Quick<br>
       Services
     </h2>
 
-    <p>
+    <p data-en="Access essential barangay services and submit your requests online."
+       data-tl="Gamitin ang mahahalagang serbisyo ng barangay at magsumite ng mga kahilingan online.">
       Access essential barangay<br>
       services and submit your requests<br>
       online.
@@ -129,9 +150,13 @@
       </div>
 
       <div class="service-info">
-        <h3>File a Complaint</h3>
+        <h3 data-en="File a Complaint"
+            data-tl="Maghain ng Reklamo">
+          File a Complaint
+        </h3>
 
-        <p>
+        <p data-en="Submit concerns or issues for barangay assistance."
+           data-tl="Magsumite ng mga alalahanin o problema upang mabigyan ng tulong ng barangay.">
           Submit concerns or issues for barangay assistance.
         </p>
       </div>
@@ -151,9 +176,13 @@
       </div>
 
       <div class="service-info">
-        <h3>Track your Submission</h3>
+        <h3 data-en="Track your Submission"
+            data-tl="Subaybayan ang Iyong Isinumite">
+          Track your Submission
+        </h3>
 
-        <p>
+        <p data-en="Monitor the status of your submitted requests and reports."
+           data-tl="Subaybayan ang estado ng iyong mga isinumiteng kahilingan at ulat.">
           Monitor the status of your submitted requests and reports.
         </p>
       </div>
@@ -171,9 +200,13 @@
       </div>
 
       <div class="service-info">
-        <h3>Documents/Requirements</h3>
+        <h3 data-en="Documents/Requirements"
+            data-tl="Mga Dokumento at Requirements">
+          Documents/Requirements
+        </h3>
 
-        <p>
+        <p data-en="View required documents for barangay services."
+           data-tl="Tingnan ang mga kinakailangang dokumento para sa mga serbisyo ng barangay.">
           View required documents for barangay services.
         </p>
       </div>

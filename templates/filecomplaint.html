@@ -8,11 +8,15 @@
   <div class="hero-bg"></div>
 
   <div class="hero-content">
-    <h1>File a Complaint</h1>
+    <h1 data-en="File a Complaint"
+        data-tl="Maghain ng Reklamo">
+      File a Complaint
+    </h1>
 
     <div class="ann-hero-divider"></div>
 
-    <p>
+    <p data-en="For concerns or issues, please do not hesitate to submit a complaint through the form below so we can assist and address them promptly."
+       data-tl="Para sa mga alalahanin o problema, maaari kang magsumite ng reklamo gamit ang form sa ibaba upang matulungan ka namin agad.">
       For concerns or issues, please do not hesitate to submit a complaint through the form
       below so we can assist and address them promptly.
     </p>
@@ -32,7 +36,10 @@
                     <path d="M23.333 58.083H36.6663" stroke="#184072" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
 
-            <h2>Complaint Details</h2>
+            <h2 data-en="Complaint Details"
+                data-tl="Detalye ng Reklamo">
+              Complaint Details
+            </h2>
         </div>
 
         {% if messages %}
@@ -50,6 +57,10 @@
                 <input
                     type="date"
                     name="incident_date"
+                    data-placeholder-en="Incident Date"
+                    data-placeholder-tl="Petsa ng Pangyayari"
+                    min="{{ min_incident_date|date:'Y-m-d' }}"
+                    max="{{ max_incident_date|date:'Y-m-d' }}"
                 >
             </div>
 
@@ -58,6 +69,8 @@
                     type="text"
                     name="complainee"
                     placeholder="Name of Complainee (Accused Person)"
+                    data-placeholder-en="Name of Complainee (Accused Person)"
+                    data-placeholder-tl="Pangalan ng Inirereklamo"
                     required
                 >
 
@@ -65,6 +78,8 @@
                     type="text"
                     name="complainee_address"
                     placeholder="Address (if known)"
+                    data-placeholder-en="Address (if known)"
+                    data-placeholder-tl="Address (kung mayroon)"
                 >
             </div>
 
@@ -73,11 +88,17 @@
                     type="text"
                     name="title"
                     placeholder="Title"
+                    data-placeholder-en="Title"
+                    data-placeholder-tl="Pamagat"
                     required
                 >
 
                 <div>
-                    <label for="evidence">Evidence Attachment</label>
+                    <label for="evidence"
+                           data-en="Evidence Attachment"
+                           data-tl="Kalakip na Ebidensya">
+                      Evidence Attachment
+                    </label>
 
                     <input
                         type="file"
@@ -91,13 +112,17 @@
             <textarea
                 name="description"
                 placeholder="Write your message here"
+                data-placeholder-en="Write your message here"
+                data-placeholder-tl="Isulat ang iyong mensahe rito"
                 required
             ></textarea>
 
             <!-- CAPTCHA -->
             <div class="complaint-row">
                 <div style="width:100%;">
-                    <label style="display:block; margin-bottom:8px;">
+                    <label style="display:block; margin-bottom:8px;"
+                           data-en="Security Check"
+                           data-tl="Security Check">
                         Security Check
                     </label>
 
@@ -111,11 +136,15 @@
                 </div>
             </div>
 
-            <button type="submit">
+            <button type="submit"
+                    data-en="Submit"
+                    data-tl="Isumite">
                 Submit
             </button>
 
-            <p class="complaint-note">
+            <p class="complaint-note"
+               data-en="Upon submitting a complaint, you can track its status and updates through the Track Cases section."
+               data-tl="Pagkatapos magsumite ng reklamo, maaari mong subaybayan ang status at mga update nito sa Subaybayan ang mga Isinumite.">
                 Upon submitting a complaint, you can track its status and updates through the Track Cases section.
             </p>
 
