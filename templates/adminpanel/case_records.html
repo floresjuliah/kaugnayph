@@ -147,11 +147,9 @@ href="{% static 'css/admin_case_records.css' %}">
                         <td>{{ case.date_submitted }}</td>
 
                         <td class="case-actions-cell">
-                            {% if case.status == 'Submitted' or case.status == 'For Chairman Review' %}
                                 <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">
                                     View
                                 </a>
-                            {% endif %}
                         </td>
                     </tr>
 
