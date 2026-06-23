@@ -14,7 +14,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Q
 
-
+from .forms import CaptchaOnlyForm
 from core.complaint_workflow import apply_status_change, build_sms_for_status, _complaint_contact_numbers
 from .models import AvatarOptions, HearingAttendance, CertificateToFileAction
 from core.utils import (
@@ -93,7 +93,28 @@ def filecomplaint(request):
     incident_date = None
     current_user = get_current_user(request)
 
+    def complaint_context(captcha_form=None):
+        initial_data = {
+            "firstname": current_user.firstname,
+            "lastname": current_user.lastname,
+            "contactno": current_user.contactno,
+        } if current_user else {}
+
+        return {
+            "initial_data": initial_data,
+            "captcha_form": captcha_form or CaptchaOnlyForm(),
+        }
+
     if request.method == "POST":
+        captcha_form = CaptchaOnlyForm(request.POST)
+
+        if not captcha_form.is_valid():
+            return render(
+                request,
+                "filecomplaint.html",
+                complaint_context(captcha_form)
+            )
+
         incident_date       = request.POST.get("incident_date")
         complainee          = request.POST.get("complainee", "").strip()
         complainee_address  = request.POST.get("complainee_address", "").strip()
@@ -104,17 +125,19 @@ def filecomplaint(request):
 
         if not complainee:
             messages.error(request, "Name of complainee is required.")
-            return render(request, "filecomplaint.html", {})
+            return render(request, "filecomplaint.html", complaint_context())
 
         if not title:
             messages.error(request, "Title is required.")
-            return render(request, "filecomplaint.html", {})
+            return render(request, "filecomplaint.html", complaint_context())
 
         if not description:
             messages.error(request, "Description is required.")
-            return render(request, "filecomplaint.html", {})
+            return render(request, "filecomplaint.html", complaint_context())
 
-        current_user = get_current_user(request)
+        if incident_date and incident_date > str(date.today()):
+            messages.error(request, "Incident date cannot be in the future.")
+            return render(request, "filecomplaint.html", complaint_context())
 
         # FILE VALIDATION & SAVE
         file_path = None
@@ -122,16 +145,16 @@ def filecomplaint(request):
             ok, err = validate_upload(evidence)
             if not ok:
                 messages.error(request, err)
-                return render(request, "filecomplaint.html", {})
+                return render(request, "filecomplaint.html", complaint_context())
 
             filename = f"complaints/{uuid.uuid4()}_{evidence.name}"
 
             file_path = default_storage.save(
                 filename,
                 ContentFile(evidence.read())
-)
+            )
 
-        #CONTENT MODERATION
+        # CONTENT MODERATION
         text_check = moderate_text(f"{title} {description} {complainee}")
 
         image_check = {"flagged": False, "reason": None}
@@ -195,30 +218,10 @@ def filecomplaint(request):
                 request,
                 "Complaint submitted successfully. You can track its status through Track Submissions."
             )
+
         return redirect("tracksub")
 
-    if incident_date:
-        if incident_date > str(date.today()):
-            messages.error(
-                request,
-                "Incident date cannot be in the future."
-            )
-            return render(
-                request,
-                "filecomplaint.html",
-                {}
-            )
-
-        current_user = get_current_user(request)
-    initial_data = {
-        "firstname": current_user.firstname,
-        "lastname": current_user.lastname,
-        "contactno": current_user.contactno,
-    } if current_user else {}
-
-    return render(request, "filecomplaint.html", {
-        "initial_data": initial_data,
-    })
+    return render(request, "filecomplaint.html", complaint_context())
 
 
 def aboutus(request):

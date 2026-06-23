@@ -63,6 +63,7 @@ urlpatterns = [
     path('auth/', include('core.auths.urls')),
     path('resident/', include('core.resident.urls')),
     path('adminpanel/', include('core.adminpanel.urls')),
+    path('captcha/', include('captcha.urls')),
     
 ]
 
