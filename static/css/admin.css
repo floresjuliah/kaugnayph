@@ -379,6 +379,9 @@ body {
     font-size: 21px;
     font-weight: 800;
     line-height: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .ann-table-card {
@@ -1189,6 +1192,9 @@ RESIDENT RECORDS PAGE
     font-size: 22px;
     font-weight: 700;
     line-height: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .stat-warning {
@@ -2152,6 +2158,9 @@ EDIT RESIDENT PROFILE PAGE
     font-size: 22px;
     color: #0f172a;
     font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .doc-stat span {
