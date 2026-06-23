@@ -95,76 +95,77 @@ href="{% static 'css/admin_case_records.css' %}">
 
     </form>
     
-    <div class="case-table-wrapper">
+    <div class="case-table-card">
+        <div class="case-table-wrapper">
+            <table class="case-table">
+                <thead>
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Complainant</th>
+                        <th>Complainee</th>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Incident Date</th>
+                        <th>Status</th>
+                        <th>Date Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
 
-        <table class="case-table">
-            <thead>
-                <tr>
-                    <th>Case Number</th>
-                    <th>Complainant</th>
-                    <th>Complainee</th>
-                    <th>Type</th>
-                    <th>Title</th>
-                    <th>Incident Date</th>
-                    <th>Status</th>
-                    <th>Date Submitted</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+                <tbody>
+                    {% for case in cases %}
+                    <tr>
+                        <td>{{ case.case_id }}</td>
+                        <td>{{ case.complainant_name }}</td>
+                        <td>{{ case.complainee_name }}</td>
 
-            <tbody>
-                {% for case in cases %}
-                <tr>
-                    <td>{{ case.case_id }}</td>
-                    <td>{{ case.complainant_name }}</td>
-                    <td>{{ case.complainee_name }}</td>
+                        <td>
+                            <span class="case-type">{{ case.case_type }}</span>
+                        </td>
 
-                    <td>
-                        <span class="case-type">{{ case.case_type }}</span>
-                    </td>
+                        <td>{{ case.title }}</td>
+                        <td>{{ case.incident_date }}</td>
 
-                    <td>{{ case.title }}</td>
-                    <td>{{ case.incident_date }}</td>
+                        <td>
+                            <span class="case-status
+                                {% if case.status == 'For Chairman Review' %}status-review
+                                {% elif case.status == 'Submitted' %}status-pending
+                                {% elif case.status == 'Mediation Scheduled' or case.status == 'Mediation Ongoing' %}status-ongoing
+                                {% elif case.status == 'For 1st Hearing' or case.status == 'For 2nd Hearing' or case.status == 'For 3rd Hearing' %}status-ongoing
+                                {% elif case.status == 'Eligible for Certificate to File Action' %}status-eligible
+                                {% elif case.status == 'Settled' or case.status == 'Resolved' or case.status == 'Resolved Outside Barangay' or case.status == 'Settled in Court' %}status-resolved
+                                {% elif case.status == 'Certificate Issued' %}status-resolved
+                                {% elif case.status == 'Referred to Proper Barangay' %}status-referred
+                                {% elif case.status == 'Dismissed' %}status-dismissed
+                                {% else %}{{ case.status_class }}
+                                {% endif %}
+                            ">
+                                {{ case.status }}
+                            </span>
+                        </td>
 
-                    <td>
-                        <span class="case-status
-                            {% if case.status == 'For Chairman Review' %}status-review
-                            {% elif case.status == 'Submitted' %}status-pending
-                            {% elif case.status == 'Mediation Scheduled' or case.status == 'Mediation Ongoing' %}status-ongoing
-                            {% elif case.status == 'For 1st Hearing' or case.status == 'For 2nd Hearing' or case.status == 'For 3rd Hearing' %}status-ongoing
-                            {% elif case.status == 'Eligible for Certificate to File Action' %}status-eligible
-                            {% elif case.status == 'Settled' or case.status == 'Resolved' or case.status == 'Resolved Outside Barangay' or case.status == 'Settled in Court' %}status-resolved
-                            {% elif case.status == 'Certificate Issued' %}status-resolved
-                            {% elif case.status == 'Referred to Proper Barangay' %}status-referred
-                            {% elif case.status == 'Dismissed' %}status-dismissed
-                            {% else %}{{ case.status_class }}
+                        <td>{{ case.date_submitted }}</td>
+
+                        <td class="case-actions-cell">
+                            <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">
+                                View
+                            </a>
+                            {% if case.status == 'Submitted' or case.status == 'For Chairman Review' %}
+                            <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link"> View </a>
                             {% endif %}
-                        ">
-                            {{ case.status }}
-                        </span>
-                    </td>
+                        </td>
+                    </tr>
 
-                    <td>{{ case.date_submitted }}</td>
-
-                    <td class="case-actions-cell">
-                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">
-                            View
-                        </a>
-                        {% if case.status == 'Submitted' or case.status == 'For Chairman Review' %}
-                        <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link"> View </a>
-                        {% endif %}
-                    </td>
-                </tr>
-
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="empty-row">
-                        No case records found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="empty-row">
+                            No case records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div class="case-table-footer">
 

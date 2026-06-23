@@ -10,8 +10,15 @@
     }
 
     .case-stat{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+
         min-width:180px;
-        border-radius:0;
+        padding:16px 18px;
+
+        background:#fff;
+        border:1px solid #e5e7eb;
     }
 
     .case-stat:first-child{
@@ -39,7 +46,12 @@
 
     .case-stat-text p { margin: 0 0 4px; color: #6b7280; font-size: 13px; }
     .case-stat-text h3 { margin: 0; font-size: 24px; color: #111827; }
-    .case-stat-icon { font-size: 20px; opacity: 0.8; }
+        
+    .case-stat-icon{
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+    }
 
     .case-filter-row {
         display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
@@ -59,7 +71,10 @@
     }
 
     .case-table-card {
-        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
     }
     .case-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .case-table thead { background: #f9fafb; }
