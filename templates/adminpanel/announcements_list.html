@@ -26,27 +26,33 @@
                 >
             </div>
 
-            <select
-                name="category"
-                class="ann-filter-select"
-                onchange="this.form.submit()"
-            >
-                <option value="all" {% if selected_category == "all" or not selected_category %}selected{% endif %}>
-                    All
-                </option>
-                <option value="General" {% if selected_category == "General" %}selected{% endif %}>
-                    General
-                </option>
-                <option value="Emergency" {% if selected_category == "Emergency" %}selected{% endif %}>
-                    Emergency
-                </option>
-                <option value="Events" {% if selected_category == "Events" %}selected{% endif %}>
-                    Events
-                </option>
-                <option value="Sports" {% if selected_category == "Sports" %}selected{% endif %}>
-                    Sports
-                </option>
-            </select>
+            <div class="ann-filter-wrap">
+                <button type="button" class="ann-filter-btn" onclick="event.stopPropagation(); this.parentElement.classList.toggle('open')">
+                    {{ selected_category|default:"All" }}
+                </button>
+
+                <div class="ann-filter-dropdown">
+                    <a href="?category=all{% if search %}&search={{ search }}{% endif %}">
+                        All
+                    </a>
+
+                    <a href="?category=General{% if search %}&search={{ search }}{% endif %}">
+                        General
+                    </a>
+
+                    <a href="?category=Emergency{% if search %}&search={{ search }}{% endif %}">
+                        Emergency
+                    </a>
+
+                    <a href="?category=Events{% if search %}&search={{ search }}{% endif %}">
+                        Events
+                    </a>
+
+                    <a href="?category=Sports{% if search %}&search={{ search }}{% endif %}">
+                        Sports
+                    </a>
+                </div>
+            </div>
         </form>
 
         <div class="ann-stats-card">
@@ -232,6 +238,16 @@
         });
 
     }, 5000);
+</script>
+
+<script>
+document.addEventListener('click', function(e) {
+    const filter = document.querySelector('.ann-filter-wrap');
+
+    if (filter && !filter.contains(e.target)) {
+        filter.classList.remove('open');
+    }
+});
 </script>
 
 {% endblock %}

@@ -21,34 +21,23 @@
             <input type="hidden" name="status" value="{{ status_filter }}">
         </form>
 
-        <form method="GET" class="doc-filter-form">
+        <div class="doc-filter-wrap">
+            <button type="button" class="doc-filter-btn" onclick="event.stopPropagation(); this.parentElement.classList.toggle('open')">
+                Filter
+            </button>
 
-            <input type="hidden"
-                name="search"
-                value="{{ search_query }}">
-
-            <select name="document_type"
-                    class="doc-filter-select"
-                    onchange="this.form.submit()">
-
-                <option value="All"
-                    {% if document_type_filter == "All" %}selected{% endif %}>
+            <div class="doc-filter-dropdown">
+                <a href="?{% if search_query %}search={{ search_query }}{% endif %}">
                     All Documents
-                </option>
+                </a>
 
                 {% for document_type in document_types %}
-                    <option value="{{ document_type.dtid }}"
-                        {% if document_type_filter == document_type.dtid|stringformat:"s" %}
-                            selected
-                        {% endif %}
-                    >
+                    <a href="?document_type={{ document_type.dtid }}{% if search_query %}&search={{ search_query }}{% endif %}">
                         {{ document_type.name }}
-                    </option>
+                    </a>
                 {% endfor %}
-
-            </select>
-
-        </form>
+            </div>
+        </div>
 
         <div class="doc-stats">
             <div class="doc-stat">
@@ -134,7 +123,7 @@
             <div class="doc-pages">
 
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}&document_type={{ document_type_filter }}">                        
                         Previous
                     </a>
                 {% endif %}
@@ -143,14 +132,14 @@
                     {% if page_obj.number == num %}
                         <a class="active">{{ num }}</a>
                     {% else %}
-                        <a href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">
+                        <a href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}&document_type={{ document_type_filter }}">                            
                             {{ num }}
                         </a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="next" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+                    <a class="next" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}&document_type={{ document_type_filter }}">                        
                         Next
                     </a>
                 {% endif %}
@@ -161,5 +150,15 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener('click', function(e) {
+    const filter = document.querySelector('.doc-filter-wrap');
+
+    if (filter && !filter.contains(e.target)) {
+        filter.classList.remove('open');
+    }
+});
+</script>
 
 {% endblock %}

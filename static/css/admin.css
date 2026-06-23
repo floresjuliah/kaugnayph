@@ -323,7 +323,6 @@ body {
     color: #9fb0c7;
 }
 
-.ann-filter-select,
 .ann-search-btn {
     height: 44px;
     min-width: 120px;
@@ -338,9 +337,64 @@ body {
     outline: none;
 }
 
-.ann-search-btn:hover,
-.ann-filter-select:hover {
+.ann-search-btn:hover {
     background: #f8fbff;
+}
+
+/* Announcement filter dropdown - same style as Resident Records */
+
+.ann-filter-wrap {
+    position: relative;
+}
+
+.ann-filter-btn {
+    height: 44px;
+    min-width: 120px;
+    padding: 0 20px;
+    border: 2px solid #0066ff;
+    background: white;
+    color: #0066ff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.ann-filter-btn:hover {
+    background: #f8fbff;
+}
+
+.ann-filter-dropdown {
+    display: none;
+    position: absolute;
+    top: 52px;
+    left: 0;
+    width: 170px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+    z-index: 999;
+}
+
+.ann-filter-wrap.open .ann-filter-dropdown {
+    display: block;
+}
+
+.ann-filter-dropdown a {
+    display: block;
+    padding: 14px 18px;
+    color: #52698a;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ann-filter-dropdown a:hover {
+    background: #f1f7ff;
+    color: #0066ff;
 }
 
 .ann-stats-card {
@@ -2121,6 +2175,60 @@ EDIT RESIDENT PROFILE PAGE
     cursor: pointer;
 }
 
+.doc-filter-wrap {
+    position: relative;
+}
+
+.doc-filter-btn {
+    height: 46px;
+    min-width: 120px;
+    padding: 0 20px;
+    border: 2px solid #0066ff;
+    background: white;
+    color: #0066ff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.doc-filter-btn:hover {
+    background: #f8fbff;
+}
+
+.doc-filter-dropdown {
+    display: none;
+    position: absolute;
+    top: 54px;
+    left: 0;
+    width: 300px; /* wider because document names are longer */
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+    z-index: 999;
+}
+
+.doc-filter-wrap.open .doc-filter-dropdown {
+    display: block;
+}
+
+.doc-filter-dropdown a {
+    display: block;
+    padding: 14px 18px;
+    color: #52698a;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.doc-filter-dropdown a:hover {
+    background: #f1f7ff;
+    color: #0066ff;
+}
+
 .doc-stats {
     margin-left: auto;
     background: white;
@@ -2294,19 +2402,7 @@ EDIT RESIDENT PROFILE PAGE
     border: none;
 }
 
-.doc-filter-select {
-    width: 260px;
-    height: 46px;
-    border: 2px solid #0066ff;
-    border-radius: 10px;
-    background: white;
-    color: #0066ff;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 0 16px;
-    cursor: pointer;
-    outline: none;
-}
+
 
 /* =========================
    DOCUMENT REQUEST DETAIL
@@ -2638,6 +2734,45 @@ EDIT RESIDENT PROFILE PAGE
 .status-resolved{
     background:#d4edda;
     color:#155724;
+}
+
+/* INQUIRIES DETAIL (ADD TO FAQ) */
+
+
+.faq-divider {
+    height: 2px;
+    background: #cbd5e1;
+    border: none;
+    margin: 36px 0;
+}
+
+.faq-management-section h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #111827;
+}
+
+.faq-management-section p {
+    color: #52657f;
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+.add-to-faq-btn {
+    display: inline-block;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+    background: #ffffff;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.add-to-faq-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
 }
 
 /* INQUIRIES LIST PAGE */
@@ -3461,5 +3596,203 @@ EDIT RESIDENT PROFILE PAGE
 .actions-col {
     width: 160px;
     text-align: center;
+}
+
+/* ======================================================
+   GLOBAL ADMIN UI STANDARDIZATION
+   Add this at the VERY BOTTOM of admin.css
+   Do not edit HTML.
+====================================================== */
+
+/* ---------- PAGE TITLES ---------- */
+
+.ann-page h1,
+.ann-page-top h1,
+.resident-page h1,
+.case-title,
+.doc-title,
+.doc-detail-title,
+.admin-page-header h1,
+.detail-title,
+.inquiry-title,
+.faq-form-header h1,
+.dash-header h1,
+.admins-title,
+.resident-profile-title,
+.resident-edit-title {
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin-bottom: 28px !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.5px !important;
+}
+
+/* Back links should stay smaller */
+.back-link,
+.ann-back-link,
+.doc-back-link,
+.faq-back-link,
+.resident-profile-back {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* ---------- CARD / SECTION TITLES ---------- */
+
+.inquiry-detail-card h2,
+.doc-detail-header h2,
+.resident-profile-card h2,
+.resident-edit-card h2,
+.ann-detail-header h2,
+.ann-broadcast-section h2,
+.dash-panel h2,
+.faq-management-section h2,
+.section-title {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin-bottom: 24px !important;
+}
+
+/* ---------- TABLE CARDS ---------- */
+
+.ann-table-card,
+.resident-table-card,
+.case-table-card,
+.doc-table-card,
+.inquiry-table-card,
+.admin-table-card,
+.admins-card {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/*  ALL TABLES SAME SIZE */
+
+.ann-table,
+.resident-table,
+.case-table,
+.doc-table,
+.inquiry-table,
+.admin-table,
+.admins-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 14px !important;
+}
+
+/* Table headers */
+.ann-table th,
+.resident-table th,
+.case-page table.case-table th,
+.doc-table th,
+.inquiry-table th,
+.admin-table th,
+.admins-table th {
+    padding: 16px 20px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+}
+
+/* Table cells */
+.ann-table td,
+.resident-table td,
+.case-page table.case-table td,
+.doc-table td,
+.inquiry-table td,
+.admin-table td,
+.admins-table td {
+    padding: 15px 20px !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+}
+
+/* Table header background */
+.ann-table thead,
+.resident-table thead,
+.case-page table.case-table thead,
+.doc-table thead,
+.inquiry-table thead,
+.admin-table thead,
+.admins-table thead {
+    background: #dfe7f1 !important;
+}
+
+/* Last column stays right-aligned */
+.ann-table th:last-child,
+.ann-table td:last-child,
+.resident-table th:last-child,
+.resident-table td:last-child,
+.inquiry-table th:last-child,
+.inquiry-table td:last-child,
+.admins-table th:last-child,
+.admins-table td:last-child {
+    text-align: right !important;
+}
+
+/* FORMS / LABELS */
+
+.detail-group label,
+.ann-form-group label,
+.ann-detail-group label,
+.edit-form-group label,
+.info-item label,
+.faq-form-group label {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+}
+
+.detail-group p,
+.ann-detail-group p,
+.info-item p,
+.profile-value {
+    font-size: 14px !important;
+    color: #1e293b !important;
+}
+
+/*  BUTTONS SAME SIZE  */
+
+.btn,
+.create-ann-btn,
+.add-admin-btn,
+.add-to-faq-btn,
+.reply-footer button,
+.mark-complete-btn,
+.doc-filter-btn,
+.resident-filter-btn,
+.dash-apply-btn,
+.faq-btn,
+.edit-cancel-btn,
+.edit-save-btn,
+.edit-delete-btn,
+.btn-approve,
+.btn-reject,
+.btn-edit {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+}
+
+/*  BADGES SAME SIZE  */
+
+.status-badge,
+.ann-badge,
+.resident-badge,
+.doc-status,
+.case-status,
+.case-type,
+.profile-badge {
+    font-size: 12px !important;
+    font-weight: 700 !important;
 }
 
