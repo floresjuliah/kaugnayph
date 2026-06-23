@@ -63,7 +63,7 @@ href="{% static 'css/admin_case_detail.css' %}">
 <div class="case-info-grid">
 
     <div class="case-info-card">
-        <h3>Case Information</h3>
+        <h3 style="font-weight: bold;">Case Information</h3>
         <p><strong>Case Number:</strong> {{ case_id }}</p>
         <p><strong>Complaint Type:</strong> {{ complaint.complaint_type.type|default:"Unclassified" }}</p>
         <p><strong>Title:</strong> {{ complaint.title }}</p>
@@ -77,14 +77,14 @@ href="{% static 'css/admin_case_detail.css' %}">
 
     <div class="case-info-card parties-card">
         <div class="party-section">
-            <h3>Complainant</h3>
+            <h3 style="font-weight: bold;">Complainant</h3>
             <p><strong>Name:</strong> {{ complaint.complainant_user.firstname|default:"" }} {{ complaint.complainant_user.lastname|default:"—" }}</p>
             <p><strong>Address:</strong> {{ complaint.complainant_user.address|default:"—" }}</p>
             <p><strong>Contact:</strong> {{ complaint.complainant_user.contactno|default:"—" }}</p>
         </div>
 
         <div class="party-section">
-            <h3>Complainee</h3>
+            <h3 style="font-weight: bold;">Complainee</h3>
             <p><strong>Name:</strong> {{ complaint.complainee|default:"—" }}</p>
             <p><strong>Address:</strong> {{ complaint.complainee_address|default:"—" }}</p>
             <p><strong>Contact:</strong> {{ complainee_contact }}</p>
@@ -96,7 +96,7 @@ href="{% static 'css/admin_case_detail.css' %}">
 <div class="case-details-timeline-row">
 
     <div class="case-info-card case-details-card">
-        <h3>Complaint Details</h3>
+        <h3 style="font-weight: bold;">Complaint Details</h3>
         <p><strong>Description:</strong></p>
         <div class="case-description-box">{{ complaint.description }}</div>
 
@@ -113,7 +113,7 @@ href="{% static 'css/admin_case_detail.css' %}">
     </div>
 
     <div class="case-info-card case-timeline-card">
-        <h3>Case Timeline</h3>
+        <h3 style="font-weight: bold;">Case Timeline</h3>
         <div class="timeline">
             {% for update in complaint_updates %}
             <div class="timeline-entry">
@@ -132,7 +132,7 @@ href="{% static 'css/admin_case_detail.css' %}">
 
 <!-- HEARING / DECISION ACTION PANEL -->
 <div class="case-info-card" style="margin-bottom:20px;">
-    <h3>Hearing &amp; Process Actions</h3>
+    <h3 style="font-weight: bold;">Hearing &amp; Process Actions</h3>
 
     {% if complaint.status == "Ongoing" %}
         <form method="POST" class="case-action-form">
@@ -206,7 +206,7 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="Refused">Refused</option>
             </select>
             <select name="respondent_attendance">
-                <option value="">Respondent Attendance</option>
+                <option value="">Complainee Attendance</option>
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Excused">Excused</option>
@@ -269,23 +269,6 @@ href="{% static 'css/admin_case_detail.css' %}">
 
 <!-- BOTTOM ROW: Notes / Hearing Summary / Officials -->
 <div class="case-bottom-row">
-
-    <div class="case-info-card">
-        <div class="case-card-header-row">
-            <h3>Case Notes</h3>
-        </div>
-        <form method="POST" class="case-note-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_note">
-            <input type="text" name="note_text" placeholder="Add a note...">
-            <button type="submit" class="btn-primary-sm">Add Note</button>
-        </form>
-        {% with note_updates=complaint_updates %}
-            {% if not note_updates %}
-                <p class="muted">No notes yet.</p>
-            {% endif %}
-        {% endwith %}
-    </div>
 
     <div class="case-info-card">
         <div class="case-card-header-row">

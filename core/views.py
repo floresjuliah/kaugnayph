@@ -48,7 +48,9 @@ from .models import (
     FAQCategories,
     AvatarOptions, 
 )
- 
+
+from django.utils.dateparse import parse_datetime 
+
 from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, send_email_otp,
@@ -3040,11 +3042,18 @@ def case_detail_view(request, complaint_id):
 
         # STEP 4: Schedule Mediation
         elif action == "schedule_mediation":
-            hearing_date = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
             lupon_user_id = request.POST.get("lupon_user_id", "").strip()
 
-            if not hearing_date:
+            if not hearing_date_raw:
                 messages.error(request, "Please provide a mediation date/time.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing_date = parse_datetime(hearing_date_raw)
+            if hearing_date and timezone.is_naive(hearing_date):
+                hearing_date = timezone.make_aware(hearing_date)
+            if not hearing_date:
+                messages.error(request, "Invalid mediation date/time format.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             mediation_level = HearingLevel.objects.filter(level_type="Mediation").first()
@@ -3128,15 +3137,30 @@ def case_detail_view(request, complaint_id):
         # STEP 6: Schedule a numbered hearing (1, 2, or 3)
         elif action == "schedule_hearing":
             hearing_number = request.POST.get("hearing_number", "").strip()  # "1", "2", "3"
-            hearing_date = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
 
-            level_name = f"Hearing {hearing_number}"
+            # The lookup table stores full descriptive labels rather than
+            # plain "Hearing N", so map the number to the exact level_type
+            # text instead of building the string from hearing_number.
+            HEARING_LEVEL_BY_NUMBER = {
+                "1": "1st Hearing - Lupong Tagapamayapa (Chairman Present)",
+                "2": "2nd Hearing - Lupong Tagapamayapa (Same Lupons, Chairman Present)",
+                "3": "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)",
+            }
             status_label = f"For {hearing_number}{'st' if hearing_number == '1' else 'nd' if hearing_number == '2' else 'rd'} Hearing"
 
-            if not hearing_date or hearing_number not in ("1", "2", "3"):
+            if not hearing_date_raw or hearing_number not in ("1", "2", "3"):
                 messages.error(request, "Please provide a valid hearing number (1-3) and date.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
 
+            hearing_date = parse_datetime(hearing_date_raw)
+            if hearing_date and timezone.is_naive(hearing_date):
+                hearing_date = timezone.make_aware(hearing_date)
+            if not hearing_date:
+                messages.error(request, "Invalid hearing date/time format.")
+                return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            level_name = HEARING_LEVEL_BY_NUMBER[hearing_number]
             hearing_level = HearingLevel.objects.filter(level_type=level_name).first()
             scheduled_status = HearingStatus.objects.filter(statustype="Scheduled").first()
 
@@ -3251,7 +3275,7 @@ def case_detail_view(request, complaint_id):
                     for party_contact in _complaint_contact_numbers(complaint):
                         send_sms(party_contact, sms_body, sent_by=current_admin)
 
-            elif hearing.hearing_level.level_type == "Hearing 3":
+            elif hearing.hearing_level.level_type == "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)":
                 # Final Outcome After Hearing 3, no settlement
                 apply_status_change(
                     complaint, "Eligible for Certificate to File Action", current_admin,
@@ -3347,7 +3371,7 @@ def case_detail_view(request, complaint_id):
         # Existing hearing level / official management
         elif action == "update_hearing":
             hearing_level_id = request.POST.get("hearing_level_id", "").strip()
-            hearing_date     = request.POST.get("hearing_date", "").strip()
+            hearing_date_raw = request.POST.get("hearing_date", "").strip()
             hearing_status_id = request.POST.get("hearing_status_id", "").strip()
 
             if not hearing_level_id:
@@ -3360,6 +3384,15 @@ def case_detail_view(request, complaint_id):
             except (HearingLevel.DoesNotExist, HearingStatus.DoesNotExist):
                 messages.error(request, "Invalid hearing level or status.")
                 return redirect("case_detail", complaint_id=complaint.complaintsid)
+
+            hearing_date = None
+            if hearing_date_raw:
+                hearing_date = parse_datetime(hearing_date_raw)
+                if hearing_date and timezone.is_naive(hearing_date):
+                    hearing_date = timezone.make_aware(hearing_date)
+                if not hearing_date:
+                    messages.error(request, "Invalid hearing date/time format.")
+                    return redirect("case_detail", complaint_id=complaint.complaintsid)
 
             if existing_hearing:
                 existing_hearing.hearing_level = hearing_level

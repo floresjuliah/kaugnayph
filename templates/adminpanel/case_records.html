@@ -83,6 +83,7 @@ href="{% static 'css/admin_case_records.css' %}">
             {% endfor %}
         </select>
 
+
         <input
             type="date"
             name="date_to"
@@ -105,9 +106,8 @@ href="{% static 'css/admin_case_records.css' %}">
                         <th>Complainee</th>
                         <th>Type</th>
                         <th>Title</th>
-                        <th>Incident Date</th>
-                        <th>Status</th>
                         <th>Date Submitted</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -124,7 +124,7 @@ href="{% static 'css/admin_case_records.css' %}">
                         </td>
 
                         <td>{{ case.title }}</td>
-                        <td>{{ case.incident_date }}</td>
+                        <td>{{ case.date_submitted }}</td>
 
                         <td>
                             <span class="case-status
@@ -144,8 +144,6 @@ href="{% static 'css/admin_case_records.css' %}">
                             </span>
                         </td>
 
-                        <td>{{ case.date_submitted }}</td>
-
                         <td class="case-actions-cell">
                                 <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">
                                     View
@@ -155,7 +153,7 @@ href="{% static 'css/admin_case_records.css' %}">
 
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="empty-row">
+                        <td colspan="8" class="empty-row">
                             No case records found.
                         </td>
                     </tr>
