@@ -71,6 +71,7 @@
 
         <div class="track-card" id="documents" style="display:none">
           <h3 class="track-card__title">Documents / Requirements</h3>
+
           <table class="track-table">
             <thead>
               <tr>
@@ -78,14 +79,19 @@
                 <th>Document Type</th>
                 <th>Date Submitted</th>
                 <th>Status</th>
+                <th>Remarks</th>
               </tr>
             </thead>
+
             <tbody>
               {% for doc in document_requests %}
                 <tr>
                   <td>DOC-2026-{{ doc.drid|stringformat:"04d" }}</td>
+
                   <td>{{ doc.document_type.name }}</td>
+
                   <td>{{ doc.requested_at|date:"M d, Y" }}</td>
+
                   <td>
                     <span class="track-status
                       {% if doc.status == 'Pending' %}pending
@@ -98,10 +104,20 @@
                       {{ doc.status }}
                     </span>
                   </td>
+
+                  <td>
+                    {% if doc.admin_remarks %}
+                      {{ doc.admin_remarks }}
+                    {% else %}
+                      <span style="color:#777;">No remarks yet</span>
+                    {% endif %}
+                  </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="4" class="track-empty">No document requests found.</td>
+                  <td colspan="5" class="track-empty">
+                    No document requests found.
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>

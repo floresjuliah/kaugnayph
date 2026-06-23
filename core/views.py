@@ -2860,17 +2860,49 @@ def admin_document_request_detail_view(request, drid):
     if request.method == "POST":
         action = request.POST.get("action")
 
+        remarks = request.POST.get("admin_remarks")
+        if remarks is not None:
+            remarks = remarks.strip()
+        else:
+            remarks = doc_request.admin_remarks
+
         from core.utils import generate_document_id
         doc_id = generate_document_id(doc_request.drid)
 
-        if action == "complete":
+        if action == "save_remarks":
+            old_remarks = doc_request.admin_remarks
+
+            if remarks:
+                doc_request.admin_remarks = remarks
+                doc_request.processed_by = current_admin
+                doc_request.save()
+
+                AuditLogs.objects.create(
+                    user=current_admin,
+                    action="Update Document Request Remarks",
+                    module_name="DocumentRequests",
+                    table_name="DocumentRequests",
+                    record_id=doc_request.drid,
+                    old_value=f"Remarks: {old_remarks or 'None'}",
+                    new_value=f"Remarks: {remarks or 'None'}",
+                    created_at=timezone.now(),
+                )
+
+                messages.success(request, "Admin remarks saved.")
+            else:
+                messages.warning(request, "Please enter a remark before saving.")
+
+        elif action == "complete":
             old_status = doc_request.status
+            old_remarks = doc_request.admin_remarks
+            completed_remark = "Document completed. Ready for pickup."
+
             doc_request.status = "Completed"
+            doc_request.admin_remarks = completed_remark
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
 
-            # SLA — mark first response + resolve
             record_first_response("DocumentRequest", doc_request.drid)
             resolve_sla("DocumentRequest", doc_request.drid)
 
@@ -2888,8 +2920,8 @@ def admin_document_request_detail_view(request, drid):
                 module_name="DocumentRequests",
                 table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Completed",
+                old_value=f"Status: {old_status}; Remarks: {old_remarks or 'None'}",
+                new_value=f"Status: Completed; Remarks: {completed_remark}",
                 created_at=timezone.now(),
             )
 
@@ -2897,11 +2929,13 @@ def admin_document_request_detail_view(request, drid):
 
         elif action == "processing":
             old_status = doc_request.status
+            old_remarks = doc_request.admin_remarks
+
             doc_request.status = "Processing"
+            doc_request.admin_remarks = remarks
             doc_request.processed_by = current_admin
             doc_request.save()
 
-            # SLA — mark first touch only (not resolved yet)
             record_first_response("DocumentRequest", doc_request.drid)
 
             if resident and resident.contactno:
@@ -2918,8 +2952,8 @@ def admin_document_request_detail_view(request, drid):
                 module_name="DocumentRequests",
                 table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Processing",
+                old_value=f"Status: {old_status}; Remarks: {old_remarks or 'None'}",
+                new_value=f"Status: Processing; Remarks: {remarks or 'None'}",
                 created_at=timezone.now(),
             )
 
@@ -2927,12 +2961,14 @@ def admin_document_request_detail_view(request, drid):
 
         elif action == "reject":
             old_status = doc_request.status
+            old_remarks = doc_request.admin_remarks
+
             doc_request.status = "Rejected"
+            doc_request.admin_remarks = remarks
             doc_request.processed_by = current_admin
             doc_request.processed_at = timezone.now()
             doc_request.save()
 
-            # SLA — mark first response + resolve
             record_first_response("DocumentRequest", doc_request.drid)
             resolve_sla("DocumentRequest", doc_request.drid)
 
@@ -2950,8 +2986,8 @@ def admin_document_request_detail_view(request, drid):
                 module_name="DocumentRequests",
                 table_name="DocumentRequests",
                 record_id=doc_request.drid,
-                old_value=f"Status: {old_status}",
-                new_value="Status: Rejected",
+                old_value=f"Status: {old_status}; Remarks: {old_remarks or 'None'}",
+                new_value=f"Status: Rejected; Remarks: {remarks or 'None'}",
                 created_at=timezone.now(),
             )
 

@@ -67,10 +67,46 @@
                 {{ doc_request.status }}
             </p>
 
+            <p>
+                <strong>Current Remark:</strong>
+                {% if doc_request.admin_remarks %}
+                    {{ doc_request.admin_remarks }}
+                {% else %}
+                    No remarks yet
+                {% endif %}
+            </p>
+
             <span class="application-badge">
                 Application Type: {{ doc_request.request_mode }} Application
             </span>
         </div>
+
+        {% if doc_request.status != "Completed" and doc_request.status != "Rejected" %}
+            <div class="doc-remarks-box" style="margin-top:25px;">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <label style="display:block; font-weight:700; margin-bottom:8px;">
+                        Update Remark
+                    </label>
+
+                    <textarea
+                        name="admin_remarks"
+                        rows="4"
+                        placeholder="Enter a new update for the resident..."
+                        style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"
+                    ></textarea>
+
+                    <button type="submit"
+                            name="action"
+                            value="save_remarks"
+                            class="mark-complete-btn"
+                            style="margin-top:12px;">
+                        Save Remarks
+                    </button>
+                </form>
+            </div>
+        {% endif %}
 
         <hr>
 

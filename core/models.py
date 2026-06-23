@@ -232,6 +232,7 @@ class DocumentRequests(models.Model):
     purpose = models.TextField(blank=True, null=True)
     generated_file = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, blank=True, null=True)
+    admin_remarks = models.TextField(blank=True, null=True)
     requested_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(blank=True, null=True)
     processed_by = models.ForeignKey(
