@@ -2448,85 +2448,6 @@ def case_records_view(request):
     })
 
 
-# Stepper stage mapping for case_detail_view
-
-# Maps every Complaints.status value to one of 7 stepper nodes used in
-# the case detail UI: submitted, chairman_review, decision, mediation,
-# hearing, certificate, closed.
-#
-# "decision" has no distinct status of its own in the current single
-# classify+record flow (mark_recorded jumps straight from
-# "For Chairman Review"/"Submitted" to "Ongoing"), so it is treated as
-# already-passed the moment status is anything past "For Chairman Review".
-STEPPER_STAGE_MAP = {
-    "Submitted": "submitted",
-    "For Chairman Review": "chairman_review",
-    "Ongoing": "decision",
-    "Referred to Proper Barangay": "decision",
-    "Mediation Scheduled": "mediation",
-    "Mediation Ongoing": "mediation",
-    "For 1st Hearing": "hearing",
-    "For 2nd Hearing": "hearing",
-    "For 3rd Hearing": "hearing",
-    "Non-Cooperative Party": "hearing",
-    "Eligible for Certificate to File Action": "certificate",
-    "Certificate Issued": "closed",
-    "Settled": "closed",
-    "Resolved": "closed",
-    "Resolved Outside Barangay": "closed",
-    "Settled in Court": "closed",
-    "Under Review": "decision",
-    "Dismissed": "closed",
-}
-
-STEPPER_ORDER = ["submitted", "chairman_review", "decision", "mediation", "hearing", "certificate", "closed"]
-
-STEPPER_LABELS = {
-    "submitted": "Submitted",
-    "chairman_review": "Chairman Review",
-    "decision": "Decision",
-    "mediation": "Mediation",
-    "hearing": "Hearing (1-3)",
-    "certificate": "Certificate",
-    "closed": "Closed",
-}
-
-
-def _build_stepper(complaint):
-    """
-    Returns a list of dicts describing each stepper node's state
-    (complete / current / pending) for the case detail template.
-
-    Special case: 'Dismissed' and 'Referred to Proper Barangay' short-circuit
-    the normal mediation/hearing/certificate nodes since those paths were
-    never entered -- they're marked pending rather than complete to avoid
-    implying the case went through steps it didn't.
-    """
-    current_stage = STEPPER_STAGE_MAP.get(complaint.status, "submitted")
-    current_index = STEPPER_ORDER.index(current_stage)
-
-    skipped_path = complaint.status in ("Dismissed", "Referred to Proper Barangay")
-
-    nodes = []
-    for i, stage_key in enumerate(STEPPER_ORDER):
-        if skipped_path and stage_key not in ("submitted", "chairman_review", "decision", "closed"):
-            state = "skipped"
-        elif i < current_index:
-            state = "complete"
-        elif i == current_index:
-            state = "current"
-        else:
-            state = "pending"
-
-        nodes.append({
-            "key": stage_key,
-            "label": STEPPER_LABELS[stage_key],
-            "state": state,
-        })
-
-    return nodes
-
-
 # DOCUMENT REQUEST FOR RESIDENT 
 @login_required
 @resident_required
@@ -3552,8 +3473,6 @@ def case_detail_view(request, complaint_id):
 
         return redirect("case_detail", complaint_id=complaint.complaintsid)
 
-    stepper_nodes = _build_stepper(complaint)
-
     # Complainee has no linked Users FK (free-text only on Complaints model),
     # so there is no contact number to display -- the detail template shows
     # an explicit "Not on file" fallback instead of leaving the field blank.
@@ -3574,7 +3493,6 @@ def case_detail_view(request, complaint_id):
         "certificate":         certificate,
         "hearings_completed":  hearings_completed,
         "complaint_types":     complaint_types,
-        "stepper_nodes":       stepper_nodes,
         "complainee_contact":  complainee_contact,
     })
 
