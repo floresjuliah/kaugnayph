@@ -10,11 +10,15 @@
   <div class="hero-bg"></div>
 
   <div class="hero-content">
-    <h1>Barangay 761<br>Announcements</h1>
+    <h1 data-en="Barangay 761 Announcements"
+        data-tl="Mga Anunsyo ng Barangay 761">
+      Barangay 761<br>Announcements
+    </h1>
 
     <div class="ann-hero-divider"></div>
 
-    <p>
+    <p data-en="For updates and important information, please refer to the announcements below to stay informed about barangay activities and notices."
+       data-tl="Para sa mga update at mahahalagang impormasyon, tingnan ang mga anunsyo sa ibaba upang manatiling may kaalaman sa mga aktibidad at paunawa ng barangay.">
       For updates and important information, please refer to the announcements below to
       stay informed about barangay activities and notices.
     </p>
@@ -38,16 +42,18 @@
         type="text"
         class="ann-search"
         placeholder="Search Announcements..."
+        data-placeholder-en="Search Announcements..."
+        data-placeholder-tl="Maghanap ng Anunsyo..."
         id="annSearch"
       />
     </div>
 
     <div class="ann-tabs" id="annTabs">
-      <button class="ann-tab active" data-filter="all">All</button>
-      <button class="ann-tab" data-filter="general">General</button>
-      <button class="ann-tab" data-filter="emergency">Emergency</button>
-      <button class="ann-tab" data-filter="events">Events</button>
-      <button class="ann-tab" data-filter="sports">Sports</button>
+      <button class="ann-tab active" data-filter="all" data-en="All" data-tl="Lahat">All</button>
+      <button class="ann-tab" data-filter="general" data-en="General" data-tl="Pangkalahatan">General</button>
+      <button class="ann-tab" data-filter="emergency" data-en="Emergency" data-tl="Emergency">Emergency</button>
+      <button class="ann-tab" data-filter="events" data-en="Events" data-tl="Mga Kaganapan">Events</button>
+      <button class="ann-tab" data-filter="sports" data-en="Sports" data-tl="Palakasan">Sports</button>
     </div>
 
   </div>
@@ -58,12 +64,17 @@
     {% for announcement in announcements %}
 
     <article
-    class="ann-card"
-    style="cursor:pointer;"
-    data-id="{{ announcement.announcement_id }}"
-    data-my-rating="{{ announcement.my_rating|default:0 }}"
-    data-category="{{ announcement.category.name|default:'general'|lower }}"
-    onclick="window.location.href='{% url 'announcement_detail' announcement.announcement_id %}'"
+      class="ann-card"
+      style="cursor:pointer;"
+      data-id="{{ announcement.announcement_id }}"
+      data-my-rating="{{ announcement.my_rating|default:0 }}"
+      data-category="{{ announcement.category.name|default:'general'|lower }}"
+      data-title="{{ announcement.title|escapejs }}"
+      data-content="{{ announcement.content|striptags|escapejs }}"
+      data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname|escapejs }} {{ announcement.posted_by.lastname|escapejs }}{% else %}Barangay Admin{% endif %}"
+      data-time="{{ announcement.created_at|timesince }}"
+      data-catname="{{ announcement.category.name|default:'General Updates'|escapejs }}"
+      onclick="window.location.href='{% url 'announcement_detail' announcement.announcement_id %}'"
     >
 
       <div class="ann-card-top">
@@ -145,10 +156,14 @@
 
         <div class="ann-actions">
 
-          <button class="ann-action-btn" title="Feedback"
-            onclick="event.stopPropagation();
-            {% if is_resident %}openFeedback(this){% else %}alert('Please log in as a resident to leave feedback.'){% endif %}">
-
+          <button class="ann-action-btn"
+                  title="Feedback"
+                  onclick="event.stopPropagation();
+                  {% if is_resident %}
+                    openFeedback(this)
+                  {% else %}
+                    showFeedbackLoginAlert()
+                  {% endif %}">
             <svg width="16" height="16" fill="none"
                  stroke="currentColor" stroke-width="2"
                  viewBox="0 0 24 24">
@@ -161,26 +176,32 @@
               <path d="M15.5799 11.9999C15.5799 13.9799 13.9799 15.5799 11.9999 15.5799C10.0199 15.5799 8.41992 13.9799 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C13.9799 8.41992 15.5799 10.0199 15.5799 11.9999Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M12.0001 20.27C15.5301 20.27 18.8201 18.19 21.1101 14.59C22.0101 13.18 22.0101 10.81 21.1101 9.39997C18.8201 5.79997 15.5301 3.71997 12.0001 3.71997C8.47009 3.71997 5.18009 5.79997 2.89009 9.39997C1.99009 10.81 1.99009 13.18 2.89009 14.59C5.18009 18.19 8.47009 20.27 12.0001 20.27Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>128</span> <!--placeholder-->
+            <span>128</span>
           </div>
 
-           <!-- THREE DOT MENU -->
+          <!-- THREE DOT MENU -->
           <div class="ann-more-wrap" onclick="event.stopPropagation()">
-            <button class="ann-action-btn ann-more-btn" title="More options" onclick="toggleMoreMenu(this)">
+            <button class="ann-action-btn ann-more-btn"
+                    title="More options"
+                    onclick="toggleMoreMenu(this)">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="5" cy="12" r="1" fill="currentColor"/>
                 <circle cx="12" cy="12" r="1" fill="currentColor"/>
                 <circle cx="19" cy="12" r="1" fill="currentColor"/>
               </svg>
             </button>
+
             <ul class="ann-more-menu">
               <li>
                 <button onclick="saveAsPDF(this)">
                   <svg width="16" height="16" viewBox="0 0 30 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right:7px;">
                     <path d="M14.625 18L13.5763 19.0725L14.625 20.0979L15.6737 19.0725L14.625 18ZM16.125 1.5C16.125 0.671574 15.4534 4.36095e-07 14.625 4.00688e-07C13.7966 3.65281e-07 13.125 0.671574 13.125 1.5L14.625 1.5L16.125 1.5ZM5.25 8.83333L4.20132 9.90584L13.5763 19.0725L14.625 18L15.6737 16.9275L6.29868 7.76082L5.25 8.83333ZM14.625 18L15.6737 19.0725L25.0487 9.90584L24 8.83333L22.9513 7.76082L13.5763 16.9275L14.625 18ZM14.625 18L16.125 18L16.125 1.5L14.625 1.5L13.125 1.5L13.125 18L14.625 18Z" fill="currentColor"/>
                     <path d="M1.5 21.666L1.5 23.4993C1.5 25.5244 3.17893 27.166 5.25 27.166L24 27.166C26.0711 27.166 27.75 25.5244 27.75 23.4994V21.666" stroke="currentColor" stroke-width="3"/>
-                    </svg>
-                  Save as PDF</button>
+                  </svg>
+                  <span data-en="Save as PDF" data-tl="I-save bilang PDF">
+                    Save as PDF
+                  </span>
+                </button>
               </li>
             </ul>
           </div>
@@ -193,7 +214,10 @@
 
     {% empty %}
 
-    <p>No announcements available.</p>
+    <p data-en="No announcements available."
+       data-tl="Walang anunsyo sa ngayon.">
+      No announcements available.
+    </p>
 
     {% endfor %}
 
@@ -206,9 +230,14 @@
 <div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
   <div class="ann-modal">
 
-    <h3>How helpful is this announcement?</h3>
+    <h3 data-en="How helpful is this announcement?"
+        data-tl="Gaano nakatulong ang anunsyong ito?">
+      How helpful is this announcement?
+    </h3>
 
-    <p class="ann-modal-sub">
+    <p class="ann-modal-sub"
+       data-en="( Not Helpful at all → Very Helpful )"
+       data-tl="( Hindi Nakatulong → Lubhang Nakatulong )">
       ( Not Helpful at all → Very Helpful )
     </p>
 
@@ -217,199 +246,247 @@
         <img src="{% static 'images/emoji-1.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 2)" title="Slightly Helpful">
         <img src="{% static 'images/emoji-2.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 3)" title="Somewhat Helpful">
         <img src="{% static 'images/emoji-3.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 4)" title="Helpful">
         <img src="{% static 'images/emoji-4.png' %}" width="50" height="50" />
       </button>
       <div class="emoji-line"></div>
+
       <button class="emoji-btn" onclick="selectEmoji(this, 5)" title="Very Helpful">
         <img src="{% static 'images/emoji-5.png' %}" width="50" height="50" />
       </button>
     </div>
 
     <div id="thankYouMsg" style="display:none; text-align:center; padding: 16px 0;">
-      <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Thank you for your feedback!</p>
-      <p style="font-size: 0.85rem; color: var(--muted);">Your response has been recorded.</p>
+      <p data-en="Thank you for your feedback!"
+         data-tl="Salamat sa iyong feedback!"
+         style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">
+        Thank you for your feedback!
+      </p>
+
+      <p data-en="Your response has been recorded."
+         data-tl="Naitala na ang iyong tugon."
+         style="font-size: 0.85rem; color: var(--muted);">
+        Your response has been recorded.
+      </p>
     </div>
 
     <p class="ann-feedback-label" id="feedbackLabel">&nbsp;</p>
 
-    <button class="ann-modal-close" onclick="closeFeedback()">Close</button>
+    <button class="ann-modal-close"
+            onclick="closeFeedback()"
+            data-en="Close"
+            data-tl="Isara">
+      Close
+    </button>
 
   </div>
 </div>
 
 <script>
+  function getCurrentLanguage() {
+    return localStorage.getItem("kaugnay_lang") || "en";
+  }
 
+  function showFeedbackLoginAlert() {
+    const lang = getCurrentLanguage();
 
-// SEARCH
-document.getElementById('annSearch').addEventListener('input', function () {
-  const q = this.value.toLowerCase();
-  document.querySelectorAll('.ann-card').forEach(card => {
-    const text = card.innerText.toLowerCase();
-    card.classList.toggle('hidden', q.length > 0 && !text.includes(q));
-  });
-});
+    alert(
+      lang === "tl"
+        ? "Mangyaring mag-login bilang residente upang makapagbigay ng feedback."
+        : "Please log in as a resident to leave feedback."
+    );
+  }
 
-// FILTER
-document.querySelectorAll('.ann-tab').forEach(tab => {
-  tab.addEventListener('click', function () {
-    document.querySelectorAll('.ann-tab').forEach(t => t.classList.remove('active'));
-    this.classList.add('active');
-    const filter = this.dataset.filter;
+  function translatedAlert(enText, tlText) {
+    const lang = getCurrentLanguage();
+    alert(lang === "tl" ? tlText : enText);
+  }
+
+  // SEARCH
+  document.getElementById('annSearch').addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+
     document.querySelectorAll('.ann-card').forEach(card => {
-      if (filter === 'all' || card.dataset.category.includes(filter)) {
-        card.classList.remove('hidden');
+      const text = card.innerText.toLowerCase();
+
+      card.classList.toggle('hidden', q.length > 0 && !text.includes(q));
+    });
+  });
+
+  // FILTER
+  document.querySelectorAll('.ann-tab').forEach(tab => {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.ann-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+
+      const filter = this.dataset.filter;
+
+      document.querySelectorAll('.ann-card').forEach(card => {
+        if (filter === 'all' || card.dataset.category.includes(filter)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // FEEDBACK MODAL
+  let currentAnnouncementId = null;
+
+  function openFeedback(btn) {
+    const card = btn.closest('.ann-card');
+    currentAnnouncementId = card.dataset.id;
+    const existingRating = parseInt(card.dataset.myRating) || 0;
+
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('feedbackLabel').textContent = '\u00a0';
+    document.getElementById('emojiRow').style.display = 'flex';
+    document.getElementById('thankYouMsg').style.display = 'none';
+
+    if (existingRating > 0) {
+      const btns = document.querySelectorAll('.emoji-btn');
+      if (btns[existingRating - 1]) {
+        btns[existingRating - 1].classList.add('selected');
+      }
+    }
+
+    document.getElementById('feedbackModal').classList.add('active');
+  }
+
+  function closeFeedback() {
+    document.getElementById('feedbackModal').classList.remove('active');
+  }
+
+  function closeFeedbackOnOverlay(e) {
+    if (e.target === document.getElementById('feedbackModal')) {
+      closeFeedback();
+    }
+  }
+
+  function selectEmoji(btn, rating) {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+
+    fetch(`/announcements/${currentAnnouncementId}/feedback/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ rating: rating }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const card = document.querySelector(`.ann-card[data-id="${currentAnnouncementId}"]`);
+        if (card) card.dataset.myRating = rating;
+
+        document.getElementById('emojiRow').style.display = 'none';
+        document.getElementById('thankYouMsg').style.display = 'block';
+
+        setTimeout(() => {
+          closeFeedback();
+          document.getElementById('emojiRow').style.display = 'flex';
+          document.getElementById('thankYouMsg').style.display = 'none';
+        }, 2000);
       } else {
-        card.classList.add('hidden');
+        translatedAlert(
+          data.error || 'Something went wrong. Please try again.',
+          data.error || 'May naging problema. Pakisubukan muli.'
+        );
       }
+    })
+    .catch(() => {
+      translatedAlert(
+        'Network error. Please try again.',
+        'Network error. Pakisubukan muli.'
+      );
     });
-  });
-});
+  }
 
-// FEEDBACK MODAL
-let currentAnnouncementId = null;
+  function getCookie(name) {
+    let value = null;
 
-function openFeedback(btn) {
-  const card = btn.closest('.ann-card');
-  currentAnnouncementId = card.dataset.id;
-  const existingRating = parseInt(card.dataset.myRating) || 0;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(function(c) {
+        c = c.trim();
 
-  // Reset modal state
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('feedbackLabel').textContent = '\u00a0';
-  document.getElementById('emojiRow').style.display = 'flex';
-  document.getElementById('thankYouMsg').style.display = 'none';
+        if (c.startsWith(name + '=')) {
+          value = decodeURIComponent(c.substring(name.length + 1));
+        }
+      });
+    }
 
-  // Pre-select emoji if resident already rated
-  if (existingRating > 0) {
-    const btns = document.querySelectorAll('.emoji-btn');
-    if (btns[existingRating - 1]) {
-      btns[existingRating - 1].classList.add('selected');
+    return value;
+  }
+
+  function toggleMoreMenu(btn) {
+    const menu = btn.closest('.ann-more-wrap').querySelector('.ann-more-menu');
+    const isOpen = menu.classList.contains('open');
+
+    document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
+
+    if (!isOpen) {
+      menu.classList.add('open');
     }
   }
 
-  document.getElementById('feedbackModal').classList.add('active');
-}
-
-function closeFeedback() {
-  document.getElementById('feedbackModal').classList.remove('active');
-}
-
-function closeFeedbackOnOverlay(e) {
-  if (e.target === document.getElementById('feedbackModal')) {
-    closeFeedback();
-  }
-}
-
-function selectEmoji(btn, rating) {
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-
-  // Send to backend
-  fetch(`/announcements/${currentAnnouncementId}/feedback/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken'),
-    },
-    body: JSON.stringify({ rating: rating }),
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      // Update the card's stored rating so re-opening the modal pre-selects correctly
-      const card = document.querySelector(`.ann-card[data-id="${currentAnnouncementId}"]`);
-      if (card) card.dataset.myRating = rating;
-
-      document.getElementById('emojiRow').style.display = 'none';
-      document.getElementById('thankYouMsg').style.display = 'block';
-      setTimeout(() => {
-        closeFeedback();
-        document.getElementById('emojiRow').style.display = 'flex';
-        document.getElementById('thankYouMsg').style.display = 'none';
-      }, 2000);
-    } else {
-      alert(data.error || 'Something went wrong. Please try again.');
-    }
-  })
-  .catch(() => {
-    alert('Network error. Please try again.');
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
   });
-}
 
-function getCookie(name) {
-  let value = null;
-  if (document.cookie) {
-    document.cookie.split(';').forEach(function(c) {
-      c = c.trim();
-      if (c.startsWith(name + '=')) {
-        value = decodeURIComponent(c.substring(name.length + 1));
-      }
-    });
+  function saveAsPDF(btn) {
+    const card = btn.closest('.ann-card');
+
+    const title = card.dataset.title || card.querySelector('.ann-title')?.textContent.trim() || 'Announcement';
+    const content = card.dataset.content || card.querySelector('.ann-excerpt')?.textContent.trim() || '';
+    const author = card.dataset.author || 'Barangay Admin';
+    const time = card.dataset.time || '';
+    const catname = card.dataset.catname || 'General Updates';
+
+    const lang = getCurrentLanguage();
+    const agoText = lang === "tl" ? "nakalipas" : "ago";
+
+    const html = `
+      <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          body { font-family: sans-serif; padding: 40px; color: #1a1a2e; }
+          .badge { display:inline-block; background:#e8eef8; color:#1a3a6b; font-size:12px; padding:4px 10px; border-radius:20px; margin-bottom:16px; }
+          h1 { font-size: 22px; margin-bottom: 8px; }
+          .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
+          p { font-size: 15px; line-height: 1.7; }
+        </style>
+      </head>
+      <body>
+        <div class="badge">${catname}</div>
+        <h1>${title}</h1>
+        <div class="meta"><strong>${author}</strong> · ${time} ${agoText}</div>
+        <p>${content}</p>
+      </body>
+      </html>
+    `;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
   }
-  return value;
-}
-
-function toggleMoreMenu(btn) {
-  const menu = btn.closest('.ann-more-wrap').querySelector('.ann-more-menu');
-  const isOpen = menu.classList.contains('open');
-  // close all open menus first
-  document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
-  if (!isOpen) menu.classList.add('open');
-}
-
-// close menus when clicking outside
-document.addEventListener('click', function() {
-  document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
-});
-
-function saveAsPDF(btn) {
-  const card = btn.closest('.ann-card');
-
-  const title = card.dataset.title;
-  const content = card.dataset.content;
-  const author = card.dataset.author;
-  const time = card.dataset.time;
-  const catname = card.dataset.catname;
-
-  const html = `
-    <html>
-    <head>
-      <title>${title}</title>
-      <style>
-        body { font-family: sans-serif; padding: 40px; color: #1a1a2e; }
-        .badge { display:inline-block; background:#e8eef8; color:#1a3a6b; font-size:12px; padding:4px 10px; border-radius:20px; margin-bottom:16px; }
-        h1 { font-size: 22px; margin-bottom: 8px; }
-        .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
-        p { font-size: 15px; line-height: 1.7; }
-      </style>
-    </head>
-    <body>
-      <div class="badge">${catname}</div>
-      <h1>${title}</h1>
-      <div class="meta"><strong>${author}</strong> · ${time} ago</div>
-      <p>${content}</p>
-    </body>
-    </html>
-  `;
-
-  const win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  win.print(); // triggers Save as PDF thru browser print dialog
-  win.close();
-}
-
-getCookie
 </script>
 
 {% endblock %}

@@ -8,30 +8,33 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Frequently Asked Questions</h1>
+    <h1 data-en="Frequently Asked Questions" data-tl="Mga Madalas Itanong">
+      Frequently Asked Questions
+    </h1>
     <div class="ann-hero-divider"></div>
 
+    <div class="ann-search-wrap">
+      <svg class="ann-search-icon" width="16" height="16" fill="none"
+          stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
 
-<div class="ann-search-wrap">
-  <svg class="ann-search-icon" width="16" height="16" fill="none"
-       stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-    <circle cx="11" cy="11" r="8"/>
-    <path d="m21 21-4.35-4.35"/>
-  </svg>
+      <input
+        type="text"
+        class="ann-search"
+        placeholder="How can we help? Search for FAQs..."
+        data-placeholder-en="How can we help? Search for FAQs..."
+        data-placeholder-tl="Paano namin kayo matutulungan? Maghanap ng FAQs..."
+        id="faqSearch"
+      />
+    </div>
 
-  <input
-    type="text"
-    class="ann-search"
-    placeholder="How can we help? Search for FAQs..."
-    id="faqSearch"
-  />
-</div>
-<p>
-  For quick answers to common concerns and inquiries, please use this feature to
-  browse frequently asked questions.
-</p>
-
-
+    <p data-en="For quick answers to common concerns and inquiries, please use this feature to browse frequently asked questions."
+       data-tl="Para sa mabilis na sagot sa karaniwang mga tanong at alalahanin, gamitin ang bahaging ito upang makita ang mga madalas itanong.">
+      For quick answers to common concerns and inquiries, please use this feature to
+      browse frequently asked questions.
+    </p>
   </div>
 </section>
 
@@ -42,13 +45,13 @@
   <!-- Category Filter -->
   <div class="faq-category-wrap">
     <select id="faqCategory" class="faq-category">
-      <option value="">All Categories</option>
-      <option value="general">General</option>
-      <option value="documents">Documents</option>
-      <option value="complaints">Complaints</option>
-      <option value="announcements">Announcements</option>
-      <option value="account">Account</option>
-      <option value="inquiries">Inquiries</option>
+      <option value="" data-en="All Categories" data-tl="Lahat ng Kategorya">All Categories</option>
+      <option value="general" data-en="General" data-tl="Pangkalahatan">General</option>
+      <option value="documents" data-en="Documents" data-tl="Dokumento">Documents</option>
+      <option value="complaints" data-en="Complaints" data-tl="Reklamo">Complaints</option>
+      <option value="announcements" data-en="Announcements" data-tl="Anunsyo">Announcements</option>
+      <option value="account" data-en="Account" data-tl="Account">Account</option>
+      <option value="inquiries" data-en="Inquiries" data-tl="Inquiries">Inquiries</option>
     </select>
   </div>
 
@@ -70,18 +73,21 @@
 
   <div class="faq-item">
     <div class="faq-answer" style="display:block; max-height:none;">
-      <p>No FAQs available at the moment.</p>
+      <p data-en="No FAQs available at the moment." data-tl="Wala pang available na FAQs sa ngayon.">
+        No FAQs available at the moment.
+      </p>
     </div>
   </div>
 
 {% endfor %}
 
-
   </div>
 
   <p class="contact-link">
-    Can't find what you're looking for?
-    <a href="{% url 'contactus' %}">Contact us</a>
+    <span data-en="Can't find what you're looking for?" data-tl="Hindi makita ang hinahanap?">
+      Can't find what you're looking for?
+    </span>
+    <a href="{% url 'contactus' %}" data-en="Contact us" data-tl="Makipag-ugnayan">Contact us</a>
   </p>
 
 </section>
@@ -93,7 +99,6 @@
     const arrow = btn.querySelector('.faq-arrow');
     const isOpen = item.classList.contains('open');
 
-    // Close all FAQs
     document.querySelectorAll('.faq-item').forEach(i => {
       i.classList.remove('open');
 
@@ -109,7 +114,6 @@
       }
     });
 
-    // Open selected FAQ
     if (!isOpen) {
       item.classList.add('open');
       answer.style.maxHeight = answer.scrollHeight + 'px';
@@ -117,7 +121,6 @@
     }
   }
 
-  // Search FAQs
   document.getElementById('faqSearch').addEventListener('input', function() {
     const query = this.value.toLowerCase();
 
@@ -130,19 +133,17 @@
     });
   });
 
-  // Filter by category
-document.getElementById('faqCategory').addEventListener('change', function() {
-  const selected = this.value.toLowerCase();
+  document.getElementById('faqCategory').addEventListener('change', function() {
+    const selected = this.value.toLowerCase();
 
-  document.querySelectorAll('.faq-item').forEach(item => {
-    const category = item.dataset.category || '';
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const category = item.dataset.category || '';
 
-    item.style.display = (selected === '' || category === selected)
-      ? ''
-      : 'none';
+      item.style.display = (selected === '' || category === selected)
+        ? ''
+        : 'none';
+    });
   });
-});
-
 </script>
 
 {% endblock %}

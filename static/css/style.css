@@ -3985,3 +3985,36 @@ footer ul li a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.language-menu-item {
+  padding: 0 18px;
+}
+
+.language-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.language-toggle {
+  display: flex;
+  gap: 5px;
+}
+
+.lang-btn {
+  border: 1px solid #172964;
+  background: #fff;
+  color: #172964;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: #172964;
+  color: #fff;
+}

@@ -6,9 +6,15 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Get in touch with the Barangay Office</h1>
+    <h1 data-en="Get in touch with the Barangay Office"
+        data-tl="Makipag-ugnayan sa Barangay Office">
+      Get in touch with the Barangay Office
+    </h1>
+
     <div class="ann-hero-divider"></div>
-    <p>
+
+    <p data-en="For concerns, inquiries, or clarifications, please do not hesitate to contact us through our provided contact details or by sending us a message using the form below."
+       data-tl="Para sa mga concern, inquiry, o paglilinaw, maaari kang makipag-ugnayan sa amin gamit ang aming contact details o sa pamamagitan ng form sa ibaba.">
       For concerns, inquiries, or clarifications, please do not hesitate to contact us through 
       our provided contact details or by sending us a message using the form below.
     </p>
@@ -25,7 +31,10 @@
         <path d="M6.6665 41.667H16.6665" stroke="#184072" stroke-width="6" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
 
-      <h2>Send us a message!</h2>
+      <h2 data-en="Send us a message!"
+          data-tl="Magpadala ng mensahe!">
+        Send us a message!
+      </h2>
     </div>
 
     {% if messages %}
@@ -38,21 +47,66 @@
       {% csrf_token %}
 
       <div class="form-row">
-        <input type="text" name="firstname" placeholder="First Name" required>
-        <input type="text" name="lastname" placeholder="Last Name" required>
+        <input
+          type="text"
+          name="firstname"
+          placeholder="First Name"
+          data-placeholder-en="First Name"
+          data-placeholder-tl="Pangalan"
+          required
+        >
+
+        <input
+          type="text"
+          name="lastname"
+          placeholder="Last Name"
+          data-placeholder-en="Last Name"
+          data-placeholder-tl="Apelyido"
+          required
+        >
       </div>
 
       <div class="form-row">
-        <input type="text" name="contactno" placeholder="Mobile Number" required>
-        <input type="text" name="address" placeholder="Address">
+        <input
+          type="text"
+          name="contactno"
+          placeholder="Mobile Number"
+          data-placeholder-en="Mobile Number"
+          data-placeholder-tl="Mobile Number"
+          required
+        >
+
+        <input
+          type="text"
+          name="address"
+          placeholder="Address"
+          data-placeholder-en="Address"
+          data-placeholder-tl="Address"
+        >
       </div>
 
-      <input type="text" name="messagesubject" placeholder="Subject">
+      <input
+        type="text"
+        name="messagesubject"
+        placeholder="Subject"
+        data-placeholder-en="Subject"
+        data-placeholder-tl="Paksa"
+      >
 
-      <textarea name="message" placeholder="Write your message here" required></textarea>
+      <textarea
+        name="message"
+        placeholder="Write your message here"
+        data-placeholder-en="Write your message here"
+        data-placeholder-tl="Isulat ang iyong mensahe rito"
+        required
+      ></textarea>
 
       <div class="submit-row">
-        <button type="submit">Submit</button>
+        <button type="submit"
+                data-en="Submit"
+                data-tl="Isumite">
+          Submit
+        </button>
       </div>
     </form>
   </div>
@@ -64,20 +118,36 @@
 
     <!-- Officials Directory -->
     <div class="info-card info-card--directory">
-      <h3>Officials Directory</h3>
+      <h3 data-en="Officials Directory"
+          data-tl="Directory ng mga Opisyal">
+        Officials Directory
+      </h3>
 
       <div class="directory-row">
         <div>
-          <p class="directory-role">Chairman:</p>
+          <p class="directory-role"
+             data-en="Chairman:"
+             data-tl="Chairman:">
+            Chairman:
+          </p>
           <p class="directory-name">Ariel Haling</p>
         </div>
         <div>
-          <p class="directory-role">SK Chairman:</p>
+          <p class="directory-role"
+             data-en="SK Chairman:"
+             data-tl="SK Chairman:">
+            SK Chairman:
+          </p>
           <p class="directory-name">Mariel Sabatin</p>
         </div>
       </div>
 
-      <p class="directory-role">Kagawad:</p>
+      <p class="directory-role"
+         data-en="Kagawad:"
+         data-tl="Kagawad:">
+        Kagawad:
+      </p>
+
       <div class="directory-row">
         <div>
           <p class="directory-name">Kurt Marvin Haling</p>
@@ -94,11 +164,19 @@
 
       <div class="directory-row">
         <div>
-          <p class="directory-role">Secretary:</p>
+          <p class="directory-role"
+             data-en="Secretary:"
+             data-tl="Secretary:">
+            Secretary:
+          </p>
           <p class="directory-name">Barry Bacus</p>
         </div>
         <div>
-          <p class="directory-role">Treasurer:</p>
+          <p class="directory-role"
+             data-en="Treasurer:"
+             data-tl="Treasurer:">
+            Treasurer:
+          </p>
           <p class="directory-name">Anabelle Tambongon</p>
         </div>
       </div>
@@ -113,7 +191,10 @@
           <circle cx="12" cy="12" r="10"/>
           <polyline points="12 6 12 12 16 14"/>
         </svg>
-        <h4>Office Hours</h4>
+        <h4 data-en="Office Hours"
+            data-tl="Oras ng Opisina">
+          Office Hours
+        </h4>
         <p>8:00 AM – 5:00 PM</p>
         <p>Monday – Friday</p>
       </div>
@@ -123,7 +204,10 @@
           <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
           <circle cx="12" cy="10" r="3"/>
         </svg>
-        <h4>Office Location</h4>
+        <h4 data-en="Office Location"
+            data-tl="Lokasyon ng Opisina">
+          Office Location
+        </h4>
         <p>1143 P. Ocampo St., San</p>
         <p>Andres Bukid, Manila</p>
       </div>
@@ -144,7 +228,13 @@
         </svg>
         <h4>Hotline</h4>
         <p>0905 364 4550</p>
-        <p><strong>Emergency:</strong> 8899 1234</p>
+        <p>
+          <strong data-en="Emergency:"
+                  data-tl="Emergency:">
+            Emergency:
+          </strong>
+          8899 1234
+        </p>
       </div>
 
     </div>
