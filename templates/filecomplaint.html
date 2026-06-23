@@ -59,6 +59,8 @@
                     name="incident_date"
                     data-placeholder-en="Incident Date"
                     data-placeholder-tl="Petsa ng Pangyayari"
+                    min="{{ min_incident_date|date:'Y-m-d' }}"
+                    max="{{ max_incident_date|date:'Y-m-d' }}"
                 >
             </div>
 

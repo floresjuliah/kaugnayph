@@ -22,7 +22,7 @@ from core.utils import (
     generate_case_number,
     generate_certificate_number,
 )
-from datetime import date
+from datetime import date, timedelta
 import uuid
 from core.moderation import moderate_text, moderate_image
 from core.sla_utils import (
@@ -95,6 +95,10 @@ def filecomplaint(request):
     incident_date = None
     current_user = get_current_user(request)
 
+    today = date.today()
+    min_incident_date = today - timedelta(days=7)
+    max_incident_date = today
+
     def complaint_context(captcha_form=None):
         initial_data = {
             "firstname": current_user.firstname,
@@ -105,6 +109,8 @@ def filecomplaint(request):
         return {
             "initial_data": initial_data,
             "captcha_form": captcha_form or CaptchaOnlyForm(),
+            "min_incident_date": min_incident_date,
+            "max_incident_date": max_incident_date,
         }
 
     if request.method == "POST":
@@ -117,7 +123,7 @@ def filecomplaint(request):
                 complaint_context(captcha_form)
             )
 
-        incident_date       = request.POST.get("incident_date")
+        incident_date_raw    = request.POST.get("incident_date", "").strip()
         complainee          = request.POST.get("complainee", "").strip()
         complainee_address  = request.POST.get("complainee_address", "").strip()
         jurisdiction_barangay = request.POST.get("jurisdiction_barangay", "").strip()
@@ -137,9 +143,26 @@ def filecomplaint(request):
             messages.error(request, "Description is required.")
             return render(request, "filecomplaint.html", complaint_context())
 
-        if incident_date and incident_date > str(date.today()):
-            messages.error(request, "Incident date cannot be in the future.")
-            return render(request, "filecomplaint.html", complaint_context())
+        incident_date = None
+        if incident_date_raw:
+            try:
+                incident_date = date.fromisoformat(incident_date_raw)
+            except ValueError:
+                messages.error(request, "Invalid incident date format.")
+                return render(request, "filecomplaint.html", complaint_context())
+
+            if incident_date > max_incident_date:
+                messages.error(request, "Incident date cannot be in the future.")
+                return render(request, "filecomplaint.html", complaint_context())
+
+            if incident_date < min_incident_date:
+                messages.error(
+                    request,
+                    f"Incident date cannot be earlier than "
+                    f"{min_incident_date.strftime('%B %d, %Y')}. "
+                    "For older incidents, please visit the barangay office directly."
+                )
+                return render(request, "filecomplaint.html", complaint_context())
 
         # FILE VALIDATION & SAVE
         file_path = None
@@ -175,7 +198,7 @@ def filecomplaint(request):
             jurisdiction_barangay=jurisdiction_barangay or None,
             title=title,
             description=description,
-            incident_date=incident_date or None,
+            incident_date=incident_date,
             file_path=file_path,
             status="Submitted",
             is_flagged=is_flagged,
