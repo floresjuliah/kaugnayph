@@ -1294,7 +1294,7 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     if user_type == "Admin":
         return redirect("admin_login")
-    return redirect("login")
+    return redirect("landing")
 
 
 # ADMIN — CREATE STAFF (Chairman only)
