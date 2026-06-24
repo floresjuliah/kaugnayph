@@ -4062,9 +4062,10 @@ footer ul li a:hover {
 }
 
 .privacy-block a {
-  color: var(--blue);
+  color: var(--sky);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: light;
+  font-style: italic;
 }
 
 .privacy-block a:hover {
