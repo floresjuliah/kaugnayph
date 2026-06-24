@@ -4033,3 +4033,12 @@ def admins_list_view(request):
 
     return render(request, "adminpanel/admins_list.html", context)
 
+#ADMIN: SMS OUTBOX
+@admin_login_required
+def sms_outbox_view(request):
+    return render(request, "adminpanel/SMS_outbox.html")
+
+# ADMIN: SETTINGS
+@admin_login_required
+def settings_page(request):
+    return render(request, "adminpanel/settings_page.html")

@@ -85,19 +85,16 @@ urlpatterns = [
     #ADMIN: AUDIT LOGS
     path("admin/audit-logs/", views.audit_logs_view, name="audit_logs"),
 
+    # ADMIN: SMS OUTBOX
+    path("admin/sms-outbox/", views.sms_outbox_view, name="sms_outbox"),
+
     #ADMIN: ADMIN REGISTER
-    path(
-    "admin/<int:user_id>/deactivate/",
-    views.admin_deactivate_view,
-    name="admin_deactivate"
-    ),
+    path("admin/<int:user_id>/deactivate/", views.admin_deactivate_view, name="admin_deactivate"),
     path("admin/<int:user_id>/edit/", views.admin_edit_view, name="admin_edit"),
-    path(
-    "admin/<int:user_id>/reactivate/",
-    views.admin_reactivate_view,
-    name="admin_reactivate"
-    ),
+    path("admin/<int:user_id>/reactivate/", views.admin_reactivate_view, name="admin_reactivate"),
     path("admin/<int:user_id>/", views.admin_detail_view, name="admin_detail"),
     path("admin/", views.admins_list_view, name="admins_list"),
 
+    #ADMIN: SETTINGS
+    path("admin/settings/", views.settings_page, name="settings_page"),
 ]

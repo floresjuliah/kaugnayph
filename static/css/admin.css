@@ -341,7 +341,7 @@ body {
     background: #f8fbff;
 }
 
-/* Announcement filter dropdown - same style as Resident Records */
+/* Announcement filter dropdown  */
 
 .ann-filter-wrap {
     position: relative;
@@ -3608,9 +3608,7 @@ EDIT RESIDENT PROFILE PAGE
 }
 
 /* ======================================================
-   GLOBAL ADMIN UI STANDARDIZATION
-   Add this at the VERY BOTTOM of admin.css
-   Do not edit HTML.
+ ADMIN UI STANDARD
 ====================================================== */
 
 /* ---------- PAGE TITLES ---------- */
@@ -3628,7 +3626,8 @@ EDIT RESIDENT PROFILE PAGE
 .dash-header h1,
 .admins-title,
 .resident-profile-title,
-.resident-edit-title {
+.resident-edit-title,
+.sms-page h1 {
     font-size: 32px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
@@ -3672,7 +3671,8 @@ EDIT RESIDENT PROFILE PAGE
 .doc-table-card,
 .inquiry-table-card,
 .admin-table-card,
-.admins-card {
+.admins-card,
+.sms-card {
     background: #ffffff !important;
     border-radius: 12px !important;
     overflow: hidden !important;
@@ -3686,7 +3686,8 @@ EDIT RESIDENT PROFILE PAGE
 .doc-table,
 .inquiry-table,
 .admin-table,
-.admins-table {
+.admins-table,
+.sms-table {
     width: 100% !important;
     border-collapse: collapse !important;
     font-size: 14px !important;
@@ -3699,7 +3700,8 @@ EDIT RESIDENT PROFILE PAGE
 .doc-table th,
 .inquiry-table th,
 .admin-table th,
-.admins-table th {
+.admins-table th,
+.sms-table th {
     padding: 16px 20px !important;
     font-size: 12px !important;
     font-weight: 700 !important;
@@ -3716,7 +3718,8 @@ EDIT RESIDENT PROFILE PAGE
 .doc-table td,
 .inquiry-table td,
 .admin-table td,
-.admins-table td {
+.admins-table td,
+.sms-table td {
     padding: 15px 20px !important;
     font-size: 14px !important;
     font-weight: 400 !important;
@@ -3732,7 +3735,8 @@ EDIT RESIDENT PROFILE PAGE
 .doc-table thead,
 .inquiry-table thead,
 .admin-table thead,
-.admins-table thead {
+.admins-table thead,
+.sms-table thead {
     background: #dfe7f1 !important;
 }
 
@@ -3836,4 +3840,52 @@ EDIT RESIDENT PROFILE PAGE
 
 .admin-title-stack h1 {
     margin: 0;
+}
+
+/* SMS PAGINATION */
+
+.sms-empty {
+    text-align: center !important;
+    color: #64748b !important;
+    padding: 30px !important;
+}
+
+.sms-footer {
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sms-footer p {
+    margin: 0;
+    color: #58708f;
+    font-size: 14px;
+}
+
+.sms-pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sms-pagination a,
+.sms-pagination span {
+    border: none;
+    background: white;
+    color: #0066ff;
+    padding: 9px 13px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.sms-pagination .active {
+    background: #e6f0ff;
+    color: #0066ff;
+}
+
+.sms-pagination .disabled {
+    border: 1px solid #dbe4ee;
+    color: #64748b;
 }

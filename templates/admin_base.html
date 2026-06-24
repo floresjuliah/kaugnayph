@@ -14,6 +14,8 @@
     <link rel="stylesheet"
           href="{% static 'css/admin.css' %}">
 
+    {% block extra_css %}{% endblock %}
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1E5HKBVMCC"></script>
     <script>
@@ -26,29 +28,26 @@
 </head>
 
 <script>
+function toggleDropdown(event) {
+    event.stopPropagation();
 
-function toggleDropdown(){
+    const dropdown = document.getElementById("profileDropdown");
 
-    const dropdown =
-        document.getElementById("profileDropdown");
-
-    dropdown.classList.toggle("show-dropdown");
+    if (dropdown) {
+        dropdown.classList.toggle("show-dropdown");
+    }
 }
 
-window.addEventListener("click", function(e){
+window.addEventListener("click", function(e) {
+    const profile = document.querySelector(".admin-profile");
+    const dropdown = document.getElementById("profileDropdown");
 
-    const profile =
-        document.querySelector(".admin-profile");
-
-    if(!profile.contains(e.target)){
-
-        document
-            .getElementById("profileDropdown")
-            .classList.remove("show-dropdown");
+    if (profile && dropdown && !profile.contains(e.target)) {
+        dropdown.classList.remove("show-dropdown");
     }
 });
-
 </script>
+
 <body>
 
 <div class="admin-layout">
@@ -108,7 +107,8 @@ window.addEventListener("click", function(e){
                 Audit Logs
             </a>
 
-            <a href="#">
+            <a href="{% url 'sms_outbox' %}"
+                class="{% if request.resolver_match.url_name == 'sms_outbox' %}active{% endif %}">
                 <span class="menu-icon"></span>
                 SMS Outbox
             </a>
@@ -133,7 +133,8 @@ window.addEventListener("click", function(e){
 
                 <button class="profile-toggle"
                         type="button"
-                        onclick="toggleDropdown()">                    <span class="profile-name">
+                        onclick="toggleDropdown(event)">                  
+                            <span class="profile-name">
                         Admin<br>
                         {{ request.session.fullname|default:"Jane D." }}
                     </span>
@@ -150,8 +151,8 @@ window.addEventListener("click", function(e){
                         View Profile
                     </a>
 
-                    <a href="#">
-                        <span>⚙</span>
+                    <a href="{% url 'settings_page' %}" class="{% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
+                        <span class="menu-icon">⚙</span>
                         Settings
                     </a>
 

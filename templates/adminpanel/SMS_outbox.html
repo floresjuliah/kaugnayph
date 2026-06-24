@@ -1,0 +1,61 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}SMS Outbox{% endblock %}
+
+{% block admin_content %}
+
+<div class="sms-page">
+    <h1>SMS Outbox</h1>
+
+    <div class="sms-card">
+        <table class="sms-table">
+            <thead>
+                <tr>
+                    <th>Recipient</th>
+                    <th>Message</th>
+                    <th>Sender</th>
+                    <th>Time Sent</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sms in page_obj %}
+                <tr>
+                    <td>{{ sms.recipient }}</td>
+                    <td>{{ sms.message }}</td>
+                    <td>{{ sms.sender }}</td>
+                    <td>{{ sms.created_at|date:"M d, Y h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="sms-empty">No SMS records available yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="sms-footer">
+            <p>
+                Showing {{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }}
+                of {{ page_obj.paginator.count|default:0 }}
+            </p>
+
+            <div class="sms-pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
+
+                <span class="active">{{ page_obj.number|default:1 }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="next">Next</a>
+                {% else %}
+                    <span class="disabled">Next</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

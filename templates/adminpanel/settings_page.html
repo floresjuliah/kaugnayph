@@ -1,0 +1,213 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block admin_title %}Settings{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/settings_page.css' %}">
+{% endblock %}
+
+{% block admin_content %}
+
+<div class="settings-page">
+
+    <a href="javascript:history.back()" class="settings-back">← Back</a>
+
+    <h1 class="settings-title">Settings</h1>
+
+    <!-- PROFILE -->
+    <div class="settings-card">
+        <h2>Profile</h2>
+
+        <div class="profile-settings-grid">
+            <div class="profile-avatar-box">
+                <div class="settings-avatar">
+                    {{ request.user.firstname|default:"A"|first }}
+                </div>
+
+                <button class="outline-btn">Change Avatar</button>
+            </div>
+
+            <div class="profile-info-box">
+                <h3>
+                    {{ request.user.firstname|default:"Allyana" }}
+                    {{ request.user.lastname|default:"Villafuerte" }}
+                </h3>
+                <p class="role-text">{{ request.user.role|default:"Administrator" }}</p>
+
+                <div class="settings-info-row">
+                    <div>
+                        <label>Contact Number</label>
+                        <p>{{ request.user.contactno|default:"+63 912 345 6789" }}</p>
+                    </div>
+                    <button class="outline-btn small">Edit</button>
+                </div>
+
+                <div class="settings-info-row">
+                    <div>
+                        <label>Email Address</label>
+                        <p>{{ request.user.email|default:"allyana.villafuerte@kaugnay.ph" }}</p>
+                    </div>
+                    <button class="outline-btn small">Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="settings-card">
+        <h2>Security</h2>
+
+        <div class="settings-action-row">
+            <div class="settings-icon">🔒</div>
+
+            <div>
+                <h3>Change Password</h3>
+                <p>Last updated: 15 days ago</p>
+            </div>
+
+            <button class="outline-btn">Change Password</button>
+        </div>
+
+        <div class="settings-action-row">
+            <div class="settings-icon">🛡️</div>
+
+            <div>
+                <h3>OTP Authentication</h3>
+                <p>Add an extra layer of security to your account</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span></span>
+            </label>
+        </div>
+
+        <h3 class="settings-subtitle">Recent Login Activity</h3>
+
+        <div class="settings-table-wrap">
+            <table class="settings-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Device</th>
+                        <th>Location</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Jun 24, 2026 • 8:42 PM</td>
+                        <td>Chrome on Windows</td>
+                        <td>Manila, Philippines</td>
+                        <td>192.168.1.10</td>
+                    </tr>
+                    <tr>
+                        <td>Jun 23, 2026 • 3:15 PM</td>
+                        <td>Edge on Windows</td>
+                        <td>Manila, Philippines</td>
+                        <td>192.168.1.10</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="settings-card">
+        <h2>Notifications</h2>
+
+        <div class="settings-table-wrap">
+            <table class="settings-table notification-table">
+                <thead>
+                    <tr>
+                        <th>Notification Type</th>
+                        <th>SMS</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Document Requests</strong>
+                            <span>Receive alerts for new document requests</span>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <strong>New Cases</strong>
+                            <span>Receive alerts for new cases</span>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <strong>Resident Verification</strong>
+                            <span>Receive alerts for resident verification updates</span>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <strong>Account Security Alerts</strong>
+                            <span>Receive important security alerts</span>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span></span>
+                            </label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
