@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+
+  <div class="hero-content">
+    <h1>Privacy Policy</h1>
+    <div class="ann-hero-divider"></div>
+    <p>
+      Learn how KaugnayPH collects, uses, and protects your personal information.
+    </p>
+  </div>
+</section>
+
+<!-- ── PRIVACY POLICY CONTENT ── -->
+<section class="privacy-section">
+  <div class="privacy-container">
+
+    <div class="privacy-block">
+      <h2>I. Overview</h2>
+      <p>
+        At KaugnayPH, we value the privacy of our residents and are committed to protecting the personal information you share with us. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data.
+      </p>
+    </div>
+
+    <div class="privacy-block">
+      <h2>II. Information We Collect</h2>
+      <p>We may collect personal information from residents for the purpose of providing our services, including but not limited to:</p>
+      <ul>
+        <li>Full Name</li>
+        <li>Mobile Number</li>
+        <li>Address</li>
+        <li>Date of Birth</li>
+        <li>Other information necessary for identity verification</li>
+      </ul>
+    </div>
+
+    <div class="privacy-block">
+      <h2>III. How We Use Your Information</h2>
+      <p>Your information is collected and used for the following purposes:</p>
+      <ul>
+        <li>Verifying resident identity for access to our services</li>
+        <li>Processing requests, complaints, or document applications</li>
+        <li>Sending announcements or important notifications</li>
+        <li>Maintaining accurate records for barangay administration purposes</li>
+      </ul>
+    </div>
+
+    <div class="privacy-block">
+      <h2>IV. Sharing of Information</h2>
+      <p>
+        We do not sell or rent your personal information. Your data may be shared only with authorized personnel or government entities when necessary to provide services or comply with legal requirements.
+      </p>
+    </div>
+
+    <div class="privacy-block">
+      <h2>V. Contact Us</h2>
+      <p>For questions, concerns, or requests regarding your personal information, please contact us at:</p>
+      <p>Email: barangay761manila@gmail.com</p>
+      <p>Hotline: 0905 364 4550</p>
+      <p>or send us a message at: <a href="{% url 'contactus' %}">Contact Us</a></p>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

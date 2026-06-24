@@ -254,6 +254,9 @@ def filecomplaint(request):
 def aboutus(request):
     return render(request, 'aboutus.html')
 
+def privacypolicy(request):
+    return render(request, 'privacypolicy.html')
+
 def documents(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
     current_user = get_current_user(request)
