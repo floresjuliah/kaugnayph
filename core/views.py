@@ -1285,21 +1285,42 @@ def admin_dashboard_view(request):
         round((docreq_completed / total_requests) * 100)
         if total_requests else 0
     )
+    
+    import json
 
-    # ---- CHART.JS DATA (JSON-serialized for safe template embedding) ----
     case_chart_data = json.dumps({
-        "labels": ["Pending", "Ongoing", "Resolved"],
-        "values": [cases_pending, cases_ongoing, cases_resolved],
-    }, cls=DjangoJSONEncoder)
+        "labels": [
+            "Pending",
+            "Ongoing",
+            "Resolved"
+        ],
+        "values": [
+            cases_pending,
+            cases_ongoing,
+            cases_resolved
+        ]
+    })
 
     docreq_chart_data = json.dumps({
-        "labels": ["Pending", "Processing", "Completed", "Rejected"],
-        "values": [docreq_pending, docreq_processing, docreq_completed, docreq_rejected],
-    }, cls=DjangoJSONEncoder)
+        "labels": [
+            "Pending",
+            "Processing",
+            "Completed",
+            "Rejected"
+        ],
+        "values": [
+            docreq_pending,
+            docreq_processing,
+            docreq_completed,
+            docreq_rejected
+        ]
+    })
 
     return render(request, "adminpanel/dashboard.html", {
 
         "user": user,
+        "case_chart_data": case_chart_data,
+        "docreq_chart_data": docreq_chart_data,
 
         # Top cards
         "total_residents": total_residents,
