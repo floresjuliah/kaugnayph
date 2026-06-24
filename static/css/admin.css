@@ -3809,3 +3809,31 @@ EDIT RESIDENT PROFILE PAGE
     opacity: .6;
     cursor: not-allowed;
 }
+
+.resident-header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.resident-header-row h1 {
+    margin: 0;
+}
+
+.resident-header-row .resident-stats {
+    margin: 0;
+}
+
+
+.admin-title-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.admin-title-stack h1 {
+    margin: 0;
+}

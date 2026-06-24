@@ -1685,6 +1685,7 @@ def resident_records_view(request):
     from django.core.paginator import Paginator
 
     status_filter = request.GET.get("status", "All").strip()
+    sms_filter = request.GET.get("sms", "All").strip()
     search_query = request.GET.get("search", "").strip()
 
     residents = Users.objects.filter(
@@ -1704,16 +1705,24 @@ def resident_records_view(request):
     for u in residents:
         rv = ResidentVerification.objects.filter(user=u).first()
         s = Settings.objects.filter(user=u).first()
+
         status = rv.status if rv else "No Submission"
+        sms_sub = s.receive_sms if s else False
 
         if status_filter != "All" and status != status_filter:
+            continue
+
+        if sms_filter == "Subscribed" and not sms_sub:
+            continue
+
+        if sms_filter == "Not Subscribed" and sms_sub:
             continue
 
         records.append({
             "user": u,
             "rv": rv,
             "status": status,
-            "sms_sub": s.receive_sms if s else False,
+            "sms_sub": sms_sub,
         })
 
     paginator = Paginator(records, 10)
@@ -1729,6 +1738,7 @@ def resident_records_view(request):
         "page_obj": page_obj,
         "user": get_current_user(request),
         "status_filter": status_filter,
+        "sms_filter": sms_filter,
         "search_query": search_query,
         "total_residents": total_residents,
         "pending_count": ResidentVerification.objects.filter(status="Pending").count(),
@@ -2035,13 +2045,14 @@ def serve_verification_file(request, rv_id, file_type):
         content_type=mime_type or 'image/jpeg'
     )
 
-# Admin Announcement List 
+# Admin Announcement List
 @admin_login_required
 def admin_announcements_view(request):
     from django.core.paginator import Paginator
 
     search = request.GET.get("search", "").strip()
-    category = request.GET.get("category", "").strip()
+    category = request.GET.get("category", "all").strip()
+    date_filter = request.GET.get("date", "").strip()
 
     all_announcements = Announcements.objects.select_related(
         "category",
@@ -2051,10 +2062,19 @@ def admin_announcements_view(request):
     announcements = all_announcements
 
     if search:
-        announcements = announcements.filter(title__icontains=search)
+        announcements = announcements.filter(
+            title__icontains=search
+        )
 
     if category and category != "all":
-        announcements = announcements.filter(category__name__iexact=category)
+        announcements = announcements.filter(
+            category__name__iexact=category
+        )
+
+    if date_filter:
+        announcements = announcements.filter(
+            created_at__date=date_filter
+        )
 
     announcements = announcements.order_by("-announcement_id")
 
@@ -2075,8 +2095,11 @@ def admin_announcements_view(request):
         "announcements": page_obj,
         "page_obj": page_obj,
         "user": get_current_user(request),
+
         "search": search,
         "selected_category": category,
+        "date_filter": date_filter,
+
         "total_announcements": total_announcements,
         "general_count": general_count,
         "emergency_count": emergency_count,
@@ -2768,50 +2791,73 @@ def complaint_timeline_view(request, complaint_id):
 @admin_login_required
 def admin_document_requests_view(request):
     from django.core.paginator import Paginator
- 
-    search_query  = request.GET.get("search", "").strip()
-    status_filter = request.GET.get("status", "All").strip()
- 
-    doc_requests = DocumentRequests.objects.select_related("user", "document_type", "processed_by").all()
- 
+
+    search_query         = request.GET.get("search", "").strip()
+    status_filter        = request.GET.get("status", "All").strip()
+    document_type_filter = request.GET.get("document_type", "All").strip()
+    date_filter          = request.GET.get("date", "").strip()
+
+    doc_requests = DocumentRequests.objects.select_related(
+        "user",
+        "document_type",
+        "processed_by"
+    ).all()
+
     if search_query:
         doc_requests = doc_requests.filter(
             Q(user__firstname__icontains=search_query) |
-            Q(user__lastname__icontains=search_query)  |
+            Q(user__lastname__icontains=search_query) |
             Q(document_type__name__icontains=search_query) |
             Q(drid__icontains=search_query)
         )
- 
+
     if status_filter != "All":
         doc_requests = doc_requests.filter(status=status_filter)
- 
+
+    if document_type_filter != "All":
+        doc_requests = doc_requests.filter(document_type_id=document_type_filter)
+
+    if date_filter:
+        doc_requests = doc_requests.filter(
+            requested_at__date=date_filter
+        )
+
     doc_requests = doc_requests.order_by("-requested_at")
- 
+
     records = []
+
     for dr in doc_requests:
         from core.utils import generate_document_id
-        sla        = get_sla_for_record("DocumentRequest", dr.drid)
+
+        sla = get_sla_for_record("DocumentRequest", dr.drid)
+
         records.append({
-            "obj":        dr,
-            "doc_id":     generate_document_id(dr.drid),
-            "status":     dr.status or "Pending",
-            "sla":        sla,
+            "obj": dr,
+            "doc_id": generate_document_id(dr.drid),
+            "status": dr.status or "Pending",
+            "sla": sla,
             "sla_status": get_sla_status_live(sla),
         })
- 
-    paginator   = Paginator(records, 10)
-    page_obj    = paginator.get_page(request.GET.get("page"))
- 
+
+    paginator = Paginator(records, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     return render(request, "adminpanel/document_requests.html", {
-        "records":       page_obj,
-        "page_obj":      page_obj,
-        "user":          get_current_user(request),
-        "search_query":  search_query,
+        "records": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+
+        "search_query": search_query,
         "status_filter": status_filter,
-        "total":         doc_requests.count(),
-        "pending":       doc_requests.filter(status="Pending").count(),
-        "processing":    doc_requests.filter(status="Processing").count(),
-        "completed":     doc_requests.filter(status="Completed").count(),
+        "document_type_filter": document_type_filter,
+        "date_filter": date_filter,
+
+        "document_types": DocumentTypes.objects.all(),
+
+        "total": DocumentRequests.objects.count(),
+        "pending": DocumentRequests.objects.filter(status="Pending").count(),
+        "processing": DocumentRequests.objects.filter(status="Processing").count(),
+        "completed": DocumentRequests.objects.filter(status="Completed").count(),
     })
 
 
@@ -3602,45 +3648,62 @@ def _complaint_contact_numbers(complaint):
 @admin_login_required
 def admin_inquiries_view(request):
     from django.core.paginator import Paginator
- 
-    search_query  = request.GET.get("search", "").strip()
+
+    search_query = request.GET.get("search", "").strip()
     status_filter = request.GET.get("status", "All").strip()
- 
+    category_filter = request.GET.get("category", "All").strip()
+    date_to = request.GET.get("date_to", "").strip()
+
     inquiries = Inquiry.objects.all()
- 
+
     if search_query:
         inquiries = inquiries.filter(
             Q(firstname__icontains=search_query) |
-            Q(lastname__icontains=search_query)  |
+            Q(lastname__icontains=search_query) |
             Q(messagesubject__icontains=search_query) |
             Q(contactno__icontains=search_query)
         )
- 
+
     if status_filter != "All":
         inquiries = inquiries.filter(status=status_filter)
- 
+
+    if category_filter != "All":
+        if category_filter == "Uncategorized":
+            inquiries = inquiries.filter(faq_category__isnull=True)
+        else:
+            inquiries = inquiries.filter(faq_category_id=category_filter)
+
+    if date_to:
+        inquiries = inquiries.filter(created_at__date=date_to)
+
     inquiries = inquiries.order_by("-created_at")
- 
+
     records = []
     for inq in inquiries:
         sla = get_sla_for_record("Inquiry", inq.cuid)
         records.append({
-            "obj":        inq,
-            "sla":        sla,
+            "obj": inq,
+            "sla": sla,
             "sla_status": get_sla_status_live(sla),
         })
- 
+
     paginator = Paginator(records, 10)
-    page_obj  = paginator.get_page(request.GET.get("page"))
- 
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     return render(request, "adminpanel/inquiries_list.html", {
-        "records":       page_obj,
-        "page_obj":      page_obj,
-        "user":          get_current_user(request),
-        "search_query":  search_query,
+        "records": page_obj,
+        "page_obj": page_obj,
+        "user": get_current_user(request),
+
+        "search_query": search_query,
         "status_filter": status_filter,
-        "total":         inquiries.count(),
-        "new_count":     Inquiry.objects.filter(status="New").count(),
+        "category_filter": category_filter,
+        "date_to": date_to,
+
+        "categories": FAQCategories.objects.all(),
+
+        "total": inquiries.count(),
+        "new_count": Inquiry.objects.filter(status="New").count(),
         "pending_count": Inquiry.objects.filter(status="Pending").count(),
         "replied_count": Inquiry.objects.filter(status="Replied").count(),
     })
@@ -3934,22 +3997,63 @@ def admin_toggle_faq(request, faq_id):
 @admin_login_required
 @permission_required('create_users')
 def admins_list_view(request):
+    from django.core.paginator import Paginator
+
+    search_query = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "All").strip()
+    position_filter = request.GET.get("position", "All").strip()
+
     admins = Users.objects.filter(
         user_type__type_name="Admin"
     ).select_related(
         "role",
         "position"
-    ).order_by(
+    )
+
+    if search_query:
+        admins = admins.filter(
+            Q(firstname__icontains=search_query) |
+            Q(lastname__icontains=search_query) |
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(position__name__icontains=search_query)
+        )
+
+    if status_filter == "Active":
+        admins = admins.filter(is_active=True)
+    elif status_filter == "Inactive":
+        admins = admins.filter(is_active=False)
+
+    if position_filter != "All":
+        admins = admins.filter(position__name=position_filter)
+
+    admins = admins.order_by(
         "role__roleid",
         "lastname",
         "firstname"
     )
 
+    all_admins = Users.objects.filter(user_type__type_name="Admin")
+
+    positions = all_admins.exclude(
+        position__isnull=True
+    ).values_list(
+        "position__name", flat=True
+    ).distinct().order_by("position__name")
+
+    paginator = Paginator(admins, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-        "admins": admins,
-        "total_admins": admins.count(),
-        "active_admins": admins.filter(is_active=True).count(),
-        "inactive_admins": admins.filter(is_active=False).count(),
+        "admins": page_obj,
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "position_filter": position_filter,
+        "positions": positions,
+        "total_admins": all_admins.count(),
+        "active_admins": all_admins.filter(is_active=True).count(),
+        "inactive_admins": all_admins.filter(is_active=False).count(),
         "user": get_current_user(request),
     }
 
