@@ -4,6 +4,9 @@
 
 {% block admin_content %}
 
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
 <div class="dash-page">
 
     <div class="dash-header">
@@ -16,9 +19,31 @@
         </select>
 
         <div class="dash-tabs">
-            <button type="button" class="active">Daily</button>
-            <button type="button">Weekly</button>
-            <button type="button">Monthly</button>
+
+            <button
+                class="{% if period == 'daily' %}active{% endif %}"
+                onclick="window.location='?period=daily'">
+
+                Daily
+
+            </button>
+
+            <button
+                class="{% if period == 'weekly' %}active{% endif %}"
+                onclick="window.location='?period=weekly'">
+
+                Weekly
+
+            </button>
+
+            <button
+                class="{% if period == 'monthly' %}active{% endif %}"
+                onclick="window.location='?period=monthly'">
+
+                Monthly
+
+            </button>
+
         </div>
 
         <button class="dash-apply-btn">Apply</button>
@@ -58,82 +83,104 @@
 
     </div>
 
-    <div class="dash-analytics-grid">
+<div class="dash-analytics-grid">
 
-        <div class="dash-panel">
-            <h2>Announcement Analytics</h2>
+    <!-- Announcement Analytics -->
+    <div class="dash-panel announcement-panel">
 
-            <div class="dash-info-row">
-                <p>Total Views:</p>
+        <h2>Announcement Analytics</h2>
+
+        <div class="announcement-stats">
+
+            <div class="stat-line">
+                <span>Total Views:</span>
                 <strong>{{ total_views|default:"0" }}</strong>
             </div>
 
-            <div class="dash-info-row">
-                <p>Unique Visitors:</p>
+            <div class="stat-line">
+                <span>Unique Visitors:</span>
                 <strong>{{ unique_visitors|default:"0" }}</strong>
             </div>
 
-                <div class="dash-most-viewed">
+            <div class="most-viewed-block">
 
-                    <p>Most Viewed:</p>
+                <span>Most Viewed:</span>
 
-                    {% if most_viewed_announcement %}
+                {% if most_viewed_announcement %}
+                    <strong>{{ most_viewed_announcement.title }}</strong>
+                {% else %}
+                    <strong>No announcement yet</strong>
+                {% endif %}
 
-                        <strong>
-                            {{ most_viewed_announcement.title }}
-                        </strong>
+            </div>
 
-                        <p>
-                            {{ most_viewed_announcement.view_count }}
-                            views
-                        </p>
-
-                    {% else %}
-
-                        <strong>No announcement yet</strong>
-
-                    {% endif %}
-
-                </div>
-
-            <div class="dash-info-row">
-                <p>Total Announcements:</p>
+            <div class="stat-line bottom">
+                <span>Total Announcements:</span>
                 <strong>{{ total_announcements|default:"0" }}</strong>
             </div>
+
         </div>
 
-        <div class="dash-panel">
-            <h2>Case Analytics</h2>
+    </div>
 
-            <div class="chart-canvas-wrap">
-                <canvas id="caseAnalyticsChart"></canvas>
+    <!-- Case Analytics -->
+    <div class="dash-panel case-panel">
+
+        <h2>Case Analytics</h2>
+
+        <div class="case-chart-container">
+            <canvas id="caseAnalyticsChart"></canvas>
+        </div>
+
+        <div class="case-stats">
+
+            <div class="legend-item">
+                <span class="pending-dot"></span>
+                Pending
             </div>
 
-            <p class="dash-small-label">Avg Resolution Time:</p>
+            <div class="legend-item">
+                <span class="ongoing-dot"></span>
+                Ongoing
+            </div>
+
+            <div class="legend-item">
+                <span class="resolved-dot"></span>
+                Resolved
+            </div>
+
+        </div>
+
+        <div class="resolution-block">
+            <span>Avg Resolution Time:</span>
             <h3>{{ avg_resolution_time|default:"0" }} days</h3>
         </div>
 
     </div>
 
-    <div class="dash-panel dash-doc-card">
-        <h2>Document Request</h2>
+</div>
 
-        <div class="chart-canvas-wrap chart-canvas-large">
-            <canvas id="docRequestChart"></canvas>
+<div class="dash-panel dash-doc-card">
+
+    <h2>Document Request</h2>
+
+    <div class="doc-chart-wrapper">
+        <canvas id="docRequestChart"></canvas>
+    </div>
+
+    <div class="doc-bottom-stats">
+
+        <div>
+            <p>Avg Processing Time:</p>
+            <h3>{{ avg_processing_time|default:"0" }} days</h3>
         </div>
 
-        <div class="doc-bottom-stats">
-            <div>
-                <p>Avg Processing Time:</p>
-                <h3>{{ avg_processing_time|default:"0" }} days</h3>
-            </div>
-
-            <div>
-                <p>Completion Rate:</p>
-                <h3>{{ completion_rate|default:"0" }}%</h3>
-            </div>
+        <div>
+            <p>Completion Rate:</p>
+            <h3>{{ completion_rate|default:"0" }}%</h3>
         </div>
     </div>
+</div>
 
 </div>
 
@@ -153,13 +200,12 @@
     new Chart(caseCtx, {
         type: 'doughnut',
         data: {
-            labels: caseChartData.labels,
             datasets: [{
                 data: caseChartData.values,
                 backgroundColor: [
-                    '#f59e0b', // Pending - amber
-                    '#3b82f6', // Ongoing - blue
-                    '#10b981', // Resolved - green
+                    '#FDE68A', // Pending - amber
+                    '#93C5FD', // Ongoing - blue
+                    '#BBF7D0', // Resolved - green
                 ],
                 borderWidth: 0,
             }]
@@ -169,14 +215,14 @@
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: 'top',
                     labels: { boxWidth: 12, padding: 16 }
                 }
             }
         }
     });
 
-    // ---- DOCUMENT REQUEST: Bar chart ----
+    //DOCUMENT REQUEST -> Bar chart
     const docCtx = document.getElementById('docRequestChart').getContext('2d');
     new Chart(docCtx, {
         type: 'bar',
@@ -186,16 +232,17 @@
                 label: 'Document Requests',
                 data: docreqChartData.values,
                 backgroundColor: [
-                    '#f59e0b', // Pending
-                    '#3b82f6', // Processing
-                    '#10b981', // Completed
-                    '#ef4444', // Rejected
+                '#FDE68A',
+                '#93C5FD',
+                '#BBF7D0'
                 ],
+                hoverOffset:25,
                 borderRadius: 6,
                 maxBarThickness: 60,
             }]
         },
         options: {
+            cutout:'65%',
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
