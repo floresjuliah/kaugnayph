@@ -1183,8 +1183,23 @@ def admin_dashboard_view(request):
     from django.db.models import Avg, Count, F, ExpressionWrapper, fields
     from django.core.serializers.json import DjangoJSONEncoder
     import json
+    from datetime import timedelta
+    from django.utils import timezone
 
     user = get_current_user(request)
+
+    period = request.GET.get("period", "daily")
+
+    today = timezone.now()
+
+    if period == "daily":
+        start_date = today - timedelta(days=1)
+
+    elif period == "weekly":
+        start_date = today - timedelta(days=7)
+
+    else:
+        start_date = today - timedelta(days=30)
 
     #TOP STAT CARDS
     total_residents = Users.objects.filter(
@@ -1195,9 +1210,15 @@ def admin_dashboard_view(request):
         status="Pending"
     ).count()
 
-    total_requests = DocumentRequests.objects.count()
-    total_cases = Complaints.objects.count()
-    total_inquiries = Inquiry.objects.count()
+    total_requests = DocumentRequests.objects.filter(
+        requested_at__gte=start_date
+    ).count()
+    total_cases = Complaints.objects.filter(
+        dateadded__gte=start_date
+    ).count()
+    total_inquiries = Inquiry.objects.filter(
+        created_at__gte=start_date
+    ).count()
     total_sms = SMSOutbox.objects.count()
 
     # ---- ANNOUNCEMENT ANALYTICS ----
@@ -1321,6 +1342,7 @@ def admin_dashboard_view(request):
         "user": user,
         "case_chart_data": case_chart_data,
         "docreq_chart_data": docreq_chart_data,
+        "period": period,
 
         # Top cards
         "total_residents": total_residents,

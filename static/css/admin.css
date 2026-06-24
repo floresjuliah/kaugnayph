@@ -15,9 +15,8 @@ body {
 
 .admin-layout {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     background: #eef4f8;
-    overflow: hidden;
 }
 
 .admin-sidebar {
@@ -208,9 +207,7 @@ body {
     color: #ef4444 !important;
 }
 
-/* =========================
-   DASHBOARD CARDS
-========================= */
+/*DASHBOARD CARDS*/
 
 .stats-grid {
     display: grid;
@@ -1664,11 +1661,10 @@ RESIDENT PROFILE PAGE
     flex-shrink: 0;
 }
 
-.admin-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 32px;
-    width: 100%;
+.admin-content{
+    flex:1;
+    overflow-y:auto;
+    padding:24px;
 }
 
 /* =========================
@@ -3086,9 +3082,7 @@ EDIT RESIDENT PROFILE PAGE
     width: 100%;
 }
 
-/* =========================
-   DASHBOARD PAGE
-========================= */
+/* DASHBOARD PAGE */
 
 .dash-page {
     width: 100%;
@@ -3847,3 +3841,4 @@ EDIT RESIDENT PROFILE PAGE
 .admin-title-stack h1 {
     margin: 0;
 }
+
