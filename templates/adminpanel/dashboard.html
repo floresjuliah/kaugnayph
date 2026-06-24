@@ -73,11 +73,28 @@
                 <strong>{{ unique_visitors|default:"0" }}</strong>
             </div>
 
-            <div class="dash-most-viewed">
-                <p>Most Viewed:</p>
-                <strong>{{ most_viewed_announcement_1|default:"No announcement yet" }}</strong>
-                <strong>{{ most_viewed_announcement_2|default:"" }}</strong>
-            </div>
+                <div class="dash-most-viewed">
+
+                    <p>Most Viewed:</p>
+
+                    {% if most_viewed_announcement %}
+
+                        <strong>
+                            {{ most_viewed_announcement.title }}
+                        </strong>
+
+                        <p>
+                            {{ most_viewed_announcement.view_count }}
+                            views
+                        </p>
+
+                    {% else %}
+
+                        <strong>No announcement yet</strong>
+
+                    {% endif %}
+
+                </div>
 
             <div class="dash-info-row">
                 <p>Total Announcements:</p>
@@ -88,16 +105,8 @@
         <div class="dash-panel">
             <h2>Case Analytics</h2>
 
-            <div class="chart-placeholder">
-
-                <div class="chart-placeholder-icon"></div>
-
-                <p>Case Analytics Chart</p>
-
-                <span>
-                    analytics data
-                </span>
-
+            <div class="chart-canvas-wrap">
+                <canvas id="caseAnalyticsChart"></canvas>
             </div>
 
             <p class="dash-small-label">Avg Resolution Time:</p>
@@ -109,16 +118,8 @@
     <div class="dash-panel dash-doc-card">
         <h2>Document Request</h2>
 
-        <div class="chart-placeholder chart-large">
-
-            <div class="chart-placeholder-icon"></div>
-
-            <p>Document Request Chart</p>
-
-            <span>
-                request statistics
-            </span>
-
+        <div class="chart-canvas-wrap chart-canvas-large">
+            <canvas id="docRequestChart"></canvas>
         </div>
 
         <div class="doc-bottom-stats">
@@ -135,5 +136,79 @@
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+    console.log("Chart.js loaded?", typeof Chart);
+    console.log("Canvas found?", document.getElementById('caseAnalyticsChart'));
+</script>
+
+<script>
+    // Data passed from Django view (admin_dashboard_view) -> already JSON-safe via json.dumps + DjangoJSONEncoder
+    const caseChartData = {{ case_chart_data|safe }};
+    const docreqChartData = {{ docreq_chart_data|safe }};
+
+    // ---- CASE ANALYTICS: Doughnut chart ----
+    const caseCtx = document.getElementById('caseAnalyticsChart').getContext('2d');
+    new Chart(caseCtx, {
+        type: 'doughnut',
+        data: {
+            labels: caseChartData.labels,
+            datasets: [{
+                data: caseChartData.values,
+                backgroundColor: [
+                    '#f59e0b', // Pending - amber
+                    '#3b82f6', // Ongoing - blue
+                    '#10b981', // Resolved - green
+                ],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, padding: 16 }
+                }
+            }
+        }
+    });
+
+    // ---- DOCUMENT REQUEST: Bar chart ----
+    const docCtx = document.getElementById('docRequestChart').getContext('2d');
+    new Chart(docCtx, {
+        type: 'bar',
+        data: {
+            labels: docreqChartData.labels,
+            datasets: [{
+                label: 'Document Requests',
+                data: docreqChartData.values,
+                backgroundColor: [
+                    '#f59e0b', // Pending
+                    '#3b82f6', // Processing
+                    '#10b981', // Completed
+                    '#ef4444', // Rejected
+                ],
+                borderRadius: 6,
+                maxBarThickness: 60,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+</script>
 
 {% endblock %}

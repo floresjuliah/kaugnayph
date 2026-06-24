@@ -70,8 +70,6 @@ from .decorators import (
 
 from django.shortcuts import render, get_object_or_404
 
-
-
 # PUBLIC PAGES
 
 def landing_page(request):
@@ -87,25 +85,20 @@ def landing_page(request):
 
 
 def announcement_detail(request, announcement_id):
-
     announcement = get_object_or_404(
         Announcements,
         announcement_id=announcement_id
     )
-
     viewed_announcements = request.session.get(
-        'viewed_announcements',
+        "viewed_announcements",
         []
     )
 
     if announcement_id not in viewed_announcements:
-
         announcement.view_count += 1
         announcement.save()
-
         viewed_announcements.append(announcement_id)
-
-        request.session['viewed_announcements'] = viewed_announcements
+        request.session["viewed_announcements"] = viewed_announcements
 
     return render(
         request,
@@ -1188,6 +1181,8 @@ def resident_register_view(request):
 @admin_login_required
 def admin_dashboard_view(request):
     from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+    from django.core.serializers.json import DjangoJSONEncoder
+    import json
 
     user = get_current_user(request)
 
@@ -1205,11 +1200,25 @@ def admin_dashboard_view(request):
     total_inquiries = Inquiry.objects.count()
     total_sms = SMSOutbox.objects.count()
 
-    #ANNOUNCEMENT ANALYTICS
+    # ---- ANNOUNCEMENT ANALYTICS ----
     total_announcements = Announcements.objects.count()
-    most_viewed_announcement = Announcements.objects.order_by(
-        "-view_count"
-    ).first()
+    
+    total_views = (
+        Announcements.objects.aggregate(
+            total=Count("view_count")
+        )["total"]
+        or 0
+    )
+
+    most_viewed_announcement = (
+        Announcements.objects
+        .order_by("-view_count")
+        .first()
+    )
+
+    #for Google Analyticss
+    unique_visitors = 0
+
 
     #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
@@ -1277,32 +1286,49 @@ def admin_dashboard_view(request):
         if total_requests else 0
     )
 
-    return render(request, "adminpanel/dashboard.html", {
-        "user":                  user,
-        "total_residents":       total_residents,
-        "pending_verifications": pending_verifications,
-        "total_requests":        total_requests,
-        "total_cases":           total_cases,
-        "total_inquiries":       total_inquiries,
-        "total_sms_sent":        total_sms,
+    # ---- CHART.JS DATA (JSON-serialized for safe template embedding) ----
+    case_chart_data = json.dumps({
+        "labels": ["Pending", "Ongoing", "Resolved"],
+        "values": [cases_pending, cases_ongoing, cases_resolved],
+    }, cls=DjangoJSONEncoder)
 
-        # Announcements
-        "total_announcements":      total_announcements,
+    docreq_chart_data = json.dumps({
+        "labels": ["Pending", "Processing", "Completed", "Rejected"],
+        "values": [docreq_pending, docreq_processing, docreq_completed, docreq_rejected],
+    }, cls=DjangoJSONEncoder)
+
+    return render(request, "adminpanel/dashboard.html", {
+
+        "user": user,
+
+        # Top cards
+        "total_residents": total_residents,
+        "pending_verifications": pending_verifications,
+        "total_requests": total_requests,
+        "total_cases": total_cases,
+        "total_inquiries": total_inquiries,
+        "total_sms_sent": total_sms,
+
+        # Announcement Analytics
+        "total_announcements": total_announcements,
+        "total_views": total_views,
+        "unique_visitors": unique_visitors,
         "most_viewed_announcement": most_viewed_announcement,
 
-        # Case analytics
-        "cases_pending":      cases_pending,
-        "cases_ongoing":       cases_ongoing,
-        "cases_resolved":     cases_resolved,
-        "avg_resolution_days": avg_resolution_days,
+        # Case Analytics
+        "cases_pending": cases_pending,
+        "cases_ongoing": cases_ongoing,
+        "cases_resolved": cases_resolved,
+        "avg_resolution_time": avg_resolution_days,
 
-        # Document requests
-        "docreq_pending":      docreq_pending,
-        "docreq_processing":   docreq_processing,
-        "docreq_completed":    docreq_completed,
-        "docreq_rejected":     docreq_rejected,
-        "avg_processing_days": avg_processing_days,
-        "completion_rate":     completion_rate,
+        # Document Requests
+        "docreq_pending": docreq_pending,
+        "docreq_processing": docreq_processing,
+        "docreq_completed": docreq_completed,
+        "docreq_rejected": docreq_rejected,
+        "avg_processing_time": avg_processing_days,
+        "completion_rate": completion_rate,
+
     })
 
 

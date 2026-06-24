@@ -2109,6 +2109,16 @@ EDIT RESIDENT PROFILE PAGE
     margin-top:20px;
 }
 
+.chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 260px;
+}
+
+.chart-canvas-wrap.chart-canvas-large {
+    height: 320px;
+}
+
 .incident-column{
     flex:1.2;
 }
