@@ -67,6 +67,7 @@ urlpatterns = [
     #ADMIN: INQUIRIES
     path('admin/inquiries/', views.admin_inquiries_view, name='admin_inquiries'),
     path('admin/inquiries/<int:cuid>/', views.admin_inquiry_detail_view, name='admin_inquiry_detail'),
+    path("admin/inquiries/<int:inquiry_id>/add-to-faq/", views.add_inquiry_to_faq, name="add_inquiry_to_faq"),
 
     # ADMIN: FEEDBACK MONITORING
     path('admin/feedback/', views.admin_feedback_view, name='admin_feedback'),

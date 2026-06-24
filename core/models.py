@@ -558,6 +558,7 @@ class Inquiry(models.Model):
     address = models.CharField(db_column='Address', max_length=100, blank=True, null=True)
     messagesubject = models.CharField(db_column='MessageSubject', max_length=255, blank=True, null=True)
     message = models.TextField(db_column='Message', blank=True, null=True)
+    faq_category = models.ForeignKey('FAQCategories', models.SET_NULL, db_column='FAQCategoryID', blank=True, null=True)
     status = models.CharField(db_column='Status', max_length=20, default='New')
     admin_reply = models.TextField(blank=True, null=True)
     replied_at = models.DateTimeField(blank=True, null=True)

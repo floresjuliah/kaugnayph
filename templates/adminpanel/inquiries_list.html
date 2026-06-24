@@ -15,6 +15,7 @@
                     <th>Resident</th>
                     <th>Contact Number</th>
                     <th>Subject</th>
+                    <th>Category</th>
                     <th>Status</th>
                     <th>Received At</th>
                     <th>Actions</th>
@@ -27,6 +28,7 @@
                     <td>{{ record.obj.firstname }} {{ record.obj.lastname }}</td>
                     <td>{{ record.obj.contactno }}</td>
                     <td>{{ record.obj.messagesubject|default:"No subject" }}</td>
+                    <td>{{ record.obj.faq_category.category_name|default:"Uncategorized" }}</td>
                     <td>
                         <span class="status-badge status-{{ record.obj.status|lower }}">
                             {{ record.obj.status|default:"New" }}
@@ -41,7 +43,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="inquiry-empty">
+                    <td colspan="7" class="inquiry-empty">
                         No inquiries found.
                     </td>
                 </tr>

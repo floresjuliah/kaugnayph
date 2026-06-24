@@ -40,6 +40,8 @@
                             value="{{ category.faq_category_id }}"
                             {% if faq and faq.faq_category.faq_category_id == category.faq_category_id %}
                                 selected
+                            {% elif not faq and prefill_category == category.faq_category_id|stringformat:"s" %}
+                                selected
                             {% endif %}
                         >
                             {{ category.category_name }}
@@ -54,7 +56,7 @@
                 <input
                     type="text"
                     name="question"
-                    value="{% if faq %}{{ faq.question }}{% endif %}"
+                    value="{% if faq %}{{ faq.question }}{% else %}{{ prefill_question }}{% endif %}"
                     placeholder="Enter frequently asked question"
                     required
                 >
@@ -67,7 +69,7 @@
                     name="answer"
                     placeholder="Enter the answer"
                     required
-                >{% if faq %}{{ faq.answer }}{% endif %}</textarea>
+                >{% if faq %}{{ faq.answer }}{% else %}{{ prefill_answer }}{% endif %}</textarea>
             </div>
 
         </div>

@@ -3805,3 +3805,7 @@ EDIT RESIDENT PROFILE PAGE
     font-weight: 700 !important;
 }
 
+.disabled-btn {
+    opacity: .6;
+    cursor: not-allowed;
+}

@@ -50,6 +50,8 @@ from .models import (
 )
 
 from django.utils.dateparse import parse_datetime 
+from django.urls import reverse
+from urllib.parse import urlencode
 
 from .auth_utils import (
     hash_password, check_password, generate_otp,
@@ -3614,42 +3616,51 @@ def admin_inquiries_view(request):
         "replied_count": Inquiry.objects.filter(status="Replied").count(),
     })
 
-#admin inquiry detail
+# admin inquiry detail
 @admin_login_required
 def admin_inquiry_detail_view(request, cuid):
     try:
-        inquiry = Inquiry.objects.select_related("user", "replied_byuser").get(cuid=cuid)
+        inquiry = Inquiry.objects.select_related(
+            "user",
+            "replied_byuser",
+            "faq_category"
+        ).get(cuid=cuid)
     except Inquiry.DoesNotExist:
         messages.error(request, "Inquiry not found.")
         return redirect("admin_inquiries")
- 
+
     current_admin = get_current_user(request)
-    sla           = get_sla_for_record("Inquiry", cuid)
+    sla = get_sla_for_record("Inquiry", cuid)
+    categories = FAQCategories.objects.all()
 
     if request.method == "GET" and inquiry.status == "New":
         inquiry.status = "Pending"
         inquiry.save()
- 
+
     if request.method == "POST":
-        action      = request.POST.get("action")
+        action = request.POST.get("action")
         admin_reply = request.POST.get("admin_reply", "").strip()
- 
+        category_id = request.POST.get("faq_category")
+
         if action == "reply":
+            if not category_id:
+                messages.error(request, "Please select an inquiry category before sending a reply.")
+                return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
+
             if not admin_reply:
                 messages.error(request, "Reply cannot be empty.")
                 return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
- 
-            inquiry.admin_reply    = admin_reply
-            inquiry.replied_at     = timezone.now()
+
+            inquiry.faq_category_id = category_id
+            inquiry.admin_reply = admin_reply
+            inquiry.replied_at = timezone.now()
             inquiry.replied_byuser = current_admin
-            inquiry.status         = "Replied"
+            inquiry.status = "Replied"
             inquiry.save()
- 
-            # SLA — mark first response + resolve
+
             record_first_response("Inquiry", inquiry.cuid)
             resolve_sla("Inquiry", inquiry.cuid)
- 
-            # Notify resident via SMS
+
             sms_reply = f"KaugnayPH Reply: {admin_reply}"
 
             send_sms(
@@ -3657,36 +3668,60 @@ def admin_inquiry_detail_view(request, cuid):
                 sms_reply,
                 sent_by=current_admin,
             )
-            
+
             AuditLogs.objects.create(
-                user=current_admin, action="Reply to Inquiry",
-                module_name="Inquiry", table_name="Inquiry",
+                user=current_admin,
+                action="Reply to Inquiry",
+                module_name="Inquiry",
+                table_name="Inquiry",
                 record_id=inquiry.cuid,
-                new_value=f"Replied by {current_admin.username}.",
+                new_value=f"Replied by {current_admin.username}; Category: {inquiry.faq_category}",
                 created_at=timezone.now(),
             )
- 
+
             messages.success(request, "Reply sent successfully.")
- 
+
         elif action == "close":
             inquiry.status = "Closed"
             inquiry.save()
             resolve_sla("Inquiry", inquiry.cuid)
             messages.success(request, "Inquiry closed.")
- 
+
         elif action == "pending":
             inquiry.status = "Pending"
             inquiry.save()
             messages.success(request, "Inquiry marked as Pending.")
- 
+
         return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
- 
+
     return render(request, "adminpanel/inquiry_detail.html", {
-        "inquiry":    inquiry,
-        "sla":        sla,
+        "inquiry": inquiry,
+        "sla": sla,
         "sla_status": get_sla_status_live(sla),
-        "user":       current_admin,
+        "user": current_admin,
+        "categories": categories,
     })
+
+#admin add inquiry to faq
+@admin_login_required
+def add_inquiry_to_faq(request, inquiry_id):
+    inquiry = get_object_or_404(Inquiry, cuid=inquiry_id)
+
+    if not inquiry.admin_reply or not inquiry.admin_reply.strip():
+        messages.error(request, "Please send a reply first before adding this inquiry to FAQs.")
+        return redirect("admin_inquiry_detail", cuid=inquiry.cuid)
+
+    query_params = {
+        "question": inquiry.messagesubject or "",
+        "answer": inquiry.admin_reply or "",
+    }
+
+    if inquiry.faq_category_id:
+        query_params["category"] = inquiry.faq_category_id
+
+    url = reverse("admin_add_faq") + "?" + urlencode(query_params)
+
+    return redirect(url)
 
 @admin_login_required
 def audit_logs_view(request):
@@ -3792,10 +3827,18 @@ def admin_add_faq(request):
         messages.success(request, 'FAQ added successfully.')
         return redirect('admin_faqs')
 
+    prefill_question = request.GET.get('question', '')
+    prefill_answer = request.GET.get('answer', '')
+    prefill_category = request.GET.get('category', '')
+
     return render(request, 'adminpanel/admin_faq_form.html', {
         'categories': categories,
-        'faq': None
+        'faq': None,
+        'prefill_question': prefill_question,
+        'prefill_answer': prefill_answer,
+        'prefill_category': prefill_category,
     })
+
 
 
 @admin_login_required

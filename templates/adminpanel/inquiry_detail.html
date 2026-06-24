@@ -61,6 +61,13 @@
         </p>
     </div>
 
+    {% if inquiry.faq_category %}
+        <div class="detail-group">
+            <label>Inquiry Category</label>
+            <p>{{ inquiry.faq_category.category_name }}</p>
+        </div>
+    {% endif %}
+
     <hr>
 
     <h2>Admin Response</h2>
@@ -95,11 +102,26 @@
         <form id="inquiryReplyForm" method="POST" onsubmit="return confirmInquiryReply();">
             {% csrf_token %}
 
+            <div class="detail-group">
+                <label>Inquiry Category <span style="color:red;">*</span></label>
+                <select name="faq_category" required>
+                    <option value="">Select category</option>
+
+                    {% for category in categories %}
+                        <option value="{{ category.faq_category_id }}"
+                            {% if inquiry.faq_category_id == category.faq_category_id %}selected{% endif %}>
+                            {{ category.category_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="reply-box-wrapper">
                 <textarea
                     name="admin_reply"
                     maxlength="250"
                     placeholder="Type your reply..."
+                    required
                 ></textarea>
 
                 <span class="char-count">0/250</span>
@@ -117,13 +139,23 @@
 
     <div class="faq-management-section">
         <h2>FAQ Management</h2>
-        <p>Convert this inquiry into a Frequently Asked Question.</p>
 
-        <a href="#" class="add-to-faq-btn">
-                    + Add to FAQ
-        </a>
+        {% if inquiry.admin_reply %}
+            <p>Convert this inquiry to a FAQ.</p>
+
+            <a href="{% url 'add_inquiry_to_faq' inquiry.cuid %}" class="add-to-faq-btn">
+                Convert to FAQ
+            </a>
+        {% else %}
+            <button type="button" class="add-to-faq-btn" disabled>
+                Convert to FAQ
+            </button>
+
+            <p class="text-muted" style="margin-top: 8px;">
+                Available after sending a reply.
+            </p>
+        {% endif %}
     </div>
-    
 </div>
 
 <div id="inquirySmsConfirmModal" class="delete-modal-overlay">
@@ -170,6 +202,11 @@ if (replyTextarea && charCount) {
 
 function confirmInquiryReply() {
     const replyInput = document.querySelector('textarea[name="admin_reply"]');
+    const categoryInput = document.querySelector('select[name="faq_category"]');
+
+    if (categoryInput && categoryInput.value === "") {
+        return true;
+    }
 
     if (!replyInput || replyInput.value.trim() === "") {
         return true;
@@ -187,6 +224,12 @@ function closeInquirySmsModal() {
 
 function submitInquiryReplyForm() {
     if (pendingInquiryReplyForm) {
+        const actionInput = document.createElement("input");
+        actionInput.type = "hidden";
+        actionInput.name = "action";
+        actionInput.value = "reply";
+        pendingInquiryReplyForm.appendChild(actionInput);
+
         pendingInquiryReplyForm.submit();
     }
 }
