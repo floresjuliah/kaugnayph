@@ -649,19 +649,19 @@ body.landing-page .nav-links .active {
   position: absolute;
   top: 70px;
   right: 70px;
-  left:-100px;
+  left:-90px;
   background: var(--white);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(27,44,107,0.14);
   padding: 8px 0;
-  min-width: 300px;
+  min-width: 350px;
   z-index: 2000;
   list-style: none;
   margin: 0;
 }
 
 .dropdown-divider {
-  width: 250px;
+  width: 300px;
   height: 1px;
   background: var(--border);
   border-radius: 99px;
@@ -692,19 +692,13 @@ body.landing-page .nav-links .active {
 /* LINKS */
 .nav-dropdown .dropdown-menu li a {
   display: block;
-
   width: 100%;
-
   padding: 10px 20px;
-
   font-size: 0.875rem;
   font-weight: 500;
-
   color: var(--text);
   text-decoration: none;
-
   transition: background 0.15s, color 0.15s;
-
   white-space: nowrap;
   line-height: normal;
 }
@@ -4022,4 +4016,57 @@ footer ul li a:hover {
 .lang-btn.active {
   background: #172964;
   color: #fff;
+}
+
+/* ── PRIVACY POLICY ── */
+
+.privacy-section {
+  padding: 60px 5%;
+  background: #fff;
+}
+
+.privacy-container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.privacy-block {
+  margin-bottom: 40px;
+}
+
+.privacy-block h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.privacy-block p {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+
+.privacy-block ul {
+  list-style: disc;
+  padding-left: 24px;
+  margin-top: 8px;
+}
+
+.privacy-block ul li {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 4px;
+}
+
+.privacy-block a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.privacy-block a:hover {
+  text-decoration: underline;
 }

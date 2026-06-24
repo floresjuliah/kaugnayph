@@ -9,6 +9,7 @@ urlpatterns = [
     path('faqs/', views.faqs, name='faqs'),
     path('contactus/', views.contactus, name='contactus'),
     path('announcements/', views.announcements_view, name='public_announcements'),
+    path('privacypolicy/', views.privacypolicy, name='privacypolicy'),
 
     #AUTH
     path('login/', views.login_view, name='login'),
