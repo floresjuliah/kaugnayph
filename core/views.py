@@ -69,6 +69,8 @@ from .decorators import (
 )
 
 from django.shortcuts import render, get_object_or_404
+from datetime import timedelta
+from django.utils import timezone
 
 # PUBLIC PAGES
 
@@ -1183,8 +1185,6 @@ def admin_dashboard_view(request):
     from django.db.models import Avg, Count, F, ExpressionWrapper, fields
     from django.core.serializers.json import DjangoJSONEncoder
     import json
-    from datetime import timedelta
-    from django.utils import timezone
 
     user = get_current_user(request)
 
@@ -1213,9 +1213,11 @@ def admin_dashboard_view(request):
     total_requests = DocumentRequests.objects.filter(
         requested_at__gte=start_date
     ).count()
+
     total_cases = Complaints.objects.filter(
         dateadded__gte=start_date
     ).count()
+
     total_inquiries = Inquiry.objects.filter(
         created_at__gte=start_date
     ).count()
@@ -1243,7 +1245,8 @@ def admin_dashboard_view(request):
 
     #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
-        status__in=["Submitted", "For Chairman Review"]
+        status__in=["Submitted", "For Chairman Review"],
+        dateadded__gte=start_date
     ).count()
     cases_ongoing = Complaints.objects.exclude(
         status__in=[
@@ -1280,10 +1283,25 @@ def admin_dashboard_view(request):
     )
 
     # ---- DOCUMENT REQUEST ANALYTICS (bar chart data) ----
-    docreq_pending = DocumentRequests.objects.filter(status="Pending").count()
-    docreq_processing = DocumentRequests.objects.filter(status="Processing").count()
-    docreq_completed = DocumentRequests.objects.filter(status="Completed").count()
-    docreq_rejected = DocumentRequests.objects.filter(status="Rejected").count()
+    docreq_pending = DocumentRequests.objects.filter(
+        status="Pending",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_processing = DocumentRequests.objects.filter(
+        status="Processing",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_completed = DocumentRequests.objects.filter(
+        status="Completed",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_rejected = DocumentRequests.objects.filter(
+        status="Rejected",
+        requested_at__gte=start_date
+    ).count()
 
     completed_requests = DocumentRequests.objects.filter(
         processed_at__isnull=False,
