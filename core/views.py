@@ -68,6 +68,7 @@ from .decorators import (
     chairman_required,
 )
 
+from django.shortcuts import render, get_object_or_404
 
 
 
@@ -83,12 +84,37 @@ def landing_page(request):
         "announcements": announcements
     })
 
+
+
 def announcement_detail(request, announcement_id):
-    announcement = Announcements.objects.get(announcement_id=announcement_id)
-    return render(request, 'public/announcement_detail.html', {
-        'announcement': announcement,
-        'is_resident': request.session.get('user_type') == 'Resident',
-    })
+
+    announcement = get_object_or_404(
+        Announcements,
+        announcement_id=announcement_id
+    )
+
+    viewed_announcements = request.session.get(
+        'viewed_announcements',
+        []
+    )
+
+    if announcement_id not in viewed_announcements:
+
+        announcement.view_count += 1
+        announcement.save()
+
+        viewed_announcements.append(announcement_id)
+
+        request.session['viewed_announcements'] = viewed_announcements
+
+    return render(
+        request,
+        'public/announcement_detail.html',
+        {
+            'announcement': announcement,
+            'is_resident': request.session.get('user_type') == 'Resident',
+        }
+    )
 
 
 @login_required
@@ -1165,7 +1191,7 @@ def admin_dashboard_view(request):
 
     user = get_current_user(request)
 
-    # ---- TOP STAT CARDS ----
+    #TOP STAT CARDS
     total_residents = Users.objects.filter(
         user_type__type_name="Resident"
     ).count()
@@ -1179,13 +1205,13 @@ def admin_dashboard_view(request):
     total_inquiries = Inquiry.objects.count()
     total_sms = SMSOutbox.objects.count()
 
-    # ---- ANNOUNCEMENT ANALYTICS ----
+    #ANNOUNCEMENT ANALYTICS
     total_announcements = Announcements.objects.count()
-    most_viewed_announcement = Announcements.objects.annotate(
-        feedback_count=Count("announcementfeedback")
-    ).order_by("-feedback_count").first()
+    most_viewed_announcement = Announcements.objects.order_by(
+        "-view_count"
+    ).first()
 
-    # ---- CASE ANALYTICS (pie chart data) ----
+    #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
         status__in=["Submitted", "For Chairman Review"]
     ).count()
@@ -1205,7 +1231,7 @@ def admin_dashboard_view(request):
         ]
     ).count()
 
-    # Average resolution time for cases that have a datefinish
+    #Average resolution time for cases that have a datefinish
     resolved_cases = Complaints.objects.filter(
         datefinish__isnull=False,
         dateadded__isnull=False,
@@ -1258,7 +1284,7 @@ def admin_dashboard_view(request):
         "total_requests":        total_requests,
         "total_cases":           total_cases,
         "total_inquiries":       total_inquiries,
-        "total_sms":             total_sms,
+        "total_sms_sent":        total_sms,
 
         # Announcements
         "total_announcements":      total_announcements,
