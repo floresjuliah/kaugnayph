@@ -46,39 +46,59 @@
 
         </div>
 
-        <button class="dash-apply-btn">Apply</button>
     </div>
 
     <div class="dash-stats-grid">
 
         <div class="dash-stat-card">
+            <div class="card-icon">
+                <img src="{% static 'images/total_residents.png' %}" alt="">
+            </div>
+
             <p>Total Residents</p>
             <h2>{{ total_residents|default:"0" }}</h2>
-            <span></span>
         </div>
 
         <div class="dash-stat-card">
+            <div class="card-icon">
+                <img src="{% static 'images/reqsandcases.png' %}" alt="">
+            </div>
+
             <p>Total Requests</p>
             <h2>{{ total_requests|default:"0" }}</h2>
-            <span></span>
         </div>
 
         <div class="dash-stat-card">
-            <p>Total Cases</p>
-            <h2>{{ total_cases|default:"0" }}</h2>
-            <span></span>
+            <div class="card-icon">
+                <img src="{% static 'images/reqsandcases.png' %}" alt="">
+            </div>
+
+            <div class="card-content">
+                <p>Total Cases</p>
+                <h2>{{ total_cases|default:"0" }}</h2>
+            </div>
         </div>
 
         <div class="dash-stat-card">
-            <p>Total Inquiries</p>
-            <h2>{{ total_inquiries|default:"0" }}</h2>
-            <span></span>
+            <div class="card-icon">
+                <img src="{% static 'images/inquiriesandsms.png' %}" alt="">
+            </div>
+
+            <div class="card-content">
+                <p>Total Inquiries</p>
+                <h2>{{ total_inquiries|default:"0" }}</h2>
+            </div>
         </div>
 
         <div class="dash-stat-card">
-            <p>SMS Sent</p>
-            <h2>{{ total_sms_sent|default:"0" }}</h2>
-            <span></span>
+            <div class="card-icon">
+                <img src="{% static 'images/inquiriesandsms.png' %}" alt="">
+            </div>
+
+            <div class="card-content">
+                <p>SMS Sent</p>
+                <h2>{{ total_sms_sent|default:"0" }}</h2>
+            </div>
         </div>
 
     </div>
@@ -231,9 +251,10 @@
                 '#93C5FD',
                 '#BBF7D0'
                 ],
-                hoverOffset:25,
                 borderRadius: 6,
-                maxBarThickness: 60,
+                maxBarThickness: 70,
+                barPercentage: 1,
+                categoryPercentage: 0.9,
             }]
         },
         options: {
