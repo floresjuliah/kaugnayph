@@ -3842,3 +3842,36 @@ EDIT RESIDENT PROFILE PAGE
     margin: 0;
 }
 
+.faq-right-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.faq-right-stack .resident-stats {
+    margin: 0;
+}
+
+.announcement-right-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.announcement-right-stack .resident-stats {
+    margin: 0;
+}
+.compact-filter-row {
+    justify-content: flex-start;
+}
+
+.compact-filter-row .case-search-box {
+    flex: 0 0 420px;
+}
+
+.compact-filter-row .case-filter-select,
+.compact-filter-row .case-filter-date {
+    flex: 0 0 auto;
+}

@@ -3908,9 +3908,11 @@ def audit_logs_view(request):
 
     search_query = request.GET.get("search", "").strip()
     module_filter = request.GET.get("module", "All").strip()
+    action_filter = request.GET.get("action", "All").strip()
+    date_filter = request.GET.get("date", "").strip()
 
     logs = AuditLogs.objects.select_related("user").filter(
-    user__user_type__type_name="Admin"
+        user__user_type__type_name="Admin"
     )
 
     if search_query:
@@ -3928,15 +3930,29 @@ def audit_logs_view(request):
     if module_filter != "All":
         logs = logs.filter(module_name=module_filter)
 
+    if action_filter != "All":
+        logs = logs.filter(action=action_filter)
+
+    if date_filter:
+        logs = logs.filter(created_at__date=date_filter)
+
     logs = logs.order_by("-created_at")
 
-    modules = AuditLogs.objects.filter(
-    user__user_type__type_name="Admin"
-    ).exclude(
+    base_logs = AuditLogs.objects.filter(
+        user__user_type__type_name="Admin"
+    )
+
+    modules = base_logs.exclude(
         module_name__isnull=True
     ).exclude(
         module_name=""
-    ).values_list("module_name", flat=True).distinct()
+    ).values_list("module_name", flat=True).distinct().order_by("module_name")
+
+    actions = base_logs.exclude(
+        action__isnull=True
+    ).exclude(
+        action=""
+    ).values_list("action", flat=True).distinct().order_by("action")
 
     paginator = Paginator(logs, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -3947,32 +3963,60 @@ def audit_logs_view(request):
         "user": get_current_user(request),
         "search_query": search_query,
         "module_filter": module_filter,
+        "action_filter": action_filter,
+        "date_filter": date_filter,
         "modules": modules,
+        "actions": actions,
         "total": logs.count(),
     })
 
 # ADMIN FAQS VIEW
 @admin_login_required
 def admin_faqs(request):
+    from django.core.paginator import Paginator
 
-    search = request.GET.get('search', '')
+    search = request.GET.get("search", "").strip()
+    category_filter = request.GET.get("category", "All").strip()
+    status_filter = request.GET.get("status", "All").strip()
 
     faqs = FAQs.objects.select_related(
-        'faq_category',
-        'created_by'
-    )
+        "faq_category",
+        "created_by"
+    ).all()
 
     if search:
         faqs = faqs.filter(
             Q(question__icontains=search) |
-            Q(answer__icontains=search)
+            Q(answer__icontains=search) |
+            Q(faq_category__category_name__icontains=search)
         )
 
-    faqs = faqs.order_by('-updated_at')
+    if category_filter != "All":
+        faqs = faqs.filter(faq_category_id=category_filter)
 
-    return render(request, 'adminpanel/admin_faqs.html', {
-        'faqs': faqs,
-        'search': search,
+    if status_filter == "Active":
+        faqs = faqs.filter(is_active=True)
+    elif status_filter == "Inactive":
+        faqs = faqs.filter(is_active=False)
+
+    faqs = faqs.order_by("-updated_at")
+
+    all_faqs = FAQs.objects.all()
+
+    paginator = Paginator(faqs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "adminpanel/admin_faqs.html", {
+        "faqs": page_obj,
+        "page_obj": page_obj,
+        "search": search,
+        "category_filter": category_filter,
+        "status_filter": status_filter,
+        "categories": FAQCategories.objects.all(),
+        "total_faqs": all_faqs.count(),
+        "active_faqs": all_faqs.filter(is_active=True).count(),
+        "inactive_faqs": all_faqs.filter(is_active=False).count(),
+        "user": get_current_user(request),
     })
 
 
