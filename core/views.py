@@ -68,8 +68,9 @@ from .decorators import (
     chairman_required,
 )
 
-
-
+from django.shortcuts import render, get_object_or_404
+from datetime import timedelta
+from django.utils import timezone
 
 # PUBLIC PAGES
 
@@ -83,12 +84,32 @@ def landing_page(request):
         "announcements": announcements
     })
 
+
+
 def announcement_detail(request, announcement_id):
-    announcement = Announcements.objects.get(announcement_id=announcement_id)
-    return render(request, 'public/announcement_detail.html', {
-        'announcement': announcement,
-        'is_resident': request.session.get('user_type') == 'Resident',
-    })
+    announcement = get_object_or_404(
+        Announcements,
+        announcement_id=announcement_id
+    )
+    viewed_announcements = request.session.get(
+        "viewed_announcements",
+        []
+    )
+
+    if announcement_id not in viewed_announcements:
+        announcement.view_count += 1
+        announcement.save()
+        viewed_announcements.append(announcement_id)
+        request.session["viewed_announcements"] = viewed_announcements
+
+    return render(
+        request,
+        'public/announcement_detail.html',
+        {
+            'announcement': announcement,
+            'is_resident': request.session.get('user_type') == 'Resident',
+        }
+    )
 
 
 @login_required
@@ -1162,10 +1183,25 @@ def resident_register_view(request):
 @admin_login_required
 def admin_dashboard_view(request):
     from django.db.models import Avg, Count, F, ExpressionWrapper, fields
+    from django.core.serializers.json import DjangoJSONEncoder
+    import json
 
     user = get_current_user(request)
 
-    # ---- TOP STAT CARDS ----
+    period = request.GET.get("period", "daily")
+
+    today = timezone.now()
+
+    if period == "daily":
+        start_date = today - timedelta(days=1)
+
+    elif period == "weekly":
+        start_date = today - timedelta(days=7)
+
+    else:
+        start_date = today - timedelta(days=30)
+
+    #TOP STAT CARDS
     total_residents = Users.objects.filter(
         user_type__type_name="Resident"
     ).count()
@@ -1174,20 +1210,43 @@ def admin_dashboard_view(request):
         status="Pending"
     ).count()
 
-    total_requests = DocumentRequests.objects.count()
-    total_cases = Complaints.objects.count()
-    total_inquiries = Inquiry.objects.count()
+    total_requests = DocumentRequests.objects.filter(
+        requested_at__gte=start_date
+    ).count()
+
+    total_cases = Complaints.objects.filter(
+        dateadded__gte=start_date
+    ).count()
+
+    total_inquiries = Inquiry.objects.filter(
+        created_at__gte=start_date
+    ).count()
     total_sms = SMSOutbox.objects.count()
 
     # ---- ANNOUNCEMENT ANALYTICS ----
     total_announcements = Announcements.objects.count()
-    most_viewed_announcement = Announcements.objects.annotate(
-        feedback_count=Count("announcementfeedback")
-    ).order_by("-feedback_count").first()
+    
+    total_views = (
+        Announcements.objects.aggregate(
+            total=Count("view_count")
+        )["total"]
+        or 0
+    )
 
-    # ---- CASE ANALYTICS (pie chart data) ----
+    most_viewed_announcement = (
+        Announcements.objects
+        .order_by("-view_count")
+        .first()
+    )
+
+    #for Google Analyticss
+    unique_visitors = 0
+
+
+    #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
-        status__in=["Submitted", "For Chairman Review"]
+        status__in=["Submitted", "For Chairman Review"],
+        dateadded__gte=start_date
     ).count()
     cases_ongoing = Complaints.objects.exclude(
         status__in=[
@@ -1205,7 +1264,7 @@ def admin_dashboard_view(request):
         ]
     ).count()
 
-    # Average resolution time for cases that have a datefinish
+    #Average resolution time for cases that have a datefinish
     resolved_cases = Complaints.objects.filter(
         datefinish__isnull=False,
         dateadded__isnull=False,
@@ -1224,10 +1283,25 @@ def admin_dashboard_view(request):
     )
 
     # ---- DOCUMENT REQUEST ANALYTICS (bar chart data) ----
-    docreq_pending = DocumentRequests.objects.filter(status="Pending").count()
-    docreq_processing = DocumentRequests.objects.filter(status="Processing").count()
-    docreq_completed = DocumentRequests.objects.filter(status="Completed").count()
-    docreq_rejected = DocumentRequests.objects.filter(status="Rejected").count()
+    docreq_pending = DocumentRequests.objects.filter(
+        status="Pending",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_processing = DocumentRequests.objects.filter(
+        status="Processing",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_completed = DocumentRequests.objects.filter(
+        status="Completed",
+        requested_at__gte=start_date
+    ).count()
+
+    docreq_rejected = DocumentRequests.objects.filter(
+        status="Rejected",
+        requested_at__gte=start_date
+    ).count()
 
     completed_requests = DocumentRequests.objects.filter(
         processed_at__isnull=False,
@@ -1250,33 +1324,72 @@ def admin_dashboard_view(request):
         round((docreq_completed / total_requests) * 100)
         if total_requests else 0
     )
+    
+    import json
+
+    case_chart_data = json.dumps({
+        "labels": [
+            "Pending",
+            "Ongoing",
+            "Resolved"
+        ],
+        "values": [
+            cases_pending,
+            cases_ongoing,
+            cases_resolved
+        ]
+    })
+
+    docreq_chart_data = json.dumps({
+        "labels": [
+            "Pending",
+            "Processing",
+            "Completed",
+            "Rejected"
+        ],
+        "values": [
+            docreq_pending,
+            docreq_processing,
+            docreq_completed,
+            docreq_rejected
+        ]
+    })
 
     return render(request, "adminpanel/dashboard.html", {
-        "user":                  user,
-        "total_residents":       total_residents,
-        "pending_verifications": pending_verifications,
-        "total_requests":        total_requests,
-        "total_cases":           total_cases,
-        "total_inquiries":       total_inquiries,
-        "total_sms":             total_sms,
 
-        # Announcements
-        "total_announcements":      total_announcements,
+        "user": user,
+        "case_chart_data": case_chart_data,
+        "docreq_chart_data": docreq_chart_data,
+        "period": period,
+
+        # Top cards
+        "total_residents": total_residents,
+        "pending_verifications": pending_verifications,
+        "total_requests": total_requests,
+        "total_cases": total_cases,
+        "total_inquiries": total_inquiries,
+        "total_sms_sent": total_sms,
+
+        # Announcement Analytics
+        "total_announcements": total_announcements,
+        "total_views": total_views,
+        "unique_visitors": unique_visitors,
         "most_viewed_announcement": most_viewed_announcement,
 
-        # Case analytics
-        "cases_pending":      cases_pending,
-        "cases_ongoing":       cases_ongoing,
-        "cases_resolved":     cases_resolved,
-        "avg_resolution_days": avg_resolution_days,
+        # Case Analytics
+        "cases_pending": cases_pending,
+        "cases_ongoing": cases_ongoing,
+        "cases_resolved": cases_resolved,
+        "avg_resolution_time": avg_resolution_days,
 
-        # Document requests
-        "docreq_pending":      docreq_pending,
-        "docreq_processing":   docreq_processing,
-        "docreq_completed":    docreq_completed,
-        "docreq_rejected":     docreq_rejected,
-        "avg_processing_days": avg_processing_days,
-        "completion_rate":     completion_rate,
+        # Document Requests
+        "docreq_pending": docreq_pending,
+        "docreq_processing": docreq_processing,
+        "docreq_completed": docreq_completed,
+        "docreq_rejected": docreq_rejected,
+        "avg_processing_time": avg_processing_days,
+        "completion_rate": completion_rate,
+
     })
 
 
@@ -3795,9 +3908,11 @@ def audit_logs_view(request):
 
     search_query = request.GET.get("search", "").strip()
     module_filter = request.GET.get("module", "All").strip()
+    action_filter = request.GET.get("action", "All").strip()
+    date_filter = request.GET.get("date", "").strip()
 
     logs = AuditLogs.objects.select_related("user").filter(
-    user__user_type__type_name="Admin"
+        user__user_type__type_name="Admin"
     )
 
     if search_query:
@@ -3815,15 +3930,29 @@ def audit_logs_view(request):
     if module_filter != "All":
         logs = logs.filter(module_name=module_filter)
 
+    if action_filter != "All":
+        logs = logs.filter(action=action_filter)
+
+    if date_filter:
+        logs = logs.filter(created_at__date=date_filter)
+
     logs = logs.order_by("-created_at")
 
-    modules = AuditLogs.objects.filter(
-    user__user_type__type_name="Admin"
-    ).exclude(
+    base_logs = AuditLogs.objects.filter(
+        user__user_type__type_name="Admin"
+    )
+
+    modules = base_logs.exclude(
         module_name__isnull=True
     ).exclude(
         module_name=""
-    ).values_list("module_name", flat=True).distinct()
+    ).values_list("module_name", flat=True).distinct().order_by("module_name")
+
+    actions = base_logs.exclude(
+        action__isnull=True
+    ).exclude(
+        action=""
+    ).values_list("action", flat=True).distinct().order_by("action")
 
     paginator = Paginator(logs, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -3834,32 +3963,60 @@ def audit_logs_view(request):
         "user": get_current_user(request),
         "search_query": search_query,
         "module_filter": module_filter,
+        "action_filter": action_filter,
+        "date_filter": date_filter,
         "modules": modules,
+        "actions": actions,
         "total": logs.count(),
     })
 
 # ADMIN FAQS VIEW
 @admin_login_required
 def admin_faqs(request):
+    from django.core.paginator import Paginator
 
-    search = request.GET.get('search', '')
+    search = request.GET.get("search", "").strip()
+    category_filter = request.GET.get("category", "All").strip()
+    status_filter = request.GET.get("status", "All").strip()
 
     faqs = FAQs.objects.select_related(
-        'faq_category',
-        'created_by'
-    )
+        "faq_category",
+        "created_by"
+    ).all()
 
     if search:
         faqs = faqs.filter(
             Q(question__icontains=search) |
-            Q(answer__icontains=search)
+            Q(answer__icontains=search) |
+            Q(faq_category__category_name__icontains=search)
         )
 
-    faqs = faqs.order_by('-updated_at')
+    if category_filter != "All":
+        faqs = faqs.filter(faq_category_id=category_filter)
 
-    return render(request, 'adminpanel/admin_faqs.html', {
-        'faqs': faqs,
-        'search': search,
+    if status_filter == "Active":
+        faqs = faqs.filter(is_active=True)
+    elif status_filter == "Inactive":
+        faqs = faqs.filter(is_active=False)
+
+    faqs = faqs.order_by("-updated_at")
+
+    all_faqs = FAQs.objects.all()
+
+    paginator = Paginator(faqs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "adminpanel/admin_faqs.html", {
+        "faqs": page_obj,
+        "page_obj": page_obj,
+        "search": search,
+        "category_filter": category_filter,
+        "status_filter": status_filter,
+        "categories": FAQCategories.objects.all(),
+        "total_faqs": all_faqs.count(),
+        "active_faqs": all_faqs.filter(is_active=True).count(),
+        "inactive_faqs": all_faqs.filter(is_active=False).count(),
+        "user": get_current_user(request),
     })
 
 

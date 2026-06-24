@@ -88,10 +88,9 @@ href="{% static 'css/admin_case_records.css' %}">
             name="date_to"
             value="{{ date_to|default:'' }}"
             class="case-filter-date"
-            title="Incident date to"
+            title="Incident date"
+            onchange="this.form.submit()"
         >
-
-        <button type="submit" class="case-filter-btn">Filter</button>
 
     </form>
     

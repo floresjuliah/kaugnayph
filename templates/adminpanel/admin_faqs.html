@@ -1,70 +1,83 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block admin_title %}FAQ Management{% endblock %}
 
 {% block admin_content %}
 
-<div class="admin-page-header">
-    <div>
-        <h1>FAQ Management</h1>
-    </div>
-</div>
+<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
 
-<div class="admin-filter-bar">
+<div class="admins-page">
 
-    <form method="GET" style="display:flex; gap:12px; align-items:center;">
-        <input
-            type="text"
-            name="search"
-            placeholder="Search FAQs..."
-            value="{{ search }}"
-            class="admin-filter-input"
-        >
+    <div class="resident-header-row">
+        <h1 class="inquiry-title">FAQ Management</h1>
 
-        <button type="submit" class="btn btn-primary">
-            Filter
-        </button>
-
-        {% if search %}
-            <a href="{% url 'admin_faqs' %}" class="btn btn-secondary">
-                Clear
+        <div class="faq-right-stack">
+            <a href="{% url 'admin_add_faq' %}" class="add-admin-btn">
+                + Add FAQ
             </a>
-        {% endif %}
 
-        <a href="{% url 'admin_add_faq' %}" class="btn btn-primary">
-            Add FAQ
-        </a>
+            <div class="resident-stats">
+                <div class="resident-stat-item">
+                    <p>Total FAQs</p>
+                    <h3>{{ total_faqs|default:"0" }}</h3>
+                </div>
+
+                <div class="resident-stat-item">
+                    <p>Active FAQs</p>
+                    <h3 class="stat-success">{{ active_faqs|default:"0" }}</h3>
+                </div>
+
+                <div class="resident-stat-item">
+                    <p>Inactive FAQs</p>
+                    <h3 class="stat-warning">{{ inactive_faqs|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="GET" class="case-filter-row">
+        <div class="case-search-box">
+            <span>⌕</span>
+            <input type="text" name="search" placeholder="Search FAQs..." value="{{ search }}">
+        </div>
+
+        <select name="category" class="case-filter-select" onchange="this.form.submit()">
+            <option value="All" {% if category_filter == "All" %}selected{% endif %}>All Categories</option>
+            {% for category in categories %}
+                <option value="{{ category.faq_category_id }}" {% if category_filter == category.faq_category_id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.category_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="status" class="case-filter-select" onchange="this.form.submit()">
+            <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
+            <option value="Active" {% if status_filter == "Active" %}selected{% endif %}>Active</option>
+            <option value="Inactive" {% if status_filter == "Inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+
+        
     </form>
 
-</div>
+    <div class="faq-table-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Category</th>
+                    <th>Created By</th>
+                    <th>Status</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 
-<div class="faq-table-card">
-
-    <table class="admin-table">
-
-        <thead>
-            <tr>
-                <th>Question</th>
-                <th>Category</th>
-                <th>Created By</th>
-                <th>Status</th>
-                <th>Updated At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-            {% for faq in faqs %}
+            <tbody>
+                {% for faq in faqs %}
                 <tr>
                     <td>{{ faq.question }}</td>
-
-                    <td>
-                        <span class="faq-category">
-                            {{ faq.faq_category.category_name }}
-                        </span>
-                    </td>
-
+                    <td><span class="faq-category">{{ faq.faq_category.category_name }}</span></td>
                     <td>
                         {% if faq.created_by %}
                             {{ faq.created_by.firstname }} {{ faq.created_by.lastname }}
@@ -72,53 +85,58 @@
                             -
                         {% endif %}
                     </td>
-
                     <td>
                         {% if faq.is_active %}
-                            <span class="status-badge active">
-                                Active
-                            </span>
+                            <span class="status-badge active">Active</span>
                         {% else %}
-                            <span class="status-badge inactive">
-                                Inactive
-                            </span>
+                            <span class="status-badge inactive">Inactive</span>
                         {% endif %}
                     </td>
-
+                    <td>{{ faq.updated_at|date:"M d, Y h:i A" }}</td>
                     <td>
-                        {{ faq.updated_at|date:"M d, Y h:i A" }}
-                    </td>
-
-                    <td>
-                        <a href="{% url 'admin_edit_faq' faq.faq_id %}"
-                           class="btn btn-outline-primary btn-sm">
-                            Edit
-                        </a>
-
-                        <a href="{% url 'admin_toggle_faq' faq.faq_id %}"
-                           class="btn btn-outline-danger btn-sm">
-                            {% if faq.is_active %}
-                                Deactivate
-                            {% else %}
-                                Activate
-                            {% endif %}
+                        <a href="{% url 'admin_edit_faq' faq.faq_id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{% url 'admin_toggle_faq' faq.faq_id %}" class="btn btn-outline-danger btn-sm">
+                            {% if faq.is_active %}Deactivate{% else %}Activate{% endif %}
                         </a>
                     </td>
                 </tr>
-
-            {% empty %}
-
+                {% empty %}
                 <tr>
-                    <td colspan="6">
-                        No FAQs found.
-                    </td>
+                    <td colspan="6">No FAQs found.</td>
                 </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-            {% endfor %}
+        <div class="admins-pagination">
+            <p>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                of {{ page_obj.paginator.count }} FAQs
+            </p>
 
-        </tbody>
+            <div class="pagination-buttons">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if category_filter != 'All' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">Previous</a>
+                {% else %}
+                    <span class="disabled">Previous</span>
+                {% endif %}
 
-    </table>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="active-page">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if category_filter != 'All' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="next-page" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if category_filter != 'All' %}&category={{ category_filter }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">Next</a>
+                {% else %}
+                    <span class="disabled next-page">Next</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
 </div>
 
