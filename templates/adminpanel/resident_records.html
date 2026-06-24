@@ -1,95 +1,62 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block admin_title %}Resident Records{% endblock %}
 
 {% block admin_content %}
+
+<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+
 <div class="resident-page">
 
-    <h1>Resident Records</h1>
-
-    <div class="resident-top-row">
-
-        <div class="resident-controls">
-            <form method="GET" action="" class="resident-search">
-                <span>⌕</span>
-                <input
-                    type="text"
-                    name="search"
-                    placeholder="Search residents"
-                    value="{{ search_query }}"
-                >
-
-                {% if status_filter and status_filter != "All" %}
-                    <input type="hidden" name="status" value="{{ status_filter }}">
-                {% endif %}
-            </form>
-
-            <div class="resident-filter-wrap">
-                <button type="button" class="resident-filter-btn" onclick="event.stopPropagation(); this.parentElement.classList.toggle('open')">    
-                    Filter
-                </button>
-
-                <div class="resident-filter-dropdown">
-                    <a href="?{% if search_query %}search={{ search_query }}{% endif %}">All</a>
-
-                    <a href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}">
-                        Pending
-                    </a>
-
-                    <a href="?status=Approved{% if search_query %}&search={{ search_query }}{% endif %}">
-                        Approved
-                    </a>
-
-                    <a href="?status=Rejected{% if search_query %}&search={{ search_query }}{% endif %}">
-                        Rejected
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="resident-header-row">
+        <h1>Resident Records</h1>
 
         <div class="resident-stats">
             <div class="resident-stat-item">
                 <p>Total Residents</p>
-                <h3>{{ total_residents }}
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="30" height="30" rx="15" fill="#E6F0FF"/>
-                        <path d="M19.1663 22.5V20.8333C19.1663 19.9493 18.8152 19.1014 18.19 18.4763C17.5649 17.8512 16.7171 17.5 15.833 17.5H9.16634C8.28229 17.5 7.43444 17.8512 6.80932 18.4763C6.1842 19.1014 5.83301 19.9493 5.83301 20.8333V22.5M24.1663 22.5V20.8333C24.1658 20.0948 23.92 19.3773 23.4675 18.7936C23.015 18.2099 22.3814 17.793 21.6663 17.6083M18.333 7.60833C19.05 7.79192 19.6855 8.20892 20.1394 8.79359C20.5932 9.37827 20.8395 10.0974 20.8395 10.8375C20.8395 11.5776 20.5932 12.2967 20.1394 12.8814C19.6855 13.4661 19.05 13.8831 18.333 14.0667M15.833 10.8333C15.833 12.6743 14.3406 14.1667 12.4997 14.1667C10.6587 14.1667 9.16634 12.6743 9.16634 10.8333C9.16634 8.99238 10.6587 7.5 12.4997 7.5C14.3406 7.5 15.833 8.99238 15.833 10.8333Z" stroke="#0062FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                </h3>
+                <h3>{{ total_residents }}</h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>Pending Verifications</p>
-                <h3 class="stat-warning">{{ pending_count }}
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.268 3C14.0378 1.66667 15.9623 1.66667 16.7321 3L26.2583 19.5C27.0281 20.8333 26.0659 22.5 24.5263 22.5H5.47372C3.93412 22.5 2.97187 20.8333 3.74167 19.5L13.268 3Z" fill="#F59E0B"/>
-                        <rect x="14.25" y="9" width="1.5" height="6" fill="#451A03"/>
-                        <circle cx="15" cy="17.25" r="0.75" fill="#451A03"/>
-                    </svg>
-                </h3>
+                <h3 class="stat-warning">{{ pending_count }}</h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>Verified Accounts</p>
-                <h3 class="stat-success">{{ verified_count }}
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M27.5 13.8498V14.9998C27.4985 17.6954 26.6256 20.3182 25.0117 22.4771C23.3977 24.636 21.1291 26.2154 18.5442 26.9797C15.9593 27.744 13.1966 27.6522 10.6681 26.7181C8.1396 25.7839 5.98082 24.0575 4.5137 21.7962C3.04658 19.5349 2.34974 16.8599 2.5271 14.1702C2.70445 11.4805 3.74651 8.92024 5.49785 6.87117C7.24919 4.8221 9.61598 3.39406 12.2452 2.80001C14.8745 2.20597 17.6253 2.47775 20.0875 3.57483M27.5 4.99983L15 17.5123L11.25 13.7623" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </h3>
+                <h3 class="stat-success">{{ verified_count }}</h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>SMS Subscriber</p>
-                <h3>{{ sms_count }}
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M26.25 18.75C26.25 19.413 25.9866 20.0489 25.5178 20.5178C25.0489 20.9866 24.413 21.25 23.75 21.25H8.75L3.75 26.25V6.25C3.75 5.58696 4.01339 4.95107 4.48223 4.48223C4.95107 4.01339 5.58696 3.75 6.25 3.75H23.75C24.413 3.75 25.0489 4.01339 25.5178 4.48223C25.9866 4.95107 26.25 5.58696 26.25 6.25V18.75Z" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-
-                </h3>
+                <h3>{{ sms_count }}</h3>
             </div>
         </div>
-
     </div>
+
+    <form method="GET" action="" class="case-filter-row">
+        <div class="case-search-box">
+            <span>⌕</span>
+            <input type="text" name="search" placeholder="Search residents" value="{{ search_query }}">
+        </div>
+
+        <select name="status" class="case-filter-select" onchange="this.form.submit()">
+            <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
+            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+            <option value="Approved" {% if status_filter == "Approved" %}selected{% endif %}>Approved</option>
+            <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
+            <option value="No Submission" {% if status_filter == "No Submission" %}selected{% endif %}>No Submission</option>
+        </select>
+
+        <select name="sms" class="case-filter-select" onchange="this.form.submit()">
+            <option value="All" {% if sms_filter == "All" %}selected{% endif %}>All SMS Subscribers</option>
+            <option value="Subscribed" {% if sms_filter == "Subscribed" %}selected{% endif %}>Subscribed</option>
+            <option value="Not Subscribed" {% if sms_filter == "Not Subscribed" %}selected{% endif %}>Not Subscribed</option>
+        </select>
+
+        <button type="submit" class="case-filter-btn">Filter</button>
+    </form>
 
     <div class="resident-table-card">
         <table class="resident-table">
@@ -106,7 +73,6 @@
                 {% for rec in records %}
                 <tr>
                     <td>{{ rec.user.firstname }} {{ rec.user.lastname }}</td>
-
                     <td>
                         {% if rec.status == "Approved" %}
                             <span class="resident-badge verified">Verified</span>
@@ -118,12 +84,8 @@
                             <span class="resident-badge no-submission">No Submission</span>
                         {% endif %}
                     </td>
-
                     <td>{% if rec.sms_sub %}Yes{% else %}No{% endif %}</td>
-
-                    <td>
-                        <a href="{% url 'resident_record_view' rec.user.userid %}">View</a>
-                    </td>
+                    <td><a href="{% url 'resident_record_view' rec.user.userid %}">View</a></td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -141,9 +103,7 @@
 
             <div class="resident-pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
-                        Previous
-                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">Previous</a>
                 {% else %}
                     <span class="disabled">Previous</span>
                 {% endif %}
@@ -152,16 +112,12 @@
                     {% if num == page_obj.number %}
                         <span class="current">{{ num }}</span>
                     {% else %}
-                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
-                            {{ num }}
-                        </a>
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="next" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
-                        Next
-                    </a>
+                    <a class="next" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">Next</a>
                 {% else %}
                     <span class="disabled next">Next</span>
                 {% endif %}
@@ -170,15 +126,5 @@
     </div>
 
 </div>
-
-<script>
-document.addEventListener('click', function(e) {
-    const filter = document.querySelector('.resident-filter-wrap');
-
-    if (filter && !filter.contains(e.target)) {
-        filter.classList.remove('open');
-    }
-});
-</script>
 
 {% endblock %}
