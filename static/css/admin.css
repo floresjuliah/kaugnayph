@@ -3892,6 +3892,8 @@ EDIT RESIDENT PROFILE PAGE
 .sms-pagination .disabled {
     border: 1px solid #dbe4ee;
     color: #64748b;
+}
+
 .faq-right-stack {
     display: flex;
     flex-direction: column;
