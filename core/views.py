@@ -287,6 +287,7 @@ def documents(request):
     return render(request, 'documents.html', {
         "document_types": document_types,
         "resident": current_user,
+        "captcha_form": CaptchaOnlyForm(),
     })
 
 def faqs(request):
@@ -319,7 +320,18 @@ def contactus(request):
             "contactno": current_user.contactno,
         }
 
+    def contact_context(captcha_form=None):
+        return {
+            "initial_data": initial_data,
+            "captcha_form": captcha_form or CaptchaOnlyForm(),
+        }
+
     if request.method == "POST":
+        captcha_form = CaptchaOnlyForm(request.POST)
+
+        if not captcha_form.is_valid():
+            return render(request, "contactus.html", contact_context(captcha_form))
+
         firstname = request.POST.get("firstname", "").strip()
         lastname  = request.POST.get("lastname", "").strip()
         contactno = request.POST.get("contactno", "").strip()
@@ -329,7 +341,7 @@ def contactus(request):
  
         if not firstname or not lastname or not contactno or not message:
             messages.error(request, "Please fill in all required fields.")
-            return render(request, "contactus.html")
+            return render(request, "contactus.html", contact_context())
  
         # CONTENT MODERATION — check before saving
         check = moderate_text(f"{subject} {message}")
@@ -339,10 +351,9 @@ def contactus(request):
                 "Your message contains inappropriate content and could not be submitted. "
                 "Please revise and try again."
             )
-            return render(request, "contactus.html")
+            return render(request, "contactus.html", contact_context())
  
         # SAVE
-        current_user = get_current_user(request)
         inquiry = Inquiry.objects.create(
             user=current_user,
             firstname=firstname,
@@ -364,7 +375,7 @@ def contactus(request):
         )
         return redirect("contactus")
  
-    return render(request, "contactus.html")
+    return render(request, "contactus.html", contact_context())
 
 def announcements_view(request):
     announcements = Announcements.objects.all().order_by("-announcement_id")
@@ -2623,25 +2634,39 @@ def document_request_view(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
     current_user = get_current_user(request)
 
+    def documents_context(captcha_form=None, selected_type=None, fields=None):
+        context = {
+            "document_types": document_types,
+            "resident": current_user,
+            "captcha_form": captcha_form or CaptchaOnlyForm(),
+        }
+
+        if selected_type:
+            context["selected_type"] = selected_type
+
+        if fields:
+            context["fields"] = fields
+
+        return context
+
     if request.method == "POST":
+        captcha_form = CaptchaOnlyForm(request.POST)
+
+        if not captcha_form.is_valid():
+            return render(request, "documents.html", documents_context(captcha_form))
+
         document_type_id = request.POST.get("document_type_id", "").strip()
         purpose = request.POST.get("purpose", "").strip()
 
         if not document_type_id:
             messages.error(request, "Please select a document type.")
-            return render(request, "documents.html", {
-                "document_types": document_types,
-                "resident": current_user,
-            })
+            return render(request, "documents.html", documents_context())
 
         try:
             document_type = DocumentTypes.objects.get(dtid=document_type_id, is_active=True)
         except DocumentTypes.DoesNotExist:
             messages.error(request, "Invalid document type selected.")
-            return render(request, "documents.html", {
-                "document_types": document_types,
-                "resident": current_user,
-            })
+            return render(request, "documents.html", documents_context())
 
         fields = DocumentFields.objects.filter(document_type=document_type)
 
@@ -2666,22 +2691,18 @@ def document_request_view(request):
             for err in field_errors:
                 messages.error(request, err)
 
-            return render(request, "documents.html", {
-                "document_types": document_types,
-                "resident": current_user,
-                "selected_type": document_type,
-                "fields": fields,
-            })
+            return render(
+                request,
+                "documents.html",
+                documents_context(selected_type=document_type, fields=fields)
+            )
 
         # CONTENT MODERATION
         text_check = moderate_text(purpose)
 
         if text_check["flagged"]:
             messages.error(request, "Your request contains inappropriate content and could not be submitted.")
-            return render(request, "documents.html", {
-                "document_types": document_types,
-                "resident": current_user,
-            })
+            return render(request, "documents.html", documents_context())
 
         # SAVE MAIN REQUEST
         doc_request = DocumentRequests.objects.create(
@@ -2708,12 +2729,11 @@ def document_request_view(request):
                     if not ok:
                         messages.error(request, err)
                         doc_request.delete()
-                        return render(request, "documents.html", {
-                            "document_types": document_types,
-                            "resident": current_user,
-                            "selected_type": document_type,
-                            "fields": fields,
-                        })
+                        return render(
+                            request,
+                            "documents.html",
+                            documents_context(selected_type=document_type, fields=fields)
+                        )
 
                     file_path = default_storage.save(
                         f"document_requests/{uploaded_file.name}",
@@ -2756,10 +2776,7 @@ def document_request_view(request):
         messages.success(request, "Document request submitted successfully. You can track its status under Track Submissions.")
         return redirect("tracksub")
 
-    return render(request, "documents.html", {
-        "document_types": document_types,
-        "resident": current_user,
-    })
+    return render(request, "documents.html", documents_context())
 
 
 # DOCUMENT FIELDS API: returns fields for a selected doc type

@@ -53,6 +53,7 @@
           placeholder="First Name"
           data-placeholder-en="First Name"
           data-placeholder-tl="Pangalan"
+          value="{{ initial_data.firstname|default:'' }}"
           required
         >
 
@@ -62,6 +63,7 @@
           placeholder="Last Name"
           data-placeholder-en="Last Name"
           data-placeholder-tl="Apelyido"
+          value="{{ initial_data.lastname|default:'' }}"
           required
         >
       </div>
@@ -73,6 +75,7 @@
           placeholder="Mobile Number"
           data-placeholder-en="Mobile Number"
           data-placeholder-tl="Mobile Number"
+          value="{{ initial_data.contactno|default:'' }}"
           required
         >
 
@@ -100,6 +103,25 @@
         data-placeholder-tl="Isulat ang iyong mensahe rito"
         required
       ></textarea>
+
+      <!-- CAPTCHA -->
+      <div class="form-row">
+        <div style="width:100%;">
+          <label style="display:block; margin-bottom:8px;"
+                 data-en="Security Verification"
+                 data-tl="Security Verification">
+            Security Verification
+          </label>
+
+          {{ captcha_form.captcha }}
+
+          {% if captcha_form.captcha.errors %}
+            <div class="contact-alert" style="margin-top:10px;">
+              {{ captcha_form.captcha.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
 
       <div class="submit-row">
         <button type="submit"
