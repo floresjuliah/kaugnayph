@@ -40,7 +40,9 @@
                         <label>Contact Number</label>
                         <p>{{ request.user.contactno|default:"+63 912 345 6789" }}</p>
                     </div>
-                    <button class="outline-btn small">Edit</button>
+                    <button class="outline-btn small" type="button" onclick="openPasswordModal('contact')">
+                        Edit
+                    </button>       
                 </div>
 
                 <div class="settings-info-row">
@@ -48,7 +50,9 @@
                         <label>Email Address</label>
                         <p>{{ request.user.email|default:"allyana.villafuerte@kaugnay.ph" }}</p>
                     </div>
-                    <button class="outline-btn small">Edit</button>
+                    <button class="outline-btn small" type="button" onclick="openPasswordModal('email')">
+                        Edit
+                    </button>                
                 </div>
             </div>
         </div>
@@ -66,21 +70,9 @@
                 <p>Last updated: 15 days ago</p>
             </div>
 
-            <button class="outline-btn">Change Password</button>
-        </div>
-
-        <div class="settings-action-row">
-            <div class="settings-icon">🛡️</div>
-
-            <div>
-                <h3>OTP Authentication</h3>
-                <p>Add an extra layer of security to your account</p>
-            </div>
-
-            <label class="switch">
-                <input type="checkbox" checked>
-                <span></span>
-            </label>
+            <button class="outline-btn" type="button" onclick="openChangePasswordModal()">
+                Change Password
+            </button>        
         </div>
 
         <h3 class="settings-subtitle">Recent Login Activity</h3>
@@ -113,101 +105,197 @@
         </div>
     </div>
 
-    <!-- NOTIFICATIONS -->
-    <div class="settings-card">
-        <h2>Notifications</h2>
+</div>
 
-        <div class="settings-table-wrap">
-            <table class="settings-table notification-table">
-                <thead>
-                    <tr>
-                        <th>Notification Type</th>
-                        <th>SMS</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
+<div class="settings-modal-overlay" id="passwordModal">
+    <div class="settings-modal">
+        <button class="modal-close" type="button" onclick="closePasswordModal()">×</button>
 
-                <tbody>
-                    <tr>
-                        <td>
-                            <strong>Document Requests</strong>
-                            <span>Receive alerts for new document requests</span>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                    </tr>
+        <h2>Verify Your Identity</h2>
+        <p class="modal-desc">
+            For your security, please enter your account password to continue.
+        </p>
 
-                    <tr>
-                        <td>
-                            <strong>New Cases</strong>
-                            <span>Receive alerts for new cases</span>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                    </tr>
+        <div class="modal-form-group">
+            <label>Password</label>
+            <input type="password" placeholder="Enter your password">
+        </div>
 
-                    <tr>
-                        <td>
-                            <strong>Resident Verification</strong>
-                            <span>Receive alerts for resident verification updates</span>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                    </tr>
+        <a href="#" class="forgot-password-link">Forgot your password?</a>
 
-                    <tr>
-                        <td>
-                            <strong>Account Security Alerts</strong>
-                            <span>Receive important security alerts</span>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span></span>
-                            </label>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" type="button" onclick="closePasswordModal()">
+                Cancel
+            </button>
+
+            <button class="modal-btn primary" type="button" onclick="showEditModal()">
+                Continue
+            </button>
         </div>
     </div>
-
 </div>
+
+<div class="settings-modal-overlay" id="editInfoModal">
+    <div class="settings-modal">
+        <button class="modal-close" type="button" onclick="closeEditModal()">×</button>
+
+        <h2 id="editModalTitle">Edit Contact Number</h2>
+        <p class="modal-desc" id="editModalDesc">
+            Update your contact number below.
+        </p>
+
+        <div class="modal-form-group">
+            <label id="editModalLabel">Contact Number</label>
+            <input type="text" id="editModalInput" value="{{ request.user.contactno|default:'+63 912 345 6789' }}">
+        </div>
+
+        <div class="modal-actions">
+            <button class="modal-btn secondary" type="button" onclick="closeEditModal()">
+                Cancel
+            </button>
+
+            <button class="modal-btn primary" type="button" onclick="showOtpModal()">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="settings-modal-overlay" id="otpModal">
+    <div class="settings-modal">
+        <button class="modal-close" type="button" onclick="closeOtpModal()">×</button>
+
+        <h2>Verify OTP</h2>
+        <p class="modal-desc" id="otpModalDesc">
+            We sent a 6-digit verification code to your registered email.
+        </p>
+
+        <div class="modal-form-group">
+            <label>OTP Code</label>
+            <input type="text" maxlength="6" placeholder="Enter 6-digit code">
+        </div>
+
+        <div class="modal-actions">
+            <button class="modal-btn secondary" type="button" onclick="closeOtpModal()">
+                Cancel
+            </button>
+
+            <button class="modal-btn primary" type="button">
+                Verify & Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="settings-modal-overlay" id="changePasswordModal">
+    <div class="settings-modal">
+        <button class="modal-close" type="button" onclick="closeChangePasswordModal()">×</button>
+
+        <h2>Change Password</h2>
+        <p class="modal-desc">
+            Enter your current password and choose a new password.
+        </p>
+
+        <div class="modal-form-group password-field">
+            <input type="password" placeholder="Current password">
+        </div>
+
+        <div class="modal-form-group password-field">
+            <input type="password" placeholder="New password">
+        </div>
+
+        <div class="modal-form-group password-field">
+            <input type="password" placeholder="Confirm new password">
+        </div>
+
+        <p class="password-note">
+            Use at least 8 characters with a mix of letters, numbers, and symbols.
+        </p>
+
+        <div class="modal-actions">
+            <button class="modal-btn secondary" type="button" onclick="closeChangePasswordModal()">
+                Cancel
+            </button>
+
+            <button class="modal-btn primary" type="button" onclick="showPasswordOtpModal()">
+                Change Password
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let editTarget = null;
+
+    function openPasswordModal(target) {
+        editTarget = target;
+        document.getElementById("passwordModal").classList.add("show");
+    }
+
+    function closePasswordModal() {
+        document.getElementById("passwordModal").classList.remove("show");
+    }
+
+    function showEditModal() {
+        closePasswordModal();
+
+        if (editTarget === "email") {
+            document.getElementById("editModalTitle").textContent = "Edit Email Address";
+            document.getElementById("editModalDesc").textContent = "Update your email address below.";
+            document.getElementById("editModalLabel").textContent = "Email Address";
+            document.getElementById("editModalInput").type = "email";
+            document.getElementById("editModalInput").value = "{{ request.user.email|default:'allyana.villafuerte@kaugnay.ph' }}";
+        } else {
+            document.getElementById("editModalTitle").textContent = "Edit Contact Number";
+            document.getElementById("editModalDesc").textContent = "Update your contact number below.";
+            document.getElementById("editModalLabel").textContent = "Contact Number";
+            document.getElementById("editModalInput").type = "text";
+            document.getElementById("editModalInput").value = "{{ request.user.contactno|default:'+63 912 345 6789' }}";
+        }
+
+        document.getElementById("editInfoModal").classList.add("show");
+    }
+
+    function closeEditModal() {
+        document.getElementById("editInfoModal").classList.remove("show");
+    }
+
+        function showOtpModal() {
+            document.getElementById("editInfoModal").classList.remove("show");
+
+            const otpDesc = document.getElementById("otpModalDesc");
+
+            if (editTarget === "email") {
+                otpDesc.textContent =
+                    "We sent a 6-digit verification code to your registered contact number.";
+            } else {
+                otpDesc.textContent =
+                    "We sent a 6-digit verification code to your registered email address.";
+            }
+
+            document.getElementById("otpModal").classList.add("show");
+        }
+
+    function closeOtpModal() {
+        document.getElementById("otpModal").classList.remove("show");
+    }
+
+    function openChangePasswordModal() {
+        document.getElementById("changePasswordModal").classList.add("show");
+    }
+
+    function closeChangePasswordModal() {
+        document.getElementById("changePasswordModal").classList.remove("show");
+    }
+
+    function showPasswordOtpModal() {
+        document.getElementById("changePasswordModal").classList.remove("show");
+        document.getElementById("passwordOtpModal").classList.add("show");
+    }
+
+    function closePasswordOtpModal() {
+        document.getElementById("passwordOtpModal").classList.remove("show");
+    }
+</script>
 
 {% endblock %}
