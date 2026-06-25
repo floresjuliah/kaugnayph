@@ -5,7 +5,7 @@
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_resident_records.css' %}">
 
 <div class="resident-page">
 
@@ -15,22 +15,34 @@
         <div class="resident-stats">
             <div class="resident-stat-item">
                 <p>Total Residents</p>
-                <h3>{{ total_residents }}</h3>
+                <h3>
+                    {{ total_residents }}
+                    <img src="{% static 'images/Residents_Icon.png' %}" alt="Residents" class="stat-icon">
+                </h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>Pending Verifications</p>
-                <h3 class="stat-warning">{{ pending_count }}</h3>
+                <h3 class="stat-warning">
+                    {{ pending_count }}
+                    <img src="{% static 'images/forreview_icon.png' %}" alt="Warning" class="stat-icon">
+                </h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>Verified Accounts</p>
-                <h3 class="stat-success">{{ verified_count }}</h3>
+                <h3 class="stat-success">
+                    {{ verified_count }}
+                    <img src="{% static 'images/resolved_icon.png' %}" alt="Verified" class="stat-icon">
+                </h3>
             </div>
 
             <div class="resident-stat-item">
                 <p>SMS Subscriber</p>
-                <h3>{{ sms_count }}</h3>
+                <h3>
+                    {{ sms_count }}
+                    <img src="{% static 'images/total_cases_icon.png' %}" alt="SMS" class="stat-icon">
+                </h3>
             </div>
         </div>
     </div>
