@@ -71,6 +71,8 @@ from .decorators import (
 from django.shortcuts import render, get_object_or_404
 from datetime import timedelta
 from django.utils import timezone
+from django.core.paginator import Paginator
+
 
 # PUBLIC PAGES
 
@@ -4190,10 +4192,20 @@ def admins_list_view(request):
 
     return render(request, "adminpanel/admins_list.html", context)
 
-#ADMIN: SMS OUTBOX
+
 @admin_login_required
 def sms_outbox_view(request):
-    return render(request, "adminpanel/SMS_outbox.html")
+    sms_list = SMSOutbox.objects.select_related('sent_by').order_by('-sent_at')
+
+    paginator = Paginator(sms_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "adminpanel/SMS_outbox.html",
+        {"page_obj": page_obj}
+    )
 
 # ADMIN: SETTINGS
 @admin_login_required

@@ -13,6 +13,7 @@
                     <th>Recipient</th>
                     <th>Message</th>
                     <th>Sender</th>
+                    <th>Status</th>
                     <th>Time Sent</th>
                 </tr>
             </thead>
@@ -20,14 +21,19 @@
             <tbody>
                 {% for sms in page_obj %}
                 <tr>
-                    <td>{{ sms.recipient }}</td>
-                    <td>{{ sms.message }}</td>
-                    <td>{{ sms.sender }}</td>
-                    <td>{{ sms.created_at|date:"M d, Y h:i A" }}</td>
+                    <td>{{ sms.recipient_number }}</td>
+                    <td>{{ sms.message|truncatechars:80 }}</td>
+                    <td>{{ sms.sent_by|default:"System" }}</td>
+                    <td>
+                        <span class="status status-{{ sms.status|lower }}">
+                            {{ sms.status|default:"Pending" }}
+                        </span>
+                    </td>
+                    <td>{{ sms.sent_at|date:"M d, Y h:i A" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="sms-empty">No SMS records available yet.</td>
+                    <td colspan="5" class="sms-empty">No SMS records available yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>
