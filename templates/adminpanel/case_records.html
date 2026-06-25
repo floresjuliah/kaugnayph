@@ -3,6 +3,7 @@
 {% block admin_title %}Cases{% endblock %}
 
 {% block admin_content %}
+
 {% load static %}
 
 <link rel="stylesheet"
@@ -70,6 +71,8 @@ href="{% static 'css/admin_case_records.css' %}">
                 Search
             </button>
         </div>
+
+        
 
         <select name="status" class="case-filter-select" onchange="this.form.submit()">
             <option value="">All Status</option>
