@@ -58,12 +58,16 @@
         {% if latest_announcements %}
           {% for announcement in latest_announcements %}
           <a href="{% url 'announcement_detail' announcement.announcement_id %}" class="profile-announcement">
-            <span class="profile-announcement__badge">
+            <span class="ann-badge badge-{{ announcement.category.name|lower }}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4m0 4h.01"/>
+              </svg>
               {{ announcement.category.name|default:"General" }}
             </span>
             <h3 class="profile-announcement__title">{{ announcement.title }}</h3>
             <p class="profile-announcement__text">{{ announcement.content|truncatewords:25 }}</p>
-            <p class="profile-announcement__time">{{ announcement.created_at|timesince }} ago</p>
+            <p class="profile-announcement__time">{{ announcement.created_at|date:"M d, Y" }}</p>
           </a>
           {% endfor %}
         {% else %}
@@ -72,7 +76,6 @@
           </div>
         {% endif %}
       </div>
-
     </div>
 
     <!-- RIGHT COLUMN -->
@@ -100,7 +103,7 @@
             </div>
             <div class="profile-item__info">
               <p class="profile-item__title">{{ complaint.title }}</p>
-              <p class="profile-item__date">{{ complaint.created_at|timesince }} ago</p>
+              <p class="profile-item__date">{{ complaint.created_at|date:"M d, Y" }}</p> 
             </div>
             <span class="profile-status profile-status--{{ complaint.status|lower }}">
               {{ complaint.status }}
@@ -140,7 +143,7 @@
             </div>
             <div class="profile-item__info">
               <p class="profile-item__title">{{ req.document_type.name }}</p>
-              <p class="profile-item__date">{{ req.requested_at|timesince }} ago</p>
+              <p class="profile-item__date">{{ req.requested_at|date:"M d, Y" }}</p> 
             </div>
             <span class="profile-status profile-status--{{ req.status|lower }}">
               {{ req.status }}

@@ -1386,11 +1386,13 @@ footer ul li a:hover {
 .ann-author-role {
   font-size: 0.77rem;
   color: var(--muted);
+  font-weight: 400;
 }
 
 .ann-time {
   font-size: 0.72rem;
   color: #aab0c0;
+  font-weight: 400;
 }
 
 .ann-badge {
@@ -1889,13 +1891,19 @@ footer ul li a:hover {
 }
 
 .btn-secondary-detail {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #1a2e5a;
   transition: background 0.2s ease;
-  margin-left: -30px;
 }
 
 /* .btn-secondary-detail:hover {
-  background: #2a4a8a;
+  background: #f4f6fb;
 } */
 
 .ann-detail-page .ann-card-header {
@@ -2879,6 +2887,11 @@ footer ul li a:hover {
   text-decoration: none;
   color: inherit;
   cursor: pointer;
+  padding: 12px;
+}
+
+.profile-announcement .ann-badge {
+  margin-bottom: 10px;
 }
 
 .profile-announcement:hover {
