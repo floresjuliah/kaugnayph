@@ -123,13 +123,35 @@
       <div id="modal-body"></div>
     </div>
 
-    <div class="modal__footer">
-      <button type="submit"
-              class="modal__submit"
-              data-en="Submit"
-              data-tl="Isumite">
-        Submit
-      </button>
+    <div class="modal__footer" style="display:block;">
+
+      <div style="width:100%; margin-bottom:20px;">
+        <label style="display:block; margin-bottom:10px; font-weight:600;">
+          Security Verification
+        </label>
+
+        <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
+          {{ captcha_form.captcha }}
+        </div>
+
+        {% if captcha_form.captcha.errors %}
+          <div class="contact-alert" style="margin-top:10px;">
+            {{ captcha_form.captcha.errors.0 }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div style="display:flex; justify-content:flex-end;">
+        <button type="submit"
+                class="modal__submit"
+                data-en="Submit"
+                data-tl="Isumite">
+          Submit
+        </button>
+      </div>
+
+</div>
+
     </div>
 
   </form>
