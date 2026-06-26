@@ -3,7 +3,6 @@
 .case-subtitle { color: #6b7280; margin: 0 0 20px; font-size: 14px; }
 
 .case-stats-row{
-    box-shadow: 0px 6px 9px rgba(0, 0, 0, 0.1);
     display:flex;
     justify-content:flex-end;
     gap:0;
@@ -147,3 +146,63 @@
 .case-pagination span.disabled { color: #d1d5db; }
 
 .empty-row { text-align: center; color: #9ca3af; padding: 30px 0; }
+
+/*CASE RECORDS RESPONSIVE*/
+
+@media screen and (max-width:768px){
+
+    .case-page{
+
+        padding:18px;
+    }
+
+    .case-title{
+
+        font-size:24px;
+    }
+
+    .case-stats-row{
+
+        display:grid;
+
+        grid-template-columns:1fr 1fr;
+
+        gap:10px;
+    }
+
+    .case-stat{
+
+        min-width:unset;
+
+        width:100%;
+    }
+
+    .case-filter-row{
+
+        flex-direction:column;
+
+        align-items:stretch;
+    }
+
+    .case-search-box{
+
+        width:100%;
+    }
+
+    .case-search-btn{
+
+        padding:10px 16px;
+    }
+
+    .case-filter-select,
+    .case-filter-date{
+
+        width:100%;
+    }
+
+    .case-table-wrapper{
+
+        overflow-x:auto;
+    }
+
+}

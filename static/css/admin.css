@@ -1979,6 +1979,16 @@ EDIT RESIDENT PROFILE PAGE
     overflow: hidden;
 }
 
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+    min-width: 700px;
+}
+
 .case-page table.case-table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -2125,9 +2135,7 @@ EDIT RESIDENT PROFILE PAGE
     padding-left:30px;
 }
 
-/* =========================
-   DOCUMENT REQUESTS PAGE
-========================= */
+/*DOCUMENT REQUESTS PAGE*/
 
 .doc-page {
     padding: 10px 0;
@@ -2419,9 +2427,7 @@ EDIT RESIDENT PROFILE PAGE
 
 
 
-/* =========================
-   DOCUMENT REQUEST DETAIL
-========================= */
+/* DOCUMENT REQUEST DETAIL */
 
 .doc-detail-page {
     padding: 6px 0;
@@ -2942,9 +2948,7 @@ EDIT RESIDENT PROFILE PAGE
     border-color:#2563eb;
 }
 
-/* =========================
-   FAQ FORM PAGE
-========================= */
+/* FAQ FORM PAGE */
 
 .faq-form-page {
     width: 100%;
@@ -3417,9 +3421,7 @@ EDIT RESIDENT PROFILE PAGE
     color: #ea580c;
 }
 
-/* =========================
-   ADMINS PAGE
-========================= */
+/*ADMINS PAGE*/
 
 .admins-page {
     width: 100%;
@@ -3926,4 +3928,187 @@ EDIT RESIDENT PROFILE PAGE
 .compact-filter-row .case-filter-select,
 .compact-filter-row .case-filter-date {
     flex: 0 0 auto;
+}
+
+/*MOBILE SIDEBAR (HAMBURGER)*/
+
+.sidebar-toggle-btn {
+    display: none;
+    border: none;
+    background: none;
+    font-size: 24px;
+    color: #1e293b;
+    cursor: pointer;
+    margin-right: auto;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 998;
+}
+
+/*FOR TABLET*/
+
+@media screen and (max-width: 1024px) {
+
+    .admin-sidebar {
+        width: 180px;
+    }
+}
+
+/*FOR MOBILE*/
+
+@media screen and (max-width: 768px) {
+
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .sidebar-toggle-btn {
+        display: block;
+    }
+
+    .admin-sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 999;
+        transition: left 0.3s ease;
+    }
+
+    .admin-sidebar.active {
+        left: 0;
+    }
+
+    .admin-sidebar.active ~ .sidebar-overlay {
+        display: block;
+    }
+
+    .admin-main {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .admin-topbar {
+        padding: 0 16px;
+    }
+
+    .admin-content {
+        padding: 16px;
+        overflow-y: visible;
+    }
+
+    .stats-grid,
+    .dash-stats-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .case-info-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .case-details-timeline-row,
+    .dash-analytics-grid,
+    .case-bottom-row,
+    .resident-profile-grid,
+    .resident-edit-grid,
+    .profile-settings-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .case-details-grid {
+        flex-direction: column;
+    }
+
+    .hearing-column {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+        margin-top: 20px;
+    }
+
+    .parties-card {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Stat row strips that used flex/horizontal scroll cards */
+    .case-stats,
+    .doc-stats,
+    .resident-stats,
+    .ann-stats-card {
+        min-width: 100% !important;
+        width: 100%;
+        grid-template-columns: 1fr 1fr !important;
+        height: auto !important;
+    }
+
+    .case-stat,
+    .doc-stat,
+    .resident-stat-item,
+    .ann-stat-item {
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* Header rows with title + stats side by side */
+    .resident-header-row,
+    .case-top-row,
+    .doc-top-row,
+    .resident-top-row,
+    .ann-header,
+    .ann-tools-row,
+    .case-filter-row,
+    .compact-filter-row,
+    .admin-filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 14px;
+    }
+
+    .case-search-box,
+    .doc-search-box,
+    .resident-search,
+    .ann-search-box,
+    .admin-filter-input,
+    .compact-filter-row .case-search-box {
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    .case-filter-select,
+    .case-filter-date,
+    .doc-filter-btn,
+    .resident-filter-btn,
+    .ann-filter-btn {
+        width: 100%;
+    }
+
+    .case-detail-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .case-detail-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .case-detail-actions button,
+    .case-detail-actions select {
+        margin-left: 0;
+    }
+
+    .case-action-form label {
+        min-width: 100%;
+    }
 }

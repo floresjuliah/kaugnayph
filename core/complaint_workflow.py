@@ -38,7 +38,8 @@ SMS_COPY = {
     "Eligible for Certificate to File Action": None,  # internal status, no SMS
     "Certificate Issued": (
         "KaugnayPH: A Certificate to File Action has been issued for complaint "
-        "{case_number}. You may proceed with filing the case before the proper authority."
+        "{case_number}. Please visit the Barangay office to claim your certificate "
+        "and proceed with filing before the proper authority."
     ),
     "Under Review": "KaugnayPH: Your complaint {case_number} is now Under Review.",
     "Resolved": "KaugnayPH: Your complaint {case_number} has been resolved.",
