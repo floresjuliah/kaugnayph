@@ -54,11 +54,11 @@
               Online Application
             </button>
 
-            <a href="{% static 'forms/placeholderfile.pdf' %}"
-               class="doc-card__btn doc-card__btn--primary"
-               download
-               data-en="Downloadable Form"
-               data-tl="Form na Maaaring I-download">
+            <a href="{% static 'forms/' %}{{ document_type.name|slugify }}.pdf"
+              class="doc-card__btn doc-card__btn--primary"
+              download
+              data-en="Downloadable Form"
+              data-tl="Form na Maaaring I-download">
               Downloadable Form
             </a>
           </div>

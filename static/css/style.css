@@ -2590,7 +2590,7 @@ footer ul li a:hover {
   border: none;
   border-radius: 6px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: lighter;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -2598,6 +2598,8 @@ footer ul li a:hover {
 .doc-card__btn--primary {
   background-color: #3b6fd4;
   color: #fff;
+  text-decoration: none;
+  font-weight: lighter;
 }
 
 .doc-card__btn--primary:hover {
@@ -2640,6 +2642,7 @@ footer ul li a:hover {
 .available-docs__track {
   font-size: 0.875rem;
   color: #555;
+  font-style: italic;
 }
 
 .available-docs__track a {
