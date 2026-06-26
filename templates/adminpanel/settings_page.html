@@ -125,7 +125,7 @@
 
         <div class="modal-form-group">
             <label>Password</label>
-            <input type="password" placeholder="Enter your password">
+            <input type="password" id="settingsPasswordInput" placeholder="Enter your password">
         </div>
 
         <a href="#" class="forgot-password-link">Forgot your password?</a>
@@ -152,20 +152,32 @@
             Update your contact number below.
         </p>
 
-        <div class="modal-form-group">
-            <label id="editModalLabel">Contact Number</label>
-            <input type="text" id="editModalInput" value="{{ current_user.contactno|default:'+63 912 345 6789' }}">
-        </div>
+        <form method="POST" id="editInfoForm">
+            {% csrf_token %}
 
-        <div class="modal-actions">
-            <button class="modal-btn secondary" type="button" onclick="closeEditModal()">
-                Cancel
-            </button>
+            <input type="hidden" name="password" id="hiddenPasswordInput">
 
-            <button class="modal-btn primary" type="button" onclick="showOtpModal()">
-                Next
-            </button>
-        </div>
+            <div class="modal-form-group">
+                <label id="editModalLabel">Contact Number</label>
+                <input
+                    type="text"
+                    id="editModalInput"
+                    name="new_contact"
+                    value="{{ current_user.contactno|default:'' }}"
+                    required
+                >
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn secondary" type="button" onclick="closeEditModal()">
+                    Cancel
+                </button>
+
+                <button class="modal-btn primary" type="submit">
+                    Send OTP
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -175,24 +187,43 @@
         <button class="modal-close" type="button" onclick="closeOtpModal()">×</button>
 
         <h2>Verify OTP</h2>
+
         <p class="modal-desc" id="otpModalDesc">
-            We sent a 6-digit verification code.
+            {% if request.session.show_email_otp_modal %}
+                We sent a 6-digit verification code to your new email address.
+            {% else %}
+                We sent a 6-digit verification code to your new contact number.
+            {% endif %}
         </p>
 
-        <div class="modal-form-group">
-            <label>OTP Code</label>
-            <input type="text" maxlength="6" placeholder="Enter 6-digit code">
-        </div>
+        <form
+            method="POST"
+            id="otpForm"
+            action="{% if request.session.show_email_otp_modal %}{% url 'admin_update_email_verify' %}{% else %}{% url 'admin_update_contact_verify' %}{% endif %}"
+        >
+            {% csrf_token %}
 
-        <div class="modal-actions">
-            <button class="modal-btn secondary" type="button" onclick="closeOtpModal()">
-                Cancel
-            </button>
+            <div class="modal-form-group">
+                <label>OTP Code</label>
+                <input
+                    type="text"
+                    name="otp_code"
+                    maxlength="6"
+                    placeholder="Enter 6-digit code"
+                    required
+                >
+            </div>
 
-            <button class="modal-btn primary" type="button">
-                Verify & Save
-            </button>
-        </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" type="button" onclick="closeOtpModal()">
+                    Cancel
+                </button>
+
+                <button class="modal-btn primary" type="submit">
+                    Verify & Save
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -243,6 +274,7 @@
 
     function openPasswordModal(target) {
         editTarget = target;
+        document.getElementById("settingsPasswordInput").value = "";
         document.getElementById("passwordModal").classList.add("show");
     }
 
@@ -251,43 +283,49 @@
     }
 
     function showEditModal() {
+        const passwordValue = document.getElementById("settingsPasswordInput").value;
+
+        if (!passwordValue) {
+            alert("Please enter your password.");
+            return;
+        }
+
         closePasswordModal();
 
         if (editTarget === "email") {
             document.getElementById("editModalTitle").textContent = "Edit Email Address";
-            document.getElementById("editModalDesc").textContent = "Update your email address below.";
+            document.getElementById("editModalDesc").textContent =
+                "Update your email address below. An OTP will be sent to the new email address.";
             document.getElementById("editModalLabel").textContent = "Email Address";
             document.getElementById("editModalInput").type = "email";
+            document.getElementById("editModalInput").name = "new_email";
             document.getElementById("editModalInput").value = "{{ current_user.email|default:'' }}";
+
+            document.getElementById("editInfoForm").action =
+                "{% url 'admin_update_email_start' %}";
+            document.getElementById("otpForm").action =
+                "{% url 'admin_update_email_verify' %}";
         } else {
             document.getElementById("editModalTitle").textContent = "Edit Contact Number";
-            document.getElementById("editModalDesc").textContent = "Update your contact number below.";
+            document.getElementById("editModalDesc").textContent =
+                "Update your contact number below. An OTP will be sent to the new number.";
             document.getElementById("editModalLabel").textContent = "Contact Number";
             document.getElementById("editModalInput").type = "text";
+            document.getElementById("editModalInput").name = "new_contact";
             document.getElementById("editModalInput").value = "{{ current_user.contactno|default:'' }}";
+
+            document.getElementById("editInfoForm").action =
+                "{% url 'admin_update_contact_start' %}";
+            document.getElementById("otpForm").action =
+                "{% url 'admin_update_contact_verify' %}";
         }
 
+        document.getElementById("hiddenPasswordInput").value = passwordValue;
         document.getElementById("editInfoModal").classList.add("show");
     }
 
     function closeEditModal() {
         document.getElementById("editInfoModal").classList.remove("show");
-    }
-
-    function showOtpModal() {
-        document.getElementById("editInfoModal").classList.remove("show");
-
-        const otpDesc = document.getElementById("otpModalDesc");
-
-        if (editTarget === "email") {
-            otpDesc.textContent =
-                "We sent a 6-digit verification code to your new email address.";
-        } else {
-            otpDesc.textContent =
-                "We sent a 6-digit verification code to your new contact number.";
-        }
-
-        document.getElementById("otpModal").classList.add("show");
     }
 
     function closeOtpModal() {
@@ -301,6 +339,12 @@
     function closeChangePasswordModal() {
         document.getElementById("changePasswordModal").classList.remove("show");
     }
+
+    {% if request.session.show_contact_otp_modal or request.session.show_email_otp_modal %}
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("otpModal").classList.add("show");
+    });
+    {% endif %}
 </script>
 
 {% endblock %}
