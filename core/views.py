@@ -6,6 +6,7 @@ import os
  
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -927,6 +928,17 @@ def otp_verify_view(request):
         request.session.pop("user_type", None)
 
         set_user_session(request, fresh_user)
+
+        AuditLogs.objects.create(
+            user=fresh_user,
+            action="Admin Login",
+            module_name="Authentication",
+            table_name="Users",
+            record_id=fresh_user.userid,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            created_at=timezone.now(),
+        )
 
         return redirect("admin_dashboard")
 
@@ -4224,7 +4236,66 @@ def sms_outbox_view(request):
         {"page_obj": page_obj}
     )
 
-# ADMIN: SETTINGS
+#ADMIN SETTINGS PAGE
 @admin_login_required
 def settings_page(request):
-    return render(request, "adminpanel/settings_page.html")
+    current_user = get_current_user(request)
+
+    recent_login_activity = AuditLogs.objects.filter(
+        user=current_user,
+        module_name="Authentication",
+        action__in=["Admin Login", "Failed Admin Login"]
+    ).order_by("-created_at")[:10]
+
+    return render(request, "adminpanel/settings_page.html", {
+        "current_user": current_user,
+        "recent_login_activity": recent_login_activity,
+    })
+
+#ADMIN CHANGE PASSWORD
+@admin_login_required
+def admin_change_password(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    current_password = request.POST.get("current_password", "").strip()
+    new_password = request.POST.get("new_password", "").strip()
+    confirm_password = request.POST.get("confirm_password", "").strip()
+
+    if not check_password(current_password, current_user.password):
+        messages.error(request, "Current password is incorrect.")
+        return redirect("settings_page")
+
+    if new_password != confirm_password:
+        messages.error(request, "New password and confirm password do not match.")
+        return redirect("settings_page")
+
+    if len(new_password) < 8:
+        messages.error(request, "Password must be at least 8 characters long.")
+        return redirect("settings_page")
+
+    if check_password(new_password, current_user.password):
+        messages.error(request, "Your new password must be different from your current password.")
+        return redirect("settings_page")
+
+    current_user.password = hash_password(new_password)
+    current_user.is_password_changed = True
+    current_user.save()
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Changed Password",
+        module_name="Settings",
+        table_name="Users",
+        record_id=current_user.userid,
+        old_value="Password changed",
+        new_value="Password updated",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    messages.success(request, "Password changed successfully.")
+    return redirect("settings_page")

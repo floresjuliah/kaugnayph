@@ -22,37 +22,42 @@
         <div class="profile-settings-grid">
             <div class="profile-avatar-box">
                 <div class="settings-avatar">
-                    {{ request.user.firstname|default:"A"|first }}
+                    {{ current_user.firstname|default:"A"|first }}
                 </div>
 
-                <button class="outline-btn">Change Avatar</button>
+                <button class="outline-btn" type="button">Change Avatar</button>
             </div>
 
             <div class="profile-info-box">
                 <h3>
-                    {{ request.user.firstname|default:"Allyana" }}
-                    {{ request.user.lastname|default:"Villafuerte" }}
+                    {{ current_user.firstname|default:"Admin" }}
+                    {{ current_user.lastname|default:"" }}
                 </h3>
-                <p class="role-text">{{ request.user.role|default:"Administrator" }}</p>
+
+                <p class="role-text">
+                    {{ current_user.position.name|default:"Administrator" }}
+                </p>
 
                 <div class="settings-info-row">
                     <div>
                         <label>Contact Number</label>
-                        <p>{{ request.user.contactno|default:"+63 912 345 6789" }}</p>
+                        <p>{{ current_user.contactno|default:"+63 912 345 6789" }}</p>
                     </div>
+
                     <button class="outline-btn small" type="button" onclick="openPasswordModal('contact')">
                         Edit
-                    </button>       
+                    </button>
                 </div>
 
                 <div class="settings-info-row">
                     <div>
                         <label>Email Address</label>
-                        <p>{{ request.user.email|default:"allyana.villafuerte@kaugnay.ph" }}</p>
+                        <p>{{ current_user.email|default:"allyana.villafuerte@kaugnay.ph" }}</p>
                     </div>
+
                     <button class="outline-btn small" type="button" onclick="openPasswordModal('email')">
                         Edit
-                    </button>                
+                    </button>
                 </div>
             </div>
         </div>
@@ -67,12 +72,12 @@
 
             <div>
                 <h3>Change Password</h3>
-                <p>Last updated: 15 days ago</p>
+                <p>Update your account password.</p>
             </div>
 
             <button class="outline-btn" type="button" onclick="openChangePasswordModal()">
                 Change Password
-            </button>        
+            </button>
         </div>
 
         <h3 class="settings-subtitle">Recent Login Activity</h3>
@@ -83,23 +88,24 @@
                     <tr>
                         <th>Date & Time</th>
                         <th>Device</th>
-                        <th>Location</th>
+                        <th>Status</th>
                         <th>IP Address</th>
                     </tr>
                 </thead>
+
                 <tbody>
+                    {% for log in recent_login_activity %}
                     <tr>
-                        <td>Jun 24, 2026 • 8:42 PM</td>
-                        <td>Chrome on Windows</td>
-                        <td>Manila, Philippines</td>
-                        <td>192.168.1.10</td>
+                        <td>{{ log.created_at|date:"M d, Y • g:i A" }}</td>
+                        <td>{{ log.user_agent|default:"Unknown device" }}</td>
+                        <td>{{ log.action }}</td>
+                        <td>{{ log.ip_address|default:"Unknown" }}</td>
                     </tr>
+                    {% empty %}
                     <tr>
-                        <td>Jun 23, 2026 • 3:15 PM</td>
-                        <td>Edge on Windows</td>
-                        <td>Manila, Philippines</td>
-                        <td>192.168.1.10</td>
+                        <td colspan="4">No recent login activity yet.</td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -107,6 +113,7 @@
 
 </div>
 
+<!-- VERIFY PASSWORD MODAL FOR CONTACT/EMAIL -->
 <div class="settings-modal-overlay" id="passwordModal">
     <div class="settings-modal">
         <button class="modal-close" type="button" onclick="closePasswordModal()">×</button>
@@ -135,6 +142,7 @@
     </div>
 </div>
 
+<!-- EDIT CONTACT/EMAIL MODAL -->
 <div class="settings-modal-overlay" id="editInfoModal">
     <div class="settings-modal">
         <button class="modal-close" type="button" onclick="closeEditModal()">×</button>
@@ -146,7 +154,7 @@
 
         <div class="modal-form-group">
             <label id="editModalLabel">Contact Number</label>
-            <input type="text" id="editModalInput" value="{{ request.user.contactno|default:'+63 912 345 6789' }}">
+            <input type="text" id="editModalInput" value="{{ current_user.contactno|default:'+63 912 345 6789' }}">
         </div>
 
         <div class="modal-actions">
@@ -161,13 +169,14 @@
     </div>
 </div>
 
+<!-- OTP MODAL FOR CONTACT/EMAIL -->
 <div class="settings-modal-overlay" id="otpModal">
     <div class="settings-modal">
         <button class="modal-close" type="button" onclick="closeOtpModal()">×</button>
 
         <h2>Verify OTP</h2>
         <p class="modal-desc" id="otpModalDesc">
-            We sent a 6-digit verification code to your registered email.
+            We sent a 6-digit verification code.
         </p>
 
         <div class="modal-form-group">
@@ -187,6 +196,7 @@
     </div>
 </div>
 
+<!-- CHANGE PASSWORD MODAL -->
 <div class="settings-modal-overlay" id="changePasswordModal">
     <div class="settings-modal">
         <button class="modal-close" type="button" onclick="closeChangePasswordModal()">×</button>
@@ -196,31 +206,35 @@
             Enter your current password and choose a new password.
         </p>
 
-        <div class="modal-form-group password-field">
-            <input type="password" placeholder="Current password">
-        </div>
+        <form method="POST" action="{% url 'admin_change_password' %}">
+            {% csrf_token %}
 
-        <div class="modal-form-group password-field">
-            <input type="password" placeholder="New password">
-        </div>
+            <div class="modal-form-group password-field">
+                <input type="password" name="current_password" placeholder="Current password" required>
+            </div>
 
-        <div class="modal-form-group password-field">
-            <input type="password" placeholder="Confirm new password">
-        </div>
+            <div class="modal-form-group password-field">
+                <input type="password" name="new_password" placeholder="New password" required>
+            </div>
 
-        <p class="password-note">
-            Use at least 8 characters with a mix of letters, numbers, and symbols.
-        </p>
+            <div class="modal-form-group password-field">
+                <input type="password" name="confirm_password" placeholder="Confirm new password" required>
+            </div>
 
-        <div class="modal-actions">
-            <button class="modal-btn secondary" type="button" onclick="closeChangePasswordModal()">
-                Cancel
-            </button>
+            <p class="password-note">
+                Use at least 8 characters with a mix of letters, numbers, and symbols.
+            </p>
 
-            <button class="modal-btn primary" type="button" onclick="showPasswordOtpModal()">
-                Change Password
-            </button>
-        </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" type="button" onclick="closeChangePasswordModal()">
+                    Cancel
+                </button>
+
+                <button class="modal-btn primary" type="submit">
+                    Change Password
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -244,13 +258,13 @@
             document.getElementById("editModalDesc").textContent = "Update your email address below.";
             document.getElementById("editModalLabel").textContent = "Email Address";
             document.getElementById("editModalInput").type = "email";
-            document.getElementById("editModalInput").value = "{{ request.user.email|default:'allyana.villafuerte@kaugnay.ph' }}";
+            document.getElementById("editModalInput").value = "{{ current_user.email|default:'' }}";
         } else {
             document.getElementById("editModalTitle").textContent = "Edit Contact Number";
             document.getElementById("editModalDesc").textContent = "Update your contact number below.";
             document.getElementById("editModalLabel").textContent = "Contact Number";
             document.getElementById("editModalInput").type = "text";
-            document.getElementById("editModalInput").value = "{{ request.user.contactno|default:'+63 912 345 6789' }}";
+            document.getElementById("editModalInput").value = "{{ current_user.contactno|default:'' }}";
         }
 
         document.getElementById("editInfoModal").classList.add("show");
@@ -260,21 +274,21 @@
         document.getElementById("editInfoModal").classList.remove("show");
     }
 
-        function showOtpModal() {
-            document.getElementById("editInfoModal").classList.remove("show");
+    function showOtpModal() {
+        document.getElementById("editInfoModal").classList.remove("show");
 
-            const otpDesc = document.getElementById("otpModalDesc");
+        const otpDesc = document.getElementById("otpModalDesc");
 
-            if (editTarget === "email") {
-                otpDesc.textContent =
-                    "We sent a 6-digit verification code to your registered contact number.";
-            } else {
-                otpDesc.textContent =
-                    "We sent a 6-digit verification code to your registered email address.";
-            }
-
-            document.getElementById("otpModal").classList.add("show");
+        if (editTarget === "email") {
+            otpDesc.textContent =
+                "We sent a 6-digit verification code to your new email address.";
+        } else {
+            otpDesc.textContent =
+                "We sent a 6-digit verification code to your new contact number.";
         }
+
+        document.getElementById("otpModal").classList.add("show");
+    }
 
     function closeOtpModal() {
         document.getElementById("otpModal").classList.remove("show");
@@ -286,15 +300,6 @@
 
     function closeChangePasswordModal() {
         document.getElementById("changePasswordModal").classList.remove("show");
-    }
-
-    function showPasswordOtpModal() {
-        document.getElementById("changePasswordModal").classList.remove("show");
-        document.getElementById("passwordOtpModal").classList.add("show");
-    }
-
-    function closePasswordOtpModal() {
-        document.getElementById("passwordOtpModal").classList.remove("show");
     }
 </script>
 

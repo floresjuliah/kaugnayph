@@ -97,4 +97,5 @@ urlpatterns = [
 
     #ADMIN: SETTINGS
     path("admin/settings/", views.settings_page, name="settings_page"),
+    path("admin/settings/change-password/", views.admin_change_password, name="admin_change_password"),
 ]
