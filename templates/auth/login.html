@@ -43,11 +43,11 @@
       <p class="subtitle">We're glad to see you back!</p>
 
       {% if messages %}
-        <div style="color:red;">
-          {% for message in messages %}
+        {% for message in messages %}
+          <div class="form-notice">
             <p>{{ message }}</p>
-          {% endfor %}
-        </div>
+          </div>
+        {% endfor %}
       {% endif %}
 
       <form method="POST">

@@ -51,9 +51,11 @@
       </div>
 
       {% if messages %}
-        <div style="color:red;">
+        <div style="color:#4CAF82;">
           {% for message in messages %}
+            <div class="form-notice">
             <p>{{ message }}</p>
+          </div>
           {% endfor %}
         </div>
       {% endif %}
@@ -108,7 +110,7 @@
           </div>
 
           <button type="button" class="btn-create" onclick="nextStep()">
-            Next →
+            Next
           </button>
 
         </div>

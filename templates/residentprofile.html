@@ -57,7 +57,7 @@
 
         {% if latest_announcements %}
           {% for announcement in latest_announcements %}
-          <a href="{% url 'announcement_detail' announcement.announcement_id %}" class="profile-announcement">
+          <a href="{% url 'announcement_detail' announcement.announcement_id %}?next=profile" class="profile-announcement">
             <span class="ann-badge badge-{{ announcement.category.name|lower }}">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>

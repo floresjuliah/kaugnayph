@@ -417,6 +417,20 @@ body.register-page {
   font-weight: 600;
 }
 
+.form-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fff4;
+  border: 1px solid #4CAF82;
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  color: #4CAF82;
+  font-size: 0.88rem;
+}
 
 /* LANDING PAGE */
 
@@ -1894,7 +1908,10 @@ footer ul li a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1.5px solid #1a2e5a;
+  border-radius: 30px;
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 500;
@@ -1902,9 +1919,17 @@ footer ul li a:hover {
   transition: background 0.2s ease;
 }
 
-/* .btn-secondary-detail:hover {
+.btn-secondary-detail:hover {
   background: #f4f6fb;
-} */
+}
+
+.ann-detail-page .btn-secondary-detail {
+  display: block;
+  width: fit-content;
+  text-align: left;
+  margin-left: 0;
+  margin-right: auto;
+}
 
 .ann-detail-page .ann-card-header {
   display: flex;
@@ -3222,6 +3247,7 @@ footer ul li a:hover {
     padding: 13px 14px;
     font-size: 14px;
     outline: none;
+    font-family: inherit;
 }
 
 .contact-form textarea {
@@ -3242,6 +3268,7 @@ footer ul li a:hover {
     border-radius: 6px;
     font-weight: 700;
     cursor: pointer;
+    font-family: inherit;
 }
 
 .contact-alert {
@@ -3423,6 +3450,7 @@ footer ul li a:hover {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  font-family: inherit;
 }
 
 .faq-question:hover {
@@ -3446,7 +3474,7 @@ footer ul li a:hover {
 }
 
 .faq-item.open .faq-answer {
-  padding: 0 24px 16px;
+  padding: 8px 24px 16px; /* ← add 8px top padding */
 }
 
 .faq-answer p {
@@ -4009,7 +4037,7 @@ footer ul li a:hover {
 }
 
 .language-menu-item {
-  padding: 0 18px;
+  padding: 0;
 }
 
 .language-menu-row {
@@ -4018,6 +4046,12 @@ footer ul li a:hover {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .language-toggle {
