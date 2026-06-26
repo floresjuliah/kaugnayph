@@ -2590,16 +2590,23 @@ footer ul li a:hover {
   border: none;
   border-radius: 6px;
   font-size: 0.875rem;
-  font-weight: lighter;
+  font-weight: 400;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 .doc-card__btn--primary {
   background-color: #3b6fd4;
   color: #fff;
-  text-decoration: none;
-  font-weight: lighter;
+}
+
+.doc-card__btn--primary:hover {
+  background-color: #2f5bb5;
 }
 
 .doc-card__btn--primary:hover {
