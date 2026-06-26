@@ -3358,7 +3358,7 @@ def case_detail_view(request, complaint_id):
             hearing_date_raw = request.POST.get("hearing_date", "").strip()
 
             # The lookup table stores full descriptive labels rather than
-            # plain "Hearing N", so map the number to the exact level_type
+            # plain "Hearing N", map the number to the exact level_type
             # text instead of building the string from hearing_number.
             HEARING_LEVEL_BY_NUMBER = {
                 "1": "1st Hearing - Lupong Tagapamayapa (Chairman Present)",
