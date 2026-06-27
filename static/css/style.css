@@ -52,6 +52,7 @@ body.register-page {
 .left-panel {
   width: 42%;
   min-height: 100vh;
+  min-width: 100%;
   background: linear-gradient(160deg, #fde68a 0%, #fcd34d 55%, #fbbf24 100%);
   display: flex;
   flex-direction: column;
@@ -353,8 +354,24 @@ body.register-page {
   .left-panel {
     width: 100%;
     min-height: auto;
+    padding: 32px 20px;
+  }
+
+  .welcome-text {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .brand-name {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .right-panel {
+    padding: 32px 20px;
   }
 }
+
 /* LOGIN PAGE */
 
 .left-panel {
@@ -421,15 +438,24 @@ body.register-page {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #f0fff4;
-  border: 1px solid #4CAF82;
   border-radius: 8px;
   padding: 12px 18px;
   margin-bottom: 16px;
   width: 100%;
   box-sizing: border-box;
-  color: #4CAF82;
   font-size: 0.88rem;
+}
+
+.form-notice--success {
+  background: #f0fff4;
+  border: 1px solid #4CAF82;
+  color: #4CAF82;
+}
+
+.form-notice--error {
+  background: #fff0f0;
+  border: 1px solid #e05252;
+  color: #e05252;
 }
 
 /* LANDING PAGE */
@@ -755,6 +781,7 @@ body.landing-page .nav-links .active {
     url("../images/hero.jpg") center/cover no-repeat;
   background-color: var(--navy);
   z-index: 0;
+  background-attachment: fixed;
 }
 
 .hero-content {
@@ -1855,13 +1882,42 @@ footer ul li a:hover {
   body.landing-page .nav-links {
     display: none;
   }
-}
 
-@media (max-width: 500px) {
-  .footer-main {
-    grid-template-columns: 1fr;
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .services-left h2 {
+    font-size: 3rem;
+  }
+
+  .services {
+    padding: 40px 5%;
+  }
+
+  .hero {
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  .hero-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 12px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .hero p {
+    text-align: center;
   }
 }
+
 .ann-card-body {
   display: flex;
   justify-content: space-between;
@@ -2307,6 +2363,7 @@ footer ul li a:hover {
   background: #e8f0fb;
   color: var(--blue);
 }
+
 
 .hearing-summary {
   background: var(--light);
