@@ -5,54 +5,60 @@
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<div class="inquiry-page">
+<div class="admin-page">
 
-    <h1 class="inquiry-title">Audit Logs</h1>
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Audit Logs</h1>
+    </div>
 
-    <form method="GET" class="case-filter-row">
-        <div class="case-search-box">
-            <span>⌕</span>
+    <form method="GET" class="admin-toolbar">
+        <div class="admin-toolbar-left">
+
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query }}"
+                    placeholder="Search logs..."
+                >
+            </div>
+
+            <select name="module" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if module_filter == "All" %}selected{% endif %}>All Modules</option>
+
+                {% for module in modules %}
+                    <option value="{{ module }}" {% if module_filter == module %}selected{% endif %}>
+                        {{ module }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="action" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if action_filter == "All" %}selected{% endif %}>All Actions</option>
+
+                {% for action in actions %}
+                    <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>
+                        {{ action }}
+                    </option>
+                {% endfor %}
+            </select>
+
             <input
-                type="text"
-                name="search"
-                value="{{ search_query }}"
-                placeholder="Search logs..."
+                type="date"
+                name="date"
+                value="{{ date_filter }}"
+                class="admin-filter"
+                onchange="this.form.submit()"
             >
+
         </div>
-
-        <select name="module" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if module_filter == "All" %}selected{% endif %}>All Modules</option>
-
-            {% for module in modules %}
-                <option value="{{ module }}" {% if module_filter == module %}selected{% endif %}>
-                    {{ module }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <select name="action" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if action_filter == "All" %}selected{% endif %}>All Actions</option>
-
-            {% for action in actions %}
-                <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>
-                    {{ action }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <input
-            type="date"
-            name="date"
-            value="{{ date_filter }}"
-            class="case-filter-date"
-            onchange="this.form.submit()"
-        >
     </form>
 
-    <div class="inquiry-table-card">
-        <table class="inquiry-table">
+    <div class="admin-table-card">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>Date / Time</th>
@@ -78,7 +84,10 @@
                         {% endif %}
                     </td>
 
-                    <td>{{ log.action }}</td>
+                    <td>
+                        <span class="admin-badge blue">{{ log.action }}</span>
+                    </td>
+
                     <td>{{ log.module_name|default:"-" }}</td>
                     <td>{{ log.table_name|default:"-" }}</td>
                     <td>{{ log.record_id|default:"-" }}</td>
@@ -96,7 +105,7 @@
 
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="inquiry-empty">
+                    <td colspan="7" class="empty-row">
                         No audit logs found.
                     </td>
                 </tr>
@@ -104,12 +113,12 @@
             </tbody>
         </table>
 
-        <div class="inquiry-table-footer">
+        <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total }}
             </p>
 
-            <div class="inquiry-pagination">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if module_filter != 'All' %}&module={{ module_filter|urlencode }}{% endif %}{% if action_filter != 'All' %}&action={{ action_filter|urlencode }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">
                         Previous
@@ -118,7 +127,7 @@
                     <span class="disabled">Previous</span>
                 {% endif %}
 
-                <span class="current">{{ page_obj.number }}</span>
+                <span class="active-page">{{ page_obj.number }}</span>
 
                 {% if page_obj.has_next %}
                     <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if module_filter != 'All' %}&module={{ module_filter|urlencode }}{% endif %}{% if action_filter != 'All' %}&action={{ action_filter|urlencode }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">

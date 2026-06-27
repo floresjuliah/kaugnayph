@@ -1,108 +1,118 @@
 {% extends 'admin_base.html' %}
+{% load static %}
 
 {% block admin_title %}Cases{% endblock %}
 
 {% block admin_content %}
 
-{% load static %}
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<link rel="stylesheet"
-href="{% static 'css/admin_case_records.css' %}">
+<div class="admin-page">
 
-<div class="case-page">
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Cases</h1>
+    </div>
 
-    <h1 class="case-title">Cases</h1>
+    <form method="GET" class="admin-toolbar">
+        <div class="admin-toolbar-left">
 
-    <div class="case-stats-row">
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query|default:'' }}"
+                    placeholder="Search case number, complainant, complainee..."
+                >
+            </div>
 
-        <div class="case-stat">
-            <div class="case-stat-text">
+            <select name="status" class="admin-filter" onchange="this.form.submit()">
+                <option value="">All Status</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="type" class="admin-filter" onchange="this.form.submit()">
+                <option value="">All Complaint Types</option>
+                {% for ct in complaint_types %}
+                    <option value="{{ ct.ctid }}" {% if type_filter == ct.ctid|stringformat:"s" %}selected{% endif %}>
+                        {{ ct.type }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="date"
+                name="date_to"
+                value="{{ date_to|default:'' }}"
+                class="admin-filter"
+                title="Incident date"
+                onchange="this.form.submit()"
+            >
+
+        </div>
+    </form>
+
+    <div class="admin-stats">
+
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Total Cases</p>
                 <h3>{{ total_cases|default:"0" }}</h3>
             </div>
-            <img src="{% static 'images/total_cases_icon.png' %}" class="case-stat-icon">
         </div>
 
-        <div class="case-stat">
-            <div class="case-stat-text">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon red">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>For Review</p>
                 <h3>{{ for_review_cases|default:"0" }}</h3>
             </div>
-            <img src="{% static 'images/forreview_icon.png' %}" class="case-stat-icon">
         </div>
 
-        <div class="case-stat">
-            <div class="case-stat-text">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-spinner"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Ongoing</p>
                 <h3>{{ ongoing_cases|default:"0" }}</h3>
             </div>
-            <img src="{% static 'images/ongoing_icon.png' %}" class="case-stat-icon">
         </div>
 
-        <div class="case-stat">
-            <div class="case-stat-text">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Resolved</p>
                 <h3>{{ resolved_cases|default:"0" }}</h3>
             </div>
-            <img src="{% static 'images/resolved_icon.png' %}" class="case-stat-icon">
         </div>
 
-        <div class="case-stat">
-            <div class="case-stat-text">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-certificate"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Certificates Issued</p>
                 <h3>{{ certificates_issued_count|default:"0" }}</h3>
             </div>
-            <img src="{% static 'images/certificate_icon.png' %}" class="case-stat-icon">
         </div>
 
     </div>
 
-    <form method="GET" class="case-filter-row">
-
-        <div class="case-search-box">
-            <span>⌕</span>
-            <input
-                type="text"
-                name="search"
-                value="{{ search_query|default:'' }}"
-                placeholder="Search case number, complainant, complainee..."
-            >
-            <button type="submit" class="case-search-btn">
-                Search
-            </button>
-        </div>
-
-        
-
-        <select name="status" class="case-filter-select" onchange="this.form.submit()">
-            <option value="">All Status</option>
-            {% for value, label in status_choices %}
-                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-        </select>
-
-        <select name="type" class="case-filter-select" onchange="this.form.submit()">
-            <option value="">All Complaint Types</option>
-            {% for ct in complaint_types %}
-                <option value="{{ ct.ctid }}" {% if type_filter == ct.ctid|stringformat:"s" %}selected{% endif %}>{{ ct.type }}</option>
-            {% endfor %}
-        </select>
-
-
-        <input
-            type="date"
-            name="date_to"
-            value="{{ date_to|default:'' }}"
-            class="case-filter-date"
-            title="Incident date"
-            onchange="this.form.submit()"
-        >
-
-    </form>
-    
-    <div class="case-table-card">
-        <div class="case-table-wrapper">
-            <table class="case-table">
+    <div class="admin-table-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Case Number</th>
@@ -112,7 +122,7 @@ href="{% static 'css/admin_case_records.css' %}">
                         <th>Title</th>
                         <th>Date Submitted</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="actions-column">Actions</th>
                     </tr>
                 </thead>
 
@@ -124,7 +134,7 @@ href="{% static 'css/admin_case_records.css' %}">
                         <td>{{ case.complainee_name }}</td>
 
                         <td>
-                            <span class="case-type">{{ case.case_type }}</span>
+                            <span class="admin-badge gray">{{ case.case_type }}</span>
                         </td>
 
                         <td>{{ case.title }}</td>
@@ -148,10 +158,12 @@ href="{% static 'css/admin_case_records.css' %}">
                             </span>
                         </td>
 
-                        <td class="case-actions-cell">
-                                <a href="{% url 'case_detail' case.complaint_id %}" class="case-view-link">
+                        <td class="actions-column">
+                            <div class="admin-actions">
+                                <a href="{% url 'case_detail' case.complaint_id %}" class="admin-action-btn">
                                     View
                                 </a>
+                            </div>
                         </td>
                     </tr>
 
@@ -166,18 +178,13 @@ href="{% static 'css/admin_case_records.css' %}">
             </table>
         </div>
 
-        <div class="case-table-footer">
-
+        <div class="admin-table-footer">
             <p>
-                Showing
-                {{ page_obj.start_index|default:"0" }}–
-                {{ page_obj.end_index|default:"0" }}
-                of
-                {{ page_obj.paginator.count|default:"0" }}
-                entries
+                Showing {{ page_obj.start_index|default:"0" }}–{{ page_obj.end_index|default:"0" }}
+                of {{ page_obj.paginator.count|default:"0" }} entries
             </p>
 
-            <div class="case-pagination">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">Previous</a>
                 {% else %}
@@ -186,21 +193,19 @@ href="{% static 'css/admin_case_records.css' %}">
 
                 {% for num in page_obj.paginator.page_range %}
                     {% if num == page_obj.number %}
-                        <span class="active">{{ num }}</span>
+                        <span class="active-page">{{ num }}</span>
                     {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
                         <a href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}" class="next">Next</a>
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">Next</a>
                 {% else %}
-                    <span class="disabled next">Next</span>
+                    <span class="disabled">Next</span>
                 {% endif %}
             </div>
-
         </div>
-
     </div>
 
 </div>

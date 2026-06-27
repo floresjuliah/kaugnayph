@@ -5,79 +5,102 @@
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<div class="doc-page">
+<div class="admin-page">
 
-    <div class="resident-header-row">
-        <h1 class="doc-title">Document Requests</h1>
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Document Requests</h1>
+    </div>
 
-        <div class="resident-stats">
-            <div class="resident-stat-item">
+    <form method="GET" class="admin-toolbar">
+        <div class="admin-toolbar-left">
+
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query }}"
+                    placeholder="Search resident, document, or request ID"
+                >
+            </div>
+
+            <select name="status" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
+                <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+                <option value="Processing" {% if status_filter == "Processing" %}selected{% endif %}>Processing</option>
+                <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>Completed</option>
+                <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
+            </select>
+
+            <select name="document_type" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if document_type_filter == "All" %}selected{% endif %}>All Document Types</option>
+
+                {% for document_type in document_types %}
+                    <option value="{{ document_type.dtid }}"
+                        {% if document_type_filter == document_type.dtid|stringformat:"s" %}selected{% endif %}>
+                        {{ document_type.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="date"
+                name="date"
+                value="{{ date_filter }}"
+                class="admin-filter"
+                title="Date requested"
+                onchange="this.form.submit()"
+            >
+
+        </div>
+    </form>
+
+    <div class="admin-stats">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Online Applications</p>
                 <h3>{{ total|default:"0" }}</h3>
             </div>
+        </div>
 
-            <div class="resident-stat-item">
-                <p>Pending</p>
-                <h3 class="stat-warning">{{ pending|default:"0" }}</h3>
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon red">
+                <i class="fa-regular fa-clock"></i>
             </div>
+            <div class="admin-stat-info">
+                <p>Pending</p>
+                <h3>{{ pending|default:"0" }}</h3>
+            </div>
+        </div>
 
-            <div class="resident-stat-item">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-spinner"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Processing</p>
                 <h3>{{ processing|default:"0" }}</h3>
             </div>
+        </div>
 
-            <div class="resident-stat-item">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Completed</p>
-                <h3 class="stat-success">{{ completed|default:"0" }}</h3>
+                <h3>{{ completed|default:"0" }}</h3>
             </div>
         </div>
     </div>
 
-    <form method="GET" class="case-filter-row">
-        <div class="case-search-box">
-            <span>⌕</span>
-            <input
-                type="text"
-                name="search"
-                value="{{ search_query }}"
-                placeholder="Search resident, document, or request ID"
-            >
-        </div>
-
-        <select name="status" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
-            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
-            <option value="Processing" {% if status_filter == "Processing" %}selected{% endif %}>Processing</option>
-            <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>Completed</option>
-            <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
-        </select>
-
-        <select name="document_type" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if document_type_filter == "All" %}selected{% endif %}>All Document Types</option>
-
-            {% for document_type in document_types %}
-                <option value="{{ document_type.dtid }}"
-                    {% if document_type_filter == document_type.dtid|stringformat:"s" %}selected{% endif %}>
-                    {{ document_type.name }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <input
-            type="date"
-            name="date"
-            value="{{ date_filter }}"
-            class="case-filter-date"
-            title="Date requested"
-            onchange="this.form.submit()"
-        >
-
-    </form>
-
-    <div class="doc-table-card">
-        <table class="doc-table">
+    <div class="admin-table-card">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>Request ID</th>
@@ -85,7 +108,7 @@
                     <th>Document Type</th>
                     <th>Date Requested</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="actions-column">Actions</th>
                 </tr>
             </thead>
 
@@ -96,15 +119,27 @@
                     <td>{{ record.obj.user.firstname }} {{ record.obj.user.lastname }}</td>
                     <td>{{ record.obj.document_type.name }}</td>
                     <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
+
                     <td>
-                        <span class="doc-status {{ record.status|lower }}">
-                            {{ record.status }}
-                        </span>
+                        {% if record.status == "Completed" %}
+                            <span class="admin-badge green">{{ record.status }}</span>
+                        {% elif record.status == "Pending" %}
+                            <span class="admin-badge yellow">{{ record.status }}</span>
+                        {% elif record.status == "Rejected" %}
+                            <span class="admin-badge red">{{ record.status }}</span>
+                        {% elif record.status == "Processing" %}
+                            <span class="admin-badge blue">{{ record.status }}</span>
+                        {% else %}
+                            <span class="admin-badge gray">{{ record.status }}</span>
+                        {% endif %}
                     </td>
-                    <td>
-                        <a href="{% url 'admin_document_request_detail' record.obj.drid %}" class="doc-view-link">
-                            View
-                        </a>
+
+                    <td class="actions-column">
+                        <div class="admin-actions">
+                            <a href="{% url 'admin_document_request_detail' record.obj.drid %}" class="admin-action-btn">
+                                View
+                            </a>
+                        </div>
                     </td>
                 </tr>
 
@@ -118,22 +153,24 @@
             </tbody>
         </table>
 
-        <div class="doc-pagination">
+        <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
                 of {{ page_obj.paginator.count }} requests
             </p>
 
-            <div class="doc-pages">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if document_type_filter != 'All' %}&document_type={{ document_type_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">
                         Previous
                     </a>
+                {% else %}
+                    <span class="disabled">Previous</span>
                 {% endif %}
 
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
-                        <a class="active">{{ num }}</a>
+                        <span class="active-page">{{ num }}</span>
                     {% else %}
                         <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if document_type_filter != 'All' %}&document_type={{ document_type_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">
                             {{ num }}
@@ -142,9 +179,11 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="next" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if document_type_filter != 'All' %}&document_type={{ document_type_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if document_type_filter != 'All' %}&document_type={{ document_type_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">
                         Next
                     </a>
+                {% else %}
+                    <span class="disabled">Next</span>
                 {% endif %}
             </div>
         </div>

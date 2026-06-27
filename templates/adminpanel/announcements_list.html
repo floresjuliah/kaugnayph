@@ -1,78 +1,97 @@
 {% extends "admin_base.html" %}
 {% load static %}
 
-{% block admin_title %}Announcement{% endblock %}
+{% block admin_title %}Announcements{% endblock %}
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<div class="ann-page">
+<div class="admin-page">
 
-    <div class="resident-header-row">
-        <h1 class="inquiry-title">Announcements</h1>
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Announcements</h1>
+    </div>
 
-        <div class="announcement-right-stack">
-            <a href="{% url 'admin_announcement_create' %}" class="create-ann-btn">
+    <div class="admin-toolbar">
+        <form method="GET" class="admin-toolbar-left">
+
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search announcements"
+                    value="{{ search }}"
+                >
+            </div>
+
+            <select name="category" class="admin-filter" onchange="this.form.submit()">
+                <option value="all" {% if selected_category == "all" or not selected_category %}selected{% endif %}>All Categories</option>
+                <option value="General" {% if selected_category == "General" %}selected{% endif %}>General</option>
+                <option value="Emergency" {% if selected_category == "Emergency" %}selected{% endif %}>Emergency</option>
+                <option value="Events" {% if selected_category == "Events" %}selected{% endif %}>Events</option>
+                <option value="Sports" {% if selected_category == "Sports" %}selected{% endif %}>Sports</option>
+            </select>
+
+            <input
+                type="date"
+                name="date"
+                value="{{ date_filter }}"
+                class="admin-filter"
+                title="Date posted"
+                onchange="this.form.submit()"
+            >
+
+        </form>
+
+        <div class="admin-toolbar-right">
+            <a href="{% url 'admin_announcement_create' %}" class="admin-primary-btn">
                 + Create Announcement
             </a>
+        </div>
+    </div>
 
-            <div class="resident-stats">
-                <div class="resident-stat-item">
-                    <p>Total Announcements</p>
-                    <h3>{{ total_announcements|default:"0" }}</h3>
-                </div>
+    <div class="admin-stats">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-newspaper"></i>
+            </div>
+            <div class="admin-stat-info">
+                <p>Total Announcements</p>
+                <h3>{{ total_announcements|default:"0" }}</h3>
+            </div>
+        </div>
 
-                <div class="resident-stat-item">
-                    <p>General Posts</p>
-                    <h3>{{ general_count|default:"0" }}</h3>
-                </div>
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon green">
+                <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <div class="admin-stat-info">
+                <p>General Posts</p>
+                <h3>{{ general_count|default:"0" }}</h3>
+            </div>
+        </div>
 
-                <div class="resident-stat-item">
-                    <p>Emergency Posts</p>
-                    <h3 class="stat-warning">{{ emergency_count|default:"0" }}</h3>
-                </div>
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon red">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="admin-stat-info">
+                <p>Emergency Posts</p>
+                <h3>{{ emergency_count|default:"0" }}</h3>
             </div>
         </div>
     </div>
 
-    <form method="GET" class="case-filter-row compact-filter-row">
-        <div class="case-search-box">
-            <span>⌕</span>
-            <input
-                type="text"
-                name="search"
-                placeholder="Search announcements"
-                value="{{ search }}"
-            >
-        </div>
-
-        <select name="category" class="case-filter-select" onchange="this.form.submit()">
-            <option value="all" {% if selected_category == "all" or not selected_category %}selected{% endif %}>All Categories</option>
-            <option value="General" {% if selected_category == "General" %}selected{% endif %}>General</option>
-            <option value="Emergency" {% if selected_category == "Emergency" %}selected{% endif %}>Emergency</option>
-            <option value="Events" {% if selected_category == "Events" %}selected{% endif %}>Events</option>
-            <option value="Sports" {% if selected_category == "Sports" %}selected{% endif %}>Sports</option>
-        </select>
-
-        <input
-            type="date"
-            name="date"
-            value="{{ date_filter }}"
-            class="case-filter-date"
-            title="Date posted"
-            onchange="this.form.submit()"
-        >
-    </form>
-
-    <div class="ann-table-card">
-        <table class="ann-table">
+    <div class="admin-table-card">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>Title</th>
                     <th>Category</th>
                     <th>Date Posted</th>
-                    <th class="text-end">Actions</th>
+                    <th class="actions-column">Actions</th>                
                 </tr>
             </thead>
 
@@ -82,18 +101,33 @@
                     <td>{{ announcement.title }}</td>
 
                     <td>
-                        <span class="ann-badge {{ announcement.category.name|default:'General'|lower }}">
+                        <span class="admin-badge {% if announcement.category.name == 'Emergency' %}red{% else %}green{% endif %}">
                             {{ announcement.category.name|default:"General" }}
                         </span>
                     </td>
 
                     <td>{{ announcement.created_at|date:"M d, Y" }}</td>
 
-                    <td class="text-end">
-                        <div class="ann-actions">
-                            <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}">👁</a>
-                            <a href="{% url 'admin_feedback_detail' announcement.announcement_id %}" title="View Feedback">📊</a>
-                            <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}">✎</a>
+                    <td class="actions-column">
+                        <div class="admin-actions">
+
+                            <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}"
+                            class="admin-action-btn"
+                            title="View">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+
+                            <a href="{% url 'admin_feedback_detail' announcement.announcement_id %}"
+                            class="admin-action-btn"
+                            title="View Feedback">
+                                <i class="fa-solid fa-chart-column"></i>
+                            </a>
+
+                            <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}"
+                            class="admin-action-btn"
+                            title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
 
                             <form
                                 method="POST"
@@ -102,10 +136,11 @@
                                 onsubmit="return openDeleteModal(event, this);"
                             >
                                 {% csrf_token %}
-                                <button type="submit" style="border:none; background:none; padding:0;">
-                                    🗑
+                                <button type="submit" class="admin-action-btn" title="Delete">
+                                    <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </form>
+
                         </div>
                     </td>
                 </tr>
@@ -120,13 +155,13 @@
             </tbody>
         </table>
 
-        <div class="ann-table-footer">
+        <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
                 of {{ page_obj.paginator.count }} announcements
             </p>
 
-            <div class="ann-pagination">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_category and selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">Previous</a>
                 {% else %}
@@ -136,7 +171,7 @@
                 <span class="active-page">{{ page_obj.number }}</span>
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_category and selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}" class="next-btn">Next</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_category and selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}">Next</a>                
                 {% else %}
                     <span class="disabled">Next</span>
                 {% endif %}

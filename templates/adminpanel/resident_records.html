@@ -5,78 +5,102 @@
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_resident_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<div class="resident-page">
+<div class="admin-page">
 
-    <div class="resident-header-row">
-        <h1>Resident Records</h1>
-
-        <div class="resident-stats">
-            <div class="resident-stat-item">
-                <p>Total Residents</p>
-                <h3>
-                    {{ total_residents }}
-                    <img src="{% static 'images/Residents_Icon.png' %}" alt="Residents" class="stat-icon">
-                </h3>
-            </div>
-
-            <div class="resident-stat-item">
-                <p>Pending Verifications</p>
-                <h3 class="stat-warning">
-                    {{ pending_count }}
-                    <img src="{% static 'images/forreview_icon.png' %}" alt="Warning" class="stat-icon">
-                </h3>
-            </div>
-
-            <div class="resident-stat-item">
-                <p>Verified Accounts</p>
-                <h3 class="stat-success">
-                    {{ verified_count }}
-                    <img src="{% static 'images/resolved_icon.png' %}" alt="Verified" class="stat-icon">
-                </h3>
-            </div>
-
-            <div class="resident-stat-item">
-                <p>SMS Subscriber</p>
-                <h3>
-                    {{ sms_count }}
-                    <img src="{% static 'images/total_cases_icon.png' %}" alt="SMS" class="stat-icon">
-                </h3>
-            </div>
-        </div>
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Resident Records</h1>
     </div>
 
-    <form method="GET" action="" class="case-filter-row">
-        <div class="case-search-box">
-            <span>⌕</span>
-            <input type="text" name="search" placeholder="Search residents" value="{{ search_query }}">
+    <form method="GET" action="" class="admin-toolbar">
+
+        <div class="admin-toolbar-left">
+
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search residents"
+                    value="{{ search_query }}"
+                >
+            </div>
+
+            <select name="status" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
+                <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+                <option value="Approved" {% if status_filter == "Approved" %}selected{% endif %}>Approved</option>
+                <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
+                <option value="No Submission" {% if status_filter == "No Submission" %}selected{% endif %}>No Submission</option>
+            </select>
+
+            <select name="sms" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if sms_filter == "All" %}selected{% endif %}>All SMS Subscribers</option>
+                <option value="Subscribed" {% if sms_filter == "Subscribed" %}selected{% endif %}>Subscribed</option>
+                <option value="Not Subscribed" {% if sms_filter == "Not Subscribed" %}selected{% endif %}>Not Subscribed</option>
+            </select>
+
         </div>
-
-        <select name="status" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
-            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
-            <option value="Approved" {% if status_filter == "Approved" %}selected{% endif %}>Approved</option>
-            <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
-            <option value="No Submission" {% if status_filter == "No Submission" %}selected{% endif %}>No Submission</option>
-        </select>
-
-        <select name="sms" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if sms_filter == "All" %}selected{% endif %}>All SMS Subscribers</option>
-            <option value="Subscribed" {% if sms_filter == "Subscribed" %}selected{% endif %}>Subscribed</option>
-            <option value="Not Subscribed" {% if sms_filter == "Not Subscribed" %}selected{% endif %}>Not Subscribed</option>
-        </select>
 
     </form>
 
-    <div class="resident-table-card">
-        <table class="resident-table">
+    <div class="admin-stats">
+
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fas fa-users"></i>
+            </div>
+
+            <div class="admin-stat-info">
+                <p>Total Residents</p>
+                <h3>{{ total_residents }}</h3>
+            </div>
+        </div>
+
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon red">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+
+            <div class="admin-stat-info">
+                <p>Pending Verifications</p>
+                <h3>{{ pending_count }}</h3>
+            </div>
+        </div>
+
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="admin-stat-info">
+                <p>Verified Accounts</p>
+                <h3>{{ verified_count }}</h3>
+            </div>
+        </div>
+
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-regular fa-message"></i>
+            </div>
+
+            <div class="admin-stat-info">
+                <p>SMS Subscriber</p>
+                <h3>{{ sms_subscribers }}</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="admin-table-card">
+        <table class="admin-table">
             <thead>
                 <tr>
                     <th>Full Name</th>
                     <th>Verification Status</th>
                     <th>SMS Subscriber</th>
-                    <th>Actions</th>
+                    <th class="actions-column">Actions</th>
                 </tr>
             </thead>
 
@@ -84,35 +108,45 @@
                 {% for rec in records %}
                 <tr>
                     <td>{{ rec.user.firstname }} {{ rec.user.lastname }}</td>
+
                     <td>
                         {% if rec.status == "Approved" %}
-                            <span class="resident-badge verified">Verified</span>
+                            <span class="admin-badge green">Verified</span>
                         {% elif rec.status == "Pending" %}
-                            <span class="resident-badge pending">Pending</span>
+                            <span class="admin-badge yellow">Pending</span>
                         {% elif rec.status == "Rejected" %}
-                            <span class="resident-badge rejected">Rejected</span>
+                            <span class="admin-badge red">Rejected</span>
                         {% else %}
-                            <span class="resident-badge no-submission">No Submission</span>
+                            <span class="admin-badge gray">No Submission</span>
                         {% endif %}
                     </td>
+
                     <td>{% if rec.sms_sub %}Yes{% else %}No{% endif %}</td>
-                    <td><a href="{% url 'resident_record_view' rec.user.userid %}">View</a></td>
+
+                    <td class="actions-column">
+                        <div class="admin-actions">
+                            <a href="{% url 'resident_record_view' rec.user.userid %}" class="admin-action-btn">
+                                View
+                            </a>
+                        </div>
+                    </td>
                 </tr>
+
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="resident-empty">No resident records found.</td>
+                    <td colspan="4" class="empty-row">No resident records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <div class="resident-table-footer">
+        <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
                 of {{ page_obj.paginator.count }} residents
             </p>
 
-            <div class="resident-pagination">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">Previous</a>
                 {% else %}
@@ -121,16 +155,16 @@
 
                 {% for num in page_obj.paginator.page_range %}
                     {% if num == page_obj.number %}
-                        <span class="current">{{ num }}</span>
+                        <span class="active-page">{{ num }}</span>
                     {% else %}
                         <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="next" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">Next</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}{% if sms_filter != 'All' %}&sms={{ sms_filter }}{% endif %}">Next</a>
                 {% else %}
-                    <span class="disabled next">Next</span>
+                    <span class="disabled">Next</span>
                 {% endif %}
             </div>
         </div>

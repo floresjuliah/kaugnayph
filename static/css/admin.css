@@ -3612,7 +3612,7 @@ EDIT RESIDENT PROFILE PAGE
 }
 
 /* ======================================================
- ADMIN UI STANDARD
+   ADMIN UI STANDARD
 ====================================================== */
 
 /* ---------- PAGE TITLES ---------- */
@@ -3635,36 +3635,128 @@ EDIT RESIDENT PROFILE PAGE
     font-size: 32px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
-    margin-bottom: 28px !important;
+    margin: 0 !important;
     line-height: 1.2 !important;
     letter-spacing: -0.5px !important;
 }
 
-/* Back links should stay smaller */
-.back-link,
-.ann-back-link,
-.doc-back-link,
-.faq-back-link,
-.resident-profile-back {
-    font-size: 14px !important;
+/* ---------- PAGE HEADER ROW ---------- */
+
+.resident-header-row,
+.admins-header,
+.ann-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.ann-filter-row{
+    margin:0;
+    flex:1;
+}
+
+.create-ann-btn{
+    flex-shrink:0;
+}
+
+/* ---------- FILTER / SEARCH ROW ---------- */
+
+.case-filter-row,
+.compact-filter-row,
+.ann-filter-row,
+.doc-top-row,
+.admin-filter-bar {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+}
+
+.case-search-box,
+.doc-search-box,
+.resident-search,
+.admin-filter-input {
+    width: 360px !important;
+    flex: 0 0 360px !important;
+    height: 46px !important;
+}
+
+.case-filter-select,
+.case-filter-date,
+.doc-filter-btn,
+.resident-filter-btn {
+    width: 170px !important;
+    flex: 0 0 170px !important;
+    height: 46px !important;
+}
+
+/* ---------- STAT CARDS ---------- */
+
+.resident-stats,
+.doc-stats,
+.case-stats,
+.ann-stats-full {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    display: grid !important;
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+    margin: 0 0 22px 0 !important;
+}
+
+/* default 4-column stats */
+.resident-stats,
+.doc-stats {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* announcement has 3 stats */
+.ann-stats-full {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+/* case records can also fit naturally */
+.case-stats {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+}
+
+.resident-stat-item,
+.doc-stat,
+.case-stat {
+    min-width: 0 !important;
+    padding: 18px 24px !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+.resident-stat-item:last-child,
+.doc-stat:last-child,
+.case-stat:last-child {
+    border-right: none !important;
+}
+
+.resident-stat-item p,
+.doc-stat p,
+.case-stat p {
+    margin: 0 0 8px !important;
+    color: #64748b !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
 }
 
-/* ---------- CARD / SECTION TITLES ---------- */
-
-.inquiry-detail-card h2,
-.doc-detail-header h2,
-.resident-profile-card h2,
-.resident-edit-card h2,
-.ann-detail-header h2,
-.ann-broadcast-section h2,
-.dash-panel h2,
-.faq-management-section h2,
-.section-title {
+.resident-stat-item h3,
+.doc-stat h3,
+.case-stat h3 {
+    margin: 0 !important;
+    color: #1e293b !important;
     font-size: 22px !important;
     font-weight: 700 !important;
-    color: #1e293b !important;
-    margin-bottom: 24px !important;
 }
 
 /* ---------- TABLE CARDS ---------- */
@@ -3677,12 +3769,13 @@ EDIT RESIDENT PROFILE PAGE
 .admin-table-card,
 .admins-card,
 .sms-card {
+    width: 100% !important;
     background: #ffffff !important;
     border-radius: 12px !important;
     overflow: hidden !important;
 }
 
-/*  ALL TABLES SAME SIZE */
+/* ---------- TABLES ---------- */
 
 .ann-table,
 .resident-table,
@@ -3697,7 +3790,17 @@ EDIT RESIDENT PROFILE PAGE
     font-size: 14px !important;
 }
 
-/* Table headers */
+.ann-table thead,
+.resident-table thead,
+.case-page table.case-table thead,
+.doc-table thead,
+.inquiry-table thead,
+.admin-table thead,
+.admins-table thead,
+.sms-table thead {
+    background: #dfe7f1 !important;
+}
+
 .ann-table th,
 .resident-table th,
 .case-page table.case-table th,
@@ -3715,7 +3818,6 @@ EDIT RESIDENT PROFILE PAGE
     white-space: nowrap !important;
 }
 
-/* Table cells */
 .ann-table td,
 .resident-table td,
 .case-page table.case-table td,
@@ -3732,19 +3834,6 @@ EDIT RESIDENT PROFILE PAGE
     vertical-align: middle !important;
 }
 
-/* Table header background */
-.ann-table thead,
-.resident-table thead,
-.case-page table.case-table thead,
-.doc-table thead,
-.inquiry-table thead,
-.admin-table thead,
-.admins-table thead,
-.sms-table thead {
-    background: #dfe7f1 !important;
-}
-
-/* Last column stays right-aligned */
 .ann-table th:last-child,
 .ann-table td:last-child,
 .resident-table th:last-child,
@@ -3756,7 +3845,49 @@ EDIT RESIDENT PROFILE PAGE
     text-align: right !important;
 }
 
-/* FORMS / LABELS */
+/* ---------- BUTTONS ---------- */
+
+.btn,
+.create-ann-btn,
+.add-admin-btn,
+.add-to-faq-btn,
+.reply-footer button,
+.mark-complete-btn,
+.doc-filter-btn,
+.resident-filter-btn,
+.dash-apply-btn,
+.faq-btn,
+.edit-cancel-btn,
+.edit-save-btn,
+.edit-delete-btn,
+.btn-approve,
+.btn-reject,
+.btn-edit {
+    height: 46px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 22px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+}
+
+/* ---------- BADGES ---------- */
+
+.status-badge,
+.ann-badge,
+.resident-badge,
+.doc-status,
+.case-status,
+.case-type,
+.profile-badge {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+/* ---------- LABELS / TEXT ---------- */
 
 .detail-group label,
 .ann-form-group label,
@@ -3777,73 +3908,9 @@ EDIT RESIDENT PROFILE PAGE
     color: #1e293b !important;
 }
 
-/*  BUTTONS SAME SIZE  */
-
-.btn,
-.create-ann-btn,
-.add-admin-btn,
-.add-to-faq-btn,
-.reply-footer button,
-.mark-complete-btn,
-.doc-filter-btn,
-.resident-filter-btn,
-.dash-apply-btn,
-.faq-btn,
-.edit-cancel-btn,
-.edit-save-btn,
-.edit-delete-btn,
-.btn-approve,
-.btn-reject,
-.btn-edit {
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-}
-
-/*  BADGES SAME SIZE  */
-
-.status-badge,
-.ann-badge,
-.resident-badge,
-.doc-status,
-.case-status,
-.case-type,
-.profile-badge {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-}
-
 .disabled-btn {
     opacity: .6;
     cursor: not-allowed;
-}
-
-.resident-header-row {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 24px;
-}
-
-.resident-header-row h1 {
-    margin: 0;
-}
-
-.resident-header-row .resident-stats {
-    margin: 0;
-}
-
-
-.admin-title-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.admin-title-stack h1 {
-    margin: 0;
 }
 
 /* SMS PAGINATION */
@@ -3903,27 +3970,4 @@ EDIT RESIDENT PROFILE PAGE
 
 .faq-right-stack .resident-stats {
     margin: 0;
-}
-
-.announcement-right-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-}
-
-.announcement-right-stack .resident-stats {
-    margin: 0;
-}
-.compact-filter-row {
-    justify-content: flex-start;
-}
-
-.compact-filter-row .case-search-box {
-    flex: 0 0 420px;
-}
-
-.compact-filter-row .case-filter-select,
-.compact-filter-row .case-filter-date {
-    flex: 0 0 auto;
 }
