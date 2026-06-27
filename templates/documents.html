@@ -21,7 +21,17 @@
   </div>
 </section>
 
+
+
 <section class="available-docs">
+  {% if messages %}
+  {% for message in messages %}
+    <div class="form-notice form-notice--{{ message.tags }}" style="margin: 16px auto; max-width: 1100px; padding: 12px 18px;">
+      {{ message }}
+    </div>
+  {% endfor %}
+  {% endif %}
+  
   <div class="available-docs__container">
 
     <div class="available-docs__header">
@@ -119,7 +129,9 @@
     <input type="hidden" id="purpose-hidden" name="purpose">
 
     <div class="modal__body">
+
       <div id="modal-body"></div>
+
     </div>
 
     <div class="modal__footer" style="display:block;">
@@ -133,7 +145,7 @@
           {{ captcha_form.captcha }}
         </div>
 
-        {% if captcha_form.captcha.errors %}
+        {% if captcha_form.captcha.errors and captcha_form.data %}
           <div class="contact-alert" style="margin-top:10px;">
             {{ captcha_form.captcha.errors.0 }}
           </div>
@@ -148,8 +160,6 @@
           Submit
         </button>
       </div>
-
-</div>
 
     </div>
 
@@ -216,14 +226,14 @@
 
       const fields = data.fields || [];
 
-      fields.forEach((field, index) => {
+      fields.forEach((field) => {
         const group = document.createElement('div');
         group.className = 'form-group form-group--full';
 
         const label = document.createElement('label');
         label.textContent = field.field_label;
 
-        if (field.is_required && !field.field_label.toLowerCase().includes('middle name')) {
+        if (field.is_required) {
           const requiredMark = document.createElement('span');
           requiredMark.textContent = ' *';
           requiredMark.style.color = '#dc2626';
@@ -257,6 +267,8 @@
 
           if (field.field_type === 'file') {
             input.accept = '.jpg,.jpeg,.png';
+            input.name = `field_${field.dfid}`;
+            input.id = `field_${field.dfid}`;
 
             const note = document.createElement('small');
             note.textContent = 'Only JPG or PNG files are accepted.';
@@ -281,42 +293,17 @@
 
         const lowerLabel = field.field_label.toLowerCase();
 
-        if (lowerLabel.includes('first name')) {
-          input.value = sessionUser.firstname;
-        }
-
-        if (lowerLabel.includes('middle name')) {
-          input.value = sessionUser.middlename;
-        }
-
-        if (lowerLabel.includes('last name')) {
-          input.value = sessionUser.lastname;
-        }
-
-        if (
-          lowerLabel.includes('mobile number') ||
-          lowerLabel.includes('contact number') ||
-          lowerLabel.includes('contact no')
-        ) {
-          input.value = sessionUser.contactno;
-        }
-
-        if (lowerLabel.includes('email')) {
-          input.value = sessionUser.email;
-        }
-
-        if (
-          lowerLabel.includes('address') ||
-          lowerLabel.includes('tirahan')
-        ) {
-          input.value = sessionUser.address;
-        }
+        if (lowerLabel.includes('first name')) input.value = sessionUser.firstname;
+        if (lowerLabel.includes('middle name')) input.value = sessionUser.middlename;
+        if (lowerLabel.includes('last name')) input.value = sessionUser.lastname;
+        if (lowerLabel.includes('mobile number') || lowerLabel.includes('contact number') || lowerLabel.includes('contact no')) input.value = sessionUser.contactno;
+        if (lowerLabel.includes('email')) input.value = sessionUser.email;
+        if (lowerLabel.includes('address') || lowerLabel.includes('tirahan')) input.value = sessionUser.address;
 
         if (lowerLabel === 'purpose' || lowerLabel.includes('purpose')) {
           input.addEventListener('input', function () {
             document.getElementById('purpose-hidden').value = this.value;
           });
-
           input.addEventListener('change', function () {
             document.getElementById('purpose-hidden').value = this.value;
           });
@@ -362,7 +349,7 @@
   }
 
   document.getElementById('document-request-form').addEventListener('submit', function(e) {
-    // File validation FIRST
+    // File validation
     const fileInputs = this.querySelectorAll('input[type="file"]');
     for (const input of fileInputs) {
       if (input.files.length > 0) {
@@ -371,7 +358,18 @@
         if (!allowed.includes(file.type)) {
           e.preventDefault();
           e.stopPropagation();
-          alert('Only JPG or PNG files are accepted.');
+
+          const existing = document.getElementById('file-type-error');
+          if (existing) existing.remove();
+
+          const err = document.createElement('div');
+          err.id = 'file-type-error';
+          err.className = 'form-notice form-notice--error';
+          err.style.margin = '12px 0';
+          err.textContent = 'Only JPG or PNG files are accepted.';
+
+          const modalBody = document.getElementById('modal-body');
+          modalBody.insertBefore(err, modalBody.firstChild);
           return false;
         }
       }
@@ -391,6 +389,14 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const messages = document.querySelectorAll('.form-notice');
+  if (messages.length > 0) {
+    messages[0].scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
 </script>
 
 {% endblock %}

@@ -30,10 +30,10 @@
     </h2>
 
     {% if messages %}
-  {% for message in messages %}
-    <div class="form-notice form-notice--{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
+      {% for message in messages %}
+        <div class="form-notice form-notice--{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
     <div class="track-layout">
 
