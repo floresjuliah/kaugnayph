@@ -226,7 +226,7 @@ def filecomplaint(request):
             description=description,
             incident_date=incident_date,
             file_path=file_path,
-            status="Submitted",
+            status="For Chairman Review",
             is_flagged=is_flagged,
             flagged_reason=flag_reason,
         )
@@ -239,8 +239,8 @@ def filecomplaint(request):
         ComplaintUpdates.objects.create(
             complaint=complaint,
             updated_by=current_user,
-            status="Submitted",
-            remarks="Complaint submitted by resident." if not is_flagged
+            status="For Chairman Review",
+            remarks="Complaint submitted and forwarded for Chairman review." if not is_flagged
                     else f"Complaint submitted by resident. Flagged for review: {flag_reason}",
             updated_at=timezone.now(),
         )
@@ -1270,14 +1270,17 @@ def admin_dashboard_view(request):
 
     #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
-        status__in=["Submitted", "For Chairman Review"],
+        status="For Chairman Review",
         dateadded__gte=start_date
     ).count()
     cases_ongoing = Complaints.objects.exclude(
         status__in=[
-            "Submitted", "For Chairman Review",
-            "Resolved", "Dismissed", "Settled",
-            "Certificate Issued", "Resolved Outside Barangay",
+            "For Chairman Review",
+            "Resolved",
+            "Dismissed",
+            "Settled",
+            "Certificate Issued",
+            "Resolved Outside Barangay",
             "Settled in Court",
         ]
     ).count()
@@ -2568,7 +2571,7 @@ def case_records_view(request):
     case_records = []
 
     for complaint in complaints:
-        status = complaint.status or "Submitted"
+        status = complaint.status or "For Chairman Review"
 
         case_records.append({
             "complaint_id": complaint.complaintsid,
