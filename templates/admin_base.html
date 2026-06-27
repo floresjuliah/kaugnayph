@@ -139,14 +139,20 @@ window.addEventListener("click", function(e) {
                 <button class="profile-toggle"
                         type="button"
                         onclick="toggleDropdown(event)">                  
-                            <span class="profile-name">
+                    <span class="profile-name">
                         Admin<br>
                         {{ request.session.fullname|default:"Jane D." }}
                     </span>
 
                     <span class="dropdown-arrow">⌄</span>
 
-                    <span class="profile-avatar"></span>
+                    {% if request.session.avatar_path %}
+                        <img src="{% static request.session.avatar_path %}"
+                            alt="Profile Avatar"
+                            class="profile-avatar-img">
+                    {% else %}
+                        <span class="profile-avatar"></span>
+                    {% endif %}
                 </button>
 
                 <div class="profile-dropdown"

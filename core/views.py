@@ -4236,7 +4236,7 @@ def sms_outbox_view(request):
         {"page_obj": page_obj}
     )
 
-#ADMIN SETTINGS PAGE
+# ADMIN SETTINGS PAGE
 @admin_login_required
 def settings_page(request):
     current_user = get_current_user(request)
@@ -4247,9 +4247,18 @@ def settings_page(request):
         action__in=["Admin Login", "Failed Admin Login"]
     ).order_by("-created_at")[:10]
 
+    last_password_change = AuditLogs.objects.filter(
+        user=current_user,
+        action="Changed Password"
+    ).order_by("-created_at").first()
+
     return render(request, "adminpanel/settings_page.html", {
         "current_user": current_user,
         "recent_login_activity": recent_login_activity,
+        "last_password_change": last_password_change,
+        "avatars": AvatarOptions.objects.filter(
+            is_active=True
+        ).order_by("avatarid"),
     })
 
 #ADMIN CHANGE PASSWORD
@@ -4515,4 +4524,35 @@ def admin_update_email_verify(request):
     else:
         messages.error(request, "OTP has expired. Please request a new one.")
 
+    return redirect("settings_page")
+
+#ADMIN CHANGE AVATAR
+@admin_login_required
+def admin_change_avatar(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+    avatar_id = request.POST.get("avatar_id", "").strip()
+
+    if avatar_id:
+        try:
+            current_user.avatar = AvatarOptions.objects.get(
+                avatarid=avatar_id,
+                is_active=True
+            )
+        except AvatarOptions.DoesNotExist:
+            messages.error(request, "Invalid avatar selected.")
+            return redirect("settings_page")
+    else:
+        current_user.avatar = None
+
+    current_user.save()
+
+    request.session["avatar_path"] = (
+        current_user.avatar.image_path
+        if current_user.avatar else None
+    )
+
+    messages.success(request, "Avatar updated successfully.")
     return redirect("settings_page")

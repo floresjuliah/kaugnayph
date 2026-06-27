@@ -22,10 +22,18 @@
         <div class="profile-settings-grid">
             <div class="profile-avatar-box">
                 <div class="settings-avatar">
-                    {{ current_user.firstname|default:"A"|first }}
+                    {% if current_user.avatar %}
+                        <img src="{% static current_user.avatar.image_path %}"
+                            alt="Profile Avatar"
+                            style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                    {% else %}
+                        {{ current_user.firstname|default:"A"|first }}
+                    {% endif %}
                 </div>
 
-                <button class="outline-btn" type="button">Change Avatar</button>
+                <button class="outline-btn" type="button" onclick="openAvatarModal()">
+                    Change Avatar
+                </button>
             </div>
 
             <div class="profile-info-box">
@@ -72,7 +80,15 @@
 
             <div>
                 <h3>Change Password</h3>
-                <p>Update your account password.</p>
+
+                {% if last_password_change %}
+                    <p>
+                        Last password change:
+                        {{ last_password_change.created_at|date:"F d, Y • g:i A" }}
+                    </p>
+                {% else %}
+                    <p>No password changes recorded.</p>
+                {% endif %}
             </div>
 
             <button class="outline-btn" type="button" onclick="openChangePasswordModal()">
@@ -111,6 +127,47 @@
         </div>
     </div>
 
+</div>
+
+<!-- AVATAR MODAL -->
+<div class="avatar-modal-overlay" id="avatarModalOverlay" onclick="closeAvatarOnOverlay(event)">
+    <div class="avatar-modal">
+        <h3>Choose Avatar</h3>
+        <p class="avatar-modal__sub">Select one of the avatars below, or choose none.</p>
+
+        <form method="POST" id="avatarForm" action="{% url 'admin_change_avatar' %}">
+            {% csrf_token %}
+
+            <div class="avatar-grid">
+                {% for avatar in avatars %}
+                <label class="avatar-option">
+                    <input type="radio" name="avatar_id" value="{{ avatar.avatarid }}"
+                        {% if current_user.avatar.avatarid == avatar.avatarid %}checked{% endif %}>
+                    <img src="{% static avatar.image_path %}" alt="{{ avatar.name }}">
+                </label>
+                {% endfor %}
+
+                <label class="avatar-option avatar-option--none">
+                    <input type="radio" name="avatar_id" value=""
+                        {% if not current_user.avatar %}checked{% endif %}>
+                    <div class="avatar-none-icon">
+                        {{ current_user.firstname|default:"A"|first }}
+                    </div>
+                    <span class="avatar-none-label">None</span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn secondary" type="button" onclick="closeAvatarModal()">
+                    Cancel
+                </button>
+
+                <button class="modal-btn primary" type="submit">
+                    Save Avatar
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- VERIFY PASSWORD MODAL FOR CONTACT/EMAIL -->
@@ -271,6 +328,20 @@
 
 <script>
     let editTarget = null;
+
+    function openAvatarModal() {
+        document.getElementById("avatarModalOverlay").classList.add("active");
+    }
+
+    function closeAvatarModal() {
+        document.getElementById("avatarModalOverlay").classList.remove("active");
+    }
+
+    function closeAvatarOnOverlay(e) {
+        if (e.target === document.getElementById("avatarModalOverlay")) {
+            closeAvatarModal();
+        }
+    }
 
     function openPasswordModal(target) {
         editTarget = target;
