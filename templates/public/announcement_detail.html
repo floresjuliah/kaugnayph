@@ -80,9 +80,35 @@
           </svg>
           <span>{{ announcement.view_count }}</span>
         </div>
+
+         <!-- THREE DOT MENU -->
+          <div class="ann-more-wrap" onclick="event.stopPropagation()">
+            <button class="ann-action-btn ann-more-btn"
+                    title="More options"
+                    onclick="toggleMoreMenu(this)">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="5" cy="12" r="1" fill="currentColor"/>
+                <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                <circle cx="19" cy="12" r="1" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <ul class="ann-more-menu">
+              <li>
+                <button onclick="saveAsPDF(this)">
+                  <svg width="16" height="16" viewBox="0 0 30 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right:7px;">
+                    <path d="M14.625 18L13.5763 19.0725L14.625 20.0979L15.6737 19.0725L14.625 18ZM16.125 1.5C16.125 0.671574 15.4534 4.36095e-07 14.625 4.00688e-07C13.7966 3.65281e-07 13.125 0.671574 13.125 1.5L14.625 1.5L16.125 1.5ZM5.25 8.83333L4.20132 9.90584L13.5763 19.0725L14.625 18L15.6737 16.9275L6.29868 7.76082L5.25 8.83333ZM14.625 18L15.6737 19.0725L25.0487 9.90584L24 8.83333L22.9513 7.76082L13.5763 16.9275L14.625 18ZM14.625 18L16.125 18L16.125 1.5L14.625 1.5L13.125 1.5L13.125 18L14.625 18Z" fill="currentColor"/>
+                    <path d="M1.5 21.666L1.5 23.4993C1.5 25.5244 3.17893 27.166 5.25 27.166L24 27.166C26.0711 27.166 27.75 25.5244 27.75 23.4994V21.666" stroke="currentColor" stroke-width="3"/>
+                  </svg>
+                  <span data-en="Save as PDF" data-tl="I-save bilang PDF">
+                    Save as PDF
+                  </span>
+                </button>
+              </li>
+            </ul>
+          </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -241,6 +267,59 @@
 
     return value;
   }
+
+  function toggleMoreMenu(btn) {
+    const menu = btn.closest('.ann-more-wrap').querySelector('.ann-more-menu');
+    const isOpen = menu.classList.contains('open');
+    document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
+    if (!isOpen) menu.classList.add('open');
+  }
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
+  });
+  
+  function saveAsPDF(btn) {
+    const card = btn.closest('.ann-card');
+
+    const title = card.dataset.title || card.querySelector('.ann-title')?.textContent.trim() || 'Announcement';
+    const content = card.dataset.content || card.querySelector('.ann-excerpt')?.textContent.trim() || '';
+    const author = card.dataset.author || 'Barangay Admin';
+    const time = card.dataset.time || '';
+    const catname = card.dataset.catname || 'General Updates';
+
+    const lang = getCurrentLanguage();
+    const agoText = lang === "tl" ? "nakalipas" : "ago";
+
+    const html = `
+      <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          body { font-family: sans-serif; padding: 40px; color: #1a1a2e; }
+          .badge { display:inline-block; background:#e8eef8; color:#1a3a6b; font-size:12px; padding:4px 10px; border-radius:20px; margin-bottom:16px; }
+          h1 { font-size: 22px; margin-bottom: 8px; }
+          .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
+          p { font-size: 15px; line-height: 1.7; }
+        </style>
+      </head>
+      <body>
+        <div class="badge">${catname}</div>
+        <h1>${title}</h1>
+        <div class="meta"><strong>${author}</strong> · ${time} ${agoText}</div>
+        <p>${content}</p>
+      </body>
+      </html>
+    `;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
+  }
+  
 </script>
 
 {% endblock %}
