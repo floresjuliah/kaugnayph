@@ -3104,6 +3104,10 @@ def admin_document_request_detail_view(request, drid):
             messages.success(request, "Document request marked as Processing.")
 
         elif action == "reject":
+            if not remarks:
+                messages.error(request, "Rejection remarks are required before rejecting a document request.")
+                return redirect("admin_document_request_detail", drid=doc_request.drid)
+
             old_status = doc_request.status
             old_remarks = doc_request.admin_remarks
 
