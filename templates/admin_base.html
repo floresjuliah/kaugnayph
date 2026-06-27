@@ -64,60 +64,60 @@ window.addEventListener("click", function(e) {
 
             <a href="{% url 'admin_dashboard' %}"
                class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                <span class="menu-icon">⌂</span>
+                <i class="fa-solid fa-house"></i>
                 Dashboard
             </a>
 
             <a href="{% url 'resident_records' %}"
                class="{% if 'resident_record' in request.resolver_match.url_name %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-users"></i>
                 Residents
             </a>
 
             <a href="{% url 'announcements' %}"
                class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-bullhorn"></i>
                 Announcements
             </a>
 
             <a href="{% url 'admin_document_requests' %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-file-lines"></i>
                 Requests
             </a>
 
             <a href="{% url 'case_records' %}"
                 class="{% if request.resolver_match.url_name == 'case_records' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-scale-balanced"></i>
                 Cases
             </a>
 
             <a href="{% url 'admin_inquiries' %}"
                 class="{% if request.resolver_match.url_name == 'admin_inquiries' or request.resolver_match.url_name == 'admin_inquiry_detail' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-envelope"></i>
                 Inquiries
             </a>
 
             <a href="{% url 'admin_faqs' %}"
                 class="{% if request.resolver_match.url_name == 'admin_faqs' or request.resolver_match.url_name == 'admin_add_faq' or request.resolver_match.url_name == 'admin_edit_faq' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-circle-question"></i>
                 FAQs
             </a>
 
             <a href="{% url 'audit_logs' %}"
                 class="{% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-clock-rotate-left"></i>
                 Audit Logs
             </a>
 
             <a href="{% url 'sms_outbox' %}"
                 class="{% if request.resolver_match.url_name == 'sms_outbox' %}active{% endif %}">
-                <span class="menu-icon"></span>
+                <i class="fa-solid fa-comment-sms"></i>
                 SMS Outbox
             </a>
 
             <a href="{% url 'admins_list' %}"
             class="{% if request.resolver_match.url_name == 'admins_list' or request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
-                <span class="menu-icon"></span> 
+                <i class="fa-solid fa-user-shield"></i>                
                 Admins
             </a>
 

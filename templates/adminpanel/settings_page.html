@@ -48,6 +48,17 @@
 
                 <div class="settings-info-row">
                     <div>
+                        <label>Username</label>
+                        <p>{{ current_user.username|default:"No username set" }}</p>
+                    </div>
+
+                    <button class="outline-btn" type="button" onclick="openChangeUsernameModal()">
+                        Edit
+                    </button>
+                </div>
+
+                <div class="settings-info-row">
+                    <div>
                         <label>Contact Number</label>
                         <p>{{ current_user.contactno|default:"+63 912 345 6789" }}</p>
                     </div>
@@ -76,8 +87,9 @@
         <h2>Security</h2>
 
         <div class="settings-action-row">
-            <div class="settings-icon">🔒</div>
-
+            <div class="settings-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
             <div>
                 <h3>Change Password</h3>
 
