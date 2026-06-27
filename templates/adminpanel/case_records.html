@@ -130,7 +130,6 @@ href="{% static 'css/admin_case_records.css' %}">
                         <td>
                             <span class="case-status
                                 {% if case.status == 'For Chairman Review' %}status-review
-                                {% elif case.status == 'Submitted' %}status-pending
                                 {% elif case.status == 'Mediation Scheduled' or case.status == 'Mediation Ongoing' %}status-ongoing
                                 {% elif case.status == 'For 1st Hearing' or case.status == 'For 2nd Hearing' or case.status == 'For 3rd Hearing' %}status-ongoing
                                 {% elif case.status == 'Eligible for Certificate to File Action' %}status-eligible
