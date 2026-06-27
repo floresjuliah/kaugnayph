@@ -298,3 +298,43 @@
         width: 100%;
     }
 }
+
+@media screen and (max-width:768px){
+
+    .resident-page{
+
+        padding:18px;
+    }
+
+    .resident-header-row{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:15px;
+    }
+
+    .resident-stats{
+
+        width:100%;
+
+        grid-template-columns:1fr 1fr;
+    }
+
+    .resident-table-card{
+
+        overflow-x:auto;
+    }
+
+    .resident-filter-row{
+
+        flex-direction:column;
+    }
+
+    .resident-search-box{
+
+        width:100%;
+    }
+
+}

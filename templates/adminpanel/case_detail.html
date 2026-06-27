@@ -17,7 +17,6 @@ href="{% static 'css/admin_case_detail.css' %}">
         Case: {{ case_id }}
         <span class="case-status-pill
             {% if complaint.status == 'For Chairman Review' %}status-review
-            {% elif complaint.status == 'Submitted' %}status-pending
             {% elif complaint.status == 'Mediation Scheduled' or complaint.status == 'Mediation Ongoing' %}status-ongoing
             {% elif complaint.status == 'For 1st Hearing' or complaint.status == 'For 2nd Hearing' or complaint.status == 'For 3rd Hearing' %}status-ongoing
             {% elif complaint.status == 'Eligible for Certificate to File Action' %}status-eligible
@@ -33,7 +32,7 @@ href="{% static 'css/admin_case_detail.css' %}">
         <form method="POST" style="display:inline;">
             {% csrf_token %}
 
-            {% if complaint.status == "Submitted" or complaint.status == "For Chairman Review" %}
+            {% if complaint.status == "For Chairman Review" %}
             <select name="complaint_type" required class="case-inline-select">
                 <option value="">-- Select Complaint Type --</option>
                 {% for ct in complaint_types %}
@@ -147,7 +146,7 @@ href="{% static 'css/admin_case_detail.css' %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="schedule_mediation">
             <label>Schedule Mediation:</label>
-            <input type="datetime-local" name="hearing_date" required>
+            <input type="datetime-local" name="hearing_date" id="mediation_date" required>
             <select name="lupon_user_id">
                 <option value="">-- Assign Lupon Member (optional) --</option>
                 {% for admin in admin_users %}
@@ -183,7 +182,7 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="2" {% if complaint.status == "For 2nd Hearing" %}selected{% endif %}>Hearing 2</option>
                 <option value="3" {% if complaint.status == "For 3rd Hearing" %}selected{% endif %}>Hearing 3</option>
             </select>
-            <input type="datetime-local" name="hearing_date" required>
+            <input type="datetime-local" name="hearing_date" id="hearing_date" required>
             <button type="submit" class="btn-primary">Schedule Hearing</button>
         </form>
         {% else %}
@@ -236,13 +235,13 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="Resolved Outside Barangay">Resolved Outside Barangay</option>
                 <option value="Settled in Court">Settled in Court</option>
             </select>
-            <input type="date" name="external_date">
+            <input type="date" name="external_date" id="external_date">
             <input type="text" name="external_notes" placeholder="Notes">
             <button type="submit" class="btn-primary">Record Resolution</button>
         </form>
     {% endif %}
 
-    {% if not complaint.status == "Submitted" %}
+    {% if complaint.status != "For Chairman Review" %}
     <details class="case-advanced-toggle">
         <summary>Advanced: Manually set hearing level/status</summary>
         <form method="POST" class="case-action-form">
@@ -260,7 +259,11 @@ href="{% static 'css/admin_case_detail.css' %}">
                     <option value="{{ hearing_status.statusid }}" {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}>{{ hearing_status.statustype }}</option>
                 {% endfor %}
             </select>
-            <input type="datetime-local" name="hearing_date" value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
+            <input
+                type="datetime-local"
+                id="advanced_hearing_date"
+                name="hearing_date"
+                value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
             <button type="submit" class="btn-outline">Update Hearing Details</button>
         </form>
     </details>

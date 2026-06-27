@@ -65,6 +65,11 @@
         </div>
       </div>
 
+      <div class="edit-profile-group">
+        <label>Address</label>
+        <div class="readonly-field">{{ user.address|default:"—" }}</div>
+      </div>
+
       <p class="edit-profile-note">
         To update your personal information, please visit the barangay office or
         <a href="{% url 'contactus' %}">contact the barangay</a>.
@@ -100,7 +105,7 @@
 
         <div class="edit-profile-actions">
           <a href="{% url 'residentprofile' %}" class="edit-profile-btn edit-profile-btn--cancel">Cancel</a>
-          <button type="submit" class="edit-profile-btn edit-profile-btn--save">Save</button>
+          <button type="submit" class="edit-profile-btn edit-profile-btn--save">Save Password</button>
         </div>
 
       </form>

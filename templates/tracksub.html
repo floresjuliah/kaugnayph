@@ -31,7 +31,7 @@
 
     {% if messages %}
       {% for message in messages %}
-        <div class="track-alert">{{ message }}</div>
+        <div class="form-notice form-notice--{{ message.tags }}">{{ message }}</div>
       {% endfor %}
     {% endif %}
 
@@ -176,13 +176,10 @@
             <tbody>
               {% for doc in document_requests %}
                 <tr>
-                  <td>DOC-2026-{{ doc.drid|stringformat:"04d" }}</td>
-
-                  <td>{{ doc.document_type.name }}</td>
-
-                  <td>{{ doc.requested_at|date:"M d, Y" }}</td>
-
-                  <td>
+                  <td data-label="Request ID">DOC-2026-{{ doc.drid|stringformat:"04d" }}</td>
+                  <td data-label="Document Type">{{ doc.document_type.name }}</td>
+                  <td data-label="Date Submitted">{{ doc.requested_at|date:"M d, Y" }}</td>
+                  <td data-label="Status">
                     <span class="track-status status-text
                       {% if doc.status == 'Pending' %}pending
                       {% elif doc.status == 'Processing' %}under-review
@@ -194,25 +191,17 @@
                       {{ doc.status }}
                     </span>
                   </td>
-
-                  <td>
+                  <td data-label="Remarks">
                     {% if doc.admin_remarks %}
                       {{ doc.admin_remarks }}
                     {% else %}
-                      <span style="color:#777;"
-                            data-en="No remarks yet"
-                            data-tl="Wala pang tala">
-                        No remarks yet
-                      </span>
+                      <span style="color:#777;" data-en="No remarks yet" data-tl="Wala pang tala">No remarks yet</span>
                     {% endif %}
                   </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5"
-                      class="track-empty"
-                      data-en="No document requests found."
-                      data-tl="Walang document requests na nakita.">
+                  <td colspan="5" class="track-empty" data-en="No document requests found." data-tl="Walang document requests na nakita.">
                     No document requests found.
                   </td>
                 </tr>

@@ -44,7 +44,7 @@
 
       {% if messages %}
         {% for message in messages %}
-          <div class="form-notice">
+          <div class="form-notice form-notice--{{ message.tags }}">
             <p>{{ message }}</p>
           </div>
         {% endfor %}

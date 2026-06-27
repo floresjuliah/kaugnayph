@@ -184,34 +184,46 @@
 
 </div>
 
-<div class="confirm-overlay" id="rejectConfirmOverlay">
+<div class="confirm-overlay" id="rejectConfirmOverlay" style="display:none;">
     <div class="confirm-modal">
-        <h3>Reject Document Request?</h3>
+        <h3>Reject Document Request</h3>
 
         <p>
-            Are you sure you want to reject this document request? This will update the resident’s request status to Rejected.
+            Please provide the reason for rejecting this request.
         </p>
 
-        <div class="confirm-actions">
-            <button type="button"
-                    class="confirm-btn confirm-btn-secondary"
-                    onclick="closeRejectModal()">
-                Cancel
-            </button>
+        <form method="POST" id="rejectForm" onsubmit="return validateRejectRemarks();">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
 
-            <button type="button"
-                    class="confirm-btn confirm-btn-danger"
-                    onclick="submitRejectForm()">
-                Yes, Reject
-            </button>
-        </div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">
+                Reason for Rejection <span style="color:red;">*</span>
+            </label>
+
+            <textarea
+                name="admin_remarks"
+                id="reject_remarks"
+                rows="4"
+                placeholder="e.g., Uploaded ID is unreadable."
+                style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"
+                required
+            ></textarea>
+
+            <div class="confirm-actions">
+                <button type="button"
+                        class="confirm-btn confirm-btn-secondary"
+                        onclick="closeRejectModal()">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="confirm-btn confirm-btn-danger">
+                    Reject
+                </button>
+            </div>
+        </form>
     </div>
 </div>
-
-<form method="POST" id="rejectForm" style="display:none;">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="reject">
-</form>
 
 <script>
     function openRejectModal() {
@@ -224,8 +236,15 @@
         document.body.style.overflow = "";
     }
 
-    function submitRejectForm() {
-        document.getElementById("rejectForm").submit();
+    function validateRejectRemarks() {
+        const remarks = document.getElementById("reject_remarks").value.trim();
+
+        if (!remarks) {
+            alert("Please enter rejection remarks before rejecting.");
+            return false;
+        }
+
+        return true;
     }
 
     document.addEventListener("keydown", function(event) {

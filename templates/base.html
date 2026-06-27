@@ -31,6 +31,23 @@
       KAUGNAYPH
     </a>
 
+    <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 12h18M3 6h18M3 18h18"/>
+      </svg>
+    </button>
+
+<!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="{% url 'landing' %}" data-en="Home" data-tl="Home">Home</a>
+      <a href="{% url 'aboutus' %}" data-en="About Us" data-tl="Tungkol Sa Amin">About Us</a>
+      <a href="{% url 'filecomplaint' %}" data-en="File a Complaint" data-tl="Maghain ng Reklamo">File a Complaint</a>
+      <a href="{% url 'tracksub' %}" data-en="Track Submissions" data-tl="Subaybayan ang Isinumite">Track Submissions</a>
+      <a href="{% url 'documents' %}" data-en="Documents/Requirements" data-tl="Dokumento/Requirements">Documents/Requirements</a>
+      <a href="{% url 'faqs' %}" data-en="FAQs" data-tl="FAQs">FAQs</a>
+      <a href="{% url 'contactus' %}" data-en="Contact Us" data-tl="Makipag-ugnayan">Contact Us</a>
+    </div>
+
     <ul class="nav-links">
       <li><a href="{% url 'landing' %}" {% if active_page == 'home' %}class="active"{% endif %} data-en="Home" data-tl="Home">Home</a></li>
       <li><a href="{% url 'aboutus' %}" {% if active_page == 'aboutus' %}class="active"{% endif %} data-en="About Us" data-tl="Tungkol Sa Amin">About Us</a></li>
@@ -248,6 +265,11 @@
         });
       }
     });
+
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
   </script>
 
 </body>

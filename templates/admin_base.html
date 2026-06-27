@@ -3,8 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{% block admin_title %}KaugnayPH Admin{% endblock %}</title>
 
@@ -126,9 +125,15 @@ window.addEventListener("click", function(e) {
 
     </aside>
 
+    <div class="sidebar-overlay" onclick="document.querySelector('.admin-sidebar').classList.remove('active')"></div>
+
     <main class="admin-main">
 
         <header class="admin-topbar">
+            
+            <button class="sidebar-toggle-btn" onclick="document.querySelector('.admin-sidebar').classList.toggle('active')">
+                ☰
+            </button>
 
             <div></div>
 
@@ -137,14 +142,20 @@ window.addEventListener("click", function(e) {
                 <button class="profile-toggle"
                         type="button"
                         onclick="toggleDropdown(event)">                  
-                            <span class="profile-name">
+                    <span class="profile-name">
                         Admin<br>
                         {{ request.session.fullname|default:"Jane D." }}
                     </span>
 
                     <span class="dropdown-arrow">⌄</span>
 
-                    <span class="profile-avatar"></span>
+                    {% if request.session.avatar_path %}
+                        <img src="{% static request.session.avatar_path %}"
+                            alt="Profile Avatar"
+                            class="profile-avatar-img">
+                    {% else %}
+                        <span class="profile-avatar"></span>
+                    {% endif %}
                 </button>
 
                 <div class="profile-dropdown"

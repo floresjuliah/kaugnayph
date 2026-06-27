@@ -1979,6 +1979,16 @@ EDIT RESIDENT PROFILE PAGE
     overflow: hidden;
 }
 
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+    min-width: 700px;
+}
+
 .case-page table.case-table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -2125,9 +2135,7 @@ EDIT RESIDENT PROFILE PAGE
     padding-left:30px;
 }
 
-/* =========================
-   DOCUMENT REQUESTS PAGE
-========================= */
+/*DOCUMENT REQUESTS PAGE*/
 
 .doc-page {
     padding: 10px 0;
@@ -2419,9 +2427,7 @@ EDIT RESIDENT PROFILE PAGE
 
 
 
-/* =========================
-   DOCUMENT REQUEST DETAIL
-========================= */
+/* DOCUMENT REQUEST DETAIL */
 
 .doc-detail-page {
     padding: 6px 0;
@@ -2942,9 +2948,7 @@ EDIT RESIDENT PROFILE PAGE
     border-color:#2563eb;
 }
 
-/* =========================
-   FAQ FORM PAGE
-========================= */
+/* FAQ FORM PAGE */
 
 .faq-form-page {
     width: 100%;
@@ -3417,9 +3421,7 @@ EDIT RESIDENT PROFILE PAGE
     color: #ea580c;
 }
 
-/* =========================
-   ADMINS PAGE
-========================= */
+/*ADMINS PAGE*/
 
 .admins-page {
     width: 100%;
@@ -3970,4 +3972,27 @@ EDIT RESIDENT PROFILE PAGE
 
 .faq-right-stack .resident-stats {
     margin: 0;
+}
+
+.announcement-right-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.announcement-right-stack .resident-stats {
+    margin: 0;
+}
+.compact-filter-row {
+    justify-content: flex-start;
+}
+
+.compact-filter-row .case-search-box {
+    flex: 0 0 420px;
+}
+
+.compact-filter-row .case-filter-select,
+.compact-filter-row .case-filter-date {
+    flex: 0 0 auto;
 }

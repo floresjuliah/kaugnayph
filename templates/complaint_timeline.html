@@ -69,11 +69,11 @@
         <tbody>
             {% for hearing in all_hearings %}
             <tr>
-                <td>{{ hearing.hearing_level.level_type }}</td>
-                <td>{{ hearing.hearing_date|date:"M d, Y g:i A" }}</td>
-                <td>{{ hearing.status.statustype }}</td>
-                <td>{{ hearing.outcome|default:"—" }}</td>
-                <td>{{ hearing.remarks|default:"—" }}</td>
+                <td data-label="Level">{{ hearing.hearing_level.level_type }}</td>
+                <td data-label="Date">{{ hearing.hearing_date|date:"M d, Y g:i A" }}</td>
+                <td data-label="Status">{{ hearing.status.statustype }}</td>
+                <td data-label="Outcome">{{ hearing.outcome|default:"—" }}</td>
+                <td data-label="Remarks">{{ hearing.remarks|default:"—" }}</td>
             </tr>
             {% endfor %}
         </tbody>

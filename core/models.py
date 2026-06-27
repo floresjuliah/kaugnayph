@@ -297,7 +297,6 @@ class ComplaintType(models.Model):
 
 class Complaints(models.Model):
     STATUS_CHOICES = [
-        ("Submitted", "Submitted"),
         ("For Chairman Review", "For Chairman Review"),
         ("Referred to Proper Barangay", "Referred to Proper Barangay"),
         ("Ongoing", "Ongoing"),
@@ -335,7 +334,7 @@ class Complaints(models.Model):
     description = models.TextField(db_column='Description', blank=True, null=True)
     file = models.BinaryField(db_column='File', blank=True, null=True)
     file_path = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Submitted", blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="For Chairman Review", blank=True, null=True)
 
     incident_date = models.DateField(blank=True, null=True)
 

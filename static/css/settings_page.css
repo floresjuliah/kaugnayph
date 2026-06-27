@@ -344,3 +344,107 @@
 #changePasswordModal .settings-modal {
     max-width: 500px;
 }
+
+/* AVATAR MODAL */
+
+.avatar-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 999999;
+}
+
+.avatar-modal-overlay.active {
+    display: flex;
+}
+
+.avatar-modal {
+    width: 100%;
+    max-width: 560px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+.avatar-modal h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.avatar-modal__sub {
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 22px;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.avatar-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.avatar-option input {
+    display: none;
+}
+
+.avatar-option img,
+.avatar-none-icon {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid transparent;
+    background: #dbeafe;
+    transition: 0.2s ease;
+}
+
+.avatar-option input:checked + img,
+.avatar-option input:checked + .avatar-none-icon {
+    border-color: #0066ff;
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.14);
+}
+
+.avatar-none-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0066ff;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.avatar-none-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .avatar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .avatar-modal {
+        max-width: 92vw;
+    }
+}
+
+.settings-action-row.no-button {
+    justify-content: flex-start;
+}

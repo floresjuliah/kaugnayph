@@ -226,7 +226,7 @@ def filecomplaint(request):
             description=description,
             incident_date=incident_date,
             file_path=file_path,
-            status="Submitted",
+            status="For Chairman Review",
             is_flagged=is_flagged,
             flagged_reason=flag_reason,
         )
@@ -239,8 +239,8 @@ def filecomplaint(request):
         ComplaintUpdates.objects.create(
             complaint=complaint,
             updated_by=current_user,
-            status="Submitted",
-            remarks="Complaint submitted by resident." if not is_flagged
+            status="For Chairman Review",
+            remarks="Complaint submitted and forwarded for Chairman review." if not is_flagged
                     else f"Complaint submitted by resident. Flagged for review: {flag_reason}",
             updated_at=timezone.now(),
         )
@@ -1270,14 +1270,17 @@ def admin_dashboard_view(request):
 
     #CASE ANALYTICS (in pie chart data)
     cases_pending = Complaints.objects.filter(
-        status__in=["Submitted", "For Chairman Review"],
+        status="For Chairman Review",
         dateadded__gte=start_date
     ).count()
     cases_ongoing = Complaints.objects.exclude(
         status__in=[
-            "Submitted", "For Chairman Review",
-            "Resolved", "Dismissed", "Settled",
-            "Certificate Issued", "Resolved Outside Barangay",
+            "For Chairman Review",
+            "Resolved",
+            "Dismissed",
+            "Settled",
+            "Certificate Issued",
+            "Resolved Outside Barangay",
             "Settled in Court",
         ]
     ).count()
@@ -1553,7 +1556,11 @@ def admin_register(request):
 
 #ADMIN DETAILS VIEW
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_detail_view(request, user_id):
     try:
         admin_user = Users.objects.select_related(
@@ -1575,7 +1582,11 @@ def admin_detail_view(request, user_id):
 
 # ADMIN DEACTIVATE ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_deactivate_view(request, user_id):
     current_admin = get_current_user(request)
 
@@ -1644,7 +1655,11 @@ def admin_deactivate_view(request, user_id):
 
 # ADMIN EDIT ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users",
+    "edit_users",
+    "deactivate_users"
+)
 def admin_edit_view(request, user_id):
     try:
         admin_user = Users.objects.select_related(
@@ -1750,7 +1765,11 @@ def admin_edit_view(request, user_id):
 
 #ADMIN REACTIVATE ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_reactivate_view(request, user_id):
     current_admin = get_current_user(request)
 
@@ -2159,6 +2178,7 @@ def serve_verification_file(request, rv_id, file_type):
 
 # Admin Announcement List
 @admin_login_required
+@permission_required("view_announcements")
 def admin_announcements_view(request):
     from django.core.paginator import Paginator
 
@@ -2512,6 +2532,10 @@ def admin_feedback_detail_view(request, announcement_id):
 
 # ADMIN CASE RECORDS
 @admin_login_required
+@permission_required(
+    "view_complaints", 
+    "manage_complaints"
+)
 def case_records_view(request):
     from django.core.paginator import Paginator
     import re
@@ -2568,7 +2592,7 @@ def case_records_view(request):
     case_records = []
 
     for complaint in complaints:
-        status = complaint.status or "Submitted"
+        status = complaint.status or "For Chairman Review"
 
         case_records.append({
             "complaint_id": complaint.complaintsid,
@@ -2907,6 +2931,10 @@ def complaint_timeline_view(request, complaint_id):
 
 # ADMIN: DOCUMENT REQUESTS LIST
 @admin_login_required
+@permission_required(
+    "view_document_requests",
+    "process_document_requests"
+)
 def admin_document_requests_view(request):
     from django.core.paginator import Paginator
 
@@ -2981,6 +3009,10 @@ def admin_document_requests_view(request):
 
 # ADMIN: DOCUMENT REQUEST DETAILS
 @admin_login_required
+@permission_required(
+    "view_document_requests",
+    "process_document_requests"
+)
 def admin_document_request_detail_view(request, drid):
     try:
         doc_request = DocumentRequests.objects.select_related(
@@ -3101,6 +3133,10 @@ def admin_document_request_detail_view(request, drid):
             messages.success(request, "Document request marked as Processing.")
 
         elif action == "reject":
+            if not remarks:
+                messages.error(request, "Rejection remarks are required before rejecting a document request.")
+                return redirect("admin_document_request_detail", drid=doc_request.drid)
+
             old_status = doc_request.status
             old_remarks = doc_request.admin_remarks
 
@@ -3152,6 +3188,10 @@ def admin_document_request_detail_view(request, drid):
 #COMPLAINT UPDATES 
 # ADMIN CASE DETAIL
 @admin_login_required
+@permission_required(
+    "view_complaints", 
+    "manage_complaints"
+)
 def case_detail_view(request, complaint_id):
     """
     Full complaint lifecycle management per the barangay complaint process:
@@ -3358,7 +3398,7 @@ def case_detail_view(request, complaint_id):
             hearing_date_raw = request.POST.get("hearing_date", "").strip()
 
             # The lookup table stores full descriptive labels rather than
-            # plain "Hearing N", so map the number to the exact level_type
+            # plain "Hearing N", map the number to the exact level_type
             # text instead of building the string from hearing_number.
             HEARING_LEVEL_BY_NUMBER = {
                 "1": "1st Hearing - Lupong Tagapamayapa (Chairman Present)",
@@ -3914,6 +3954,10 @@ def admin_inquiry_detail_view(request, cuid):
 
 #admin add inquiry to faq
 @admin_login_required
+@permission_required(
+    "view_inquiries",
+    "reply_inquiries"    
+)
 def add_inquiry_to_faq(request, inquiry_id):
     inquiry = get_object_or_404(Inquiry, cuid=inquiry_id)
 
@@ -3934,6 +3978,7 @@ def add_inquiry_to_faq(request, inquiry_id):
     return redirect(url)
 
 @admin_login_required
+@permission_required("view_audit_logs")
 def audit_logs_view(request):
     from django.core.paginator import Paginator
 
@@ -4223,6 +4268,7 @@ def admins_list_view(request):
 
 
 @admin_login_required
+@permission_required("view_sms_outbox")
 def sms_outbox_view(request):
     sms_list = SMSOutbox.objects.select_related('sent_by').order_by('-sent_at')
 
@@ -4236,7 +4282,7 @@ def sms_outbox_view(request):
         {"page_obj": page_obj}
     )
 
-#ADMIN SETTINGS PAGE
+# ADMIN SETTINGS PAGE
 @admin_login_required
 def settings_page(request):
     current_user = get_current_user(request)
@@ -4247,9 +4293,18 @@ def settings_page(request):
         action__in=["Admin Login", "Failed Admin Login"]
     ).order_by("-created_at")[:10]
 
+    last_password_change = AuditLogs.objects.filter(
+        user=current_user,
+        action="Changed Password"
+    ).order_by("-created_at").first()
+
     return render(request, "adminpanel/settings_page.html", {
         "current_user": current_user,
         "recent_login_activity": recent_login_activity,
+        "last_password_change": last_password_change,
+        "avatars": AvatarOptions.objects.filter(
+            is_active=True
+        ).order_by("avatarid"),
     })
 
 #ADMIN CHANGE PASSWORD
@@ -4298,4 +4353,252 @@ def admin_change_password(request):
     )
 
     messages.success(request, "Password changed successfully.")
+    return redirect("settings_page")
+
+#ADMIN UPDATE CONTACT START
+@admin_login_required
+def admin_update_contact_start(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    password = request.POST.get("password", "").strip()
+    new_contact = request.POST.get("new_contact", "").strip()
+
+    if not check_password(password, current_user.password):
+        messages.error(request, "Password is incorrect.")
+        return redirect("settings_page")
+
+    if not new_contact.isdigit() or len(new_contact) != 11 or not new_contact.startswith("09"):
+        messages.error(request, "Please enter a valid 11-digit contact number starting with 09.")
+        return redirect("settings_page")
+
+    if new_contact == current_user.contactno:
+        messages.error(request, "New contact number must be different from your current contact number.")
+        return redirect("settings_page")
+
+    request.session["pending_new_contact"] = new_contact
+
+    otp, cooldown = generate_otp(current_user, purpose="change_contact")
+
+    if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
+        messages.error(request, f"Please wait {mins}m {secs}s before requesting another OTP.")
+        return redirect("settings_page")
+
+    sms_sent = send_sms(
+        new_contact,
+        f"KaugnayPH OTP: {otp.code}. Use this to verify your new contact number. Valid for 5 minutes.",
+        sent_by=current_user
+    )
+
+    if not sms_sent:
+        messages.error(request, "Failed to send OTP to the new contact number. Please try again.")
+        return redirect("settings_page")
+
+    request.session.pop("show_email_otp_modal", None)
+    request.session["show_contact_otp_modal"] = True
+    messages.success(request, "OTP has been sent to your new contact number.")
+    return redirect("settings_page")
+
+#ADMIN UPDATE CONTACT VERIFY
+@admin_login_required
+def admin_update_contact_verify(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    pending_new_contact = request.session.get("pending_new_contact")
+    otp_code = request.POST.get("otp_code", "").strip()
+
+    if not pending_new_contact:
+        messages.error(request, "No pending contact number update found.")
+        return redirect("settings_page")
+
+    if not otp_code or len(otp_code) != 6 or not otp_code.isdigit():
+        request.session["show_contact_otp_modal"] = True
+        messages.error(request, "Please enter a valid 6-digit OTP.")
+        return redirect("settings_page")
+
+    result = verify_otp(current_user, otp_code, purpose="change_contact")
+
+    if result == "ok":
+        old_contact = current_user.contactno
+
+        current_user.contactno = pending_new_contact
+        current_user.save()
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Updated Contact Number",
+            module_name="Settings",
+            table_name="Users",
+            record_id=current_user.userid,
+            old_value=old_contact,
+            new_value=pending_new_contact,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            created_at=timezone.now(),
+        )
+
+        request.session.pop("pending_new_contact", None)
+        request.session.pop("show_contact_otp_modal", None)
+
+        messages.success(request, "Contact number updated successfully.")
+        return redirect("settings_page")
+
+    request.session["show_contact_otp_modal"] = True
+
+    if result.startswith("locked:"):
+        minutes = result.split(":")[1]
+        messages.error(request, f"Too many incorrect attempts. Please wait {minutes} minute(s).")
+    elif result.startswith("wrong:"):
+        remaining = result.split(":")[1]
+        messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")
+    else:
+        messages.error(request, "OTP has expired. Please request a new one.")
+
+    return redirect("settings_page")
+
+#ADMIN UPDATE EMAIL START
+@admin_login_required
+def admin_update_email_start(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    password = request.POST.get("password", "").strip()
+    new_email = request.POST.get("new_email", "").strip().lower()
+
+    if not check_password(password, current_user.password):
+        messages.error(request, "Password is incorrect.")
+        return redirect("settings_page")
+
+    if not new_email:
+        messages.error(request, "Please enter an email address.")
+        return redirect("settings_page")
+
+    if "@" not in new_email or "." not in new_email:
+        messages.error(request, "Please enter a valid email address.")
+        return redirect("settings_page")
+
+    if new_email == current_user.email:
+        messages.error(request, "New email address must be different from your current email address.")
+        return redirect("settings_page")
+
+    if Users.objects.filter(email=new_email).exclude(userid=current_user.userid).exists():
+        messages.error(request, "This email address is already used by another account.")
+        return redirect("settings_page")
+
+    request.session["pending_new_email"] = new_email
+
+    otp, cooldown = generate_otp(current_user, purpose="change_email")
+
+    if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
+        messages.error(request, f"Please wait {mins}m {secs}s before requesting another OTP.")
+        return redirect("settings_page")
+
+    send_email_otp(new_email, otp.code)
+
+    request.session.pop("show_contact_otp_modal", None)
+    request.session["show_email_otp_modal"] = True
+
+    messages.success(request, "OTP has been sent to your new email address.")
+    return redirect("settings_page")
+
+#ADMIN UPDATE EMAIL VERIFY
+@admin_login_required
+def admin_update_email_verify(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    pending_new_email = request.session.get("pending_new_email")
+    otp_code = request.POST.get("otp_code", "").strip()
+
+    if not pending_new_email:
+        messages.error(request, "No pending email update found.")
+        return redirect("settings_page")
+
+    if not otp_code or len(otp_code) != 6 or not otp_code.isdigit():
+        request.session["show_email_otp_modal"] = True
+        messages.error(request, "Please enter a valid 6-digit OTP.")
+        return redirect("settings_page")
+
+    result = verify_otp(current_user, otp_code, purpose="change_email")
+
+    if result == "ok":
+        old_email = current_user.email
+
+        current_user.email = pending_new_email
+        current_user.save()
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Updated Email Address",
+            module_name="Settings",
+            table_name="Users",
+            record_id=current_user.userid,
+            old_value=old_email,
+            new_value=pending_new_email,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            created_at=timezone.now(),
+        )
+
+        request.session.pop("pending_new_email", None)
+        request.session.pop("show_email_otp_modal", None)
+
+        messages.success(request, "Email address updated successfully.")
+        return redirect("settings_page")
+
+    request.session["show_email_otp_modal"] = True
+
+    if result.startswith("locked:"):
+        minutes = result.split(":")[1]
+        messages.error(request, f"Too many incorrect attempts. Please wait {minutes} minute(s).")
+    elif result.startswith("wrong:"):
+        remaining = result.split(":")[1]
+        messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")
+    else:
+        messages.error(request, "OTP has expired. Please request a new one.")
+
+    return redirect("settings_page")
+
+#ADMIN CHANGE AVATAR
+@admin_login_required
+def admin_change_avatar(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+    avatar_id = request.POST.get("avatar_id", "").strip()
+
+    if avatar_id:
+        try:
+            current_user.avatar = AvatarOptions.objects.get(
+                avatarid=avatar_id,
+                is_active=True
+            )
+        except AvatarOptions.DoesNotExist:
+            messages.error(request, "Invalid avatar selected.")
+            return redirect("settings_page")
+    else:
+        current_user.avatar = None
+
+    current_user.save()
+
+    request.session["avatar_path"] = (
+        current_user.avatar.image_path
+        if current_user.avatar else None
+    )
+
+    messages.success(request, "Avatar updated successfully.")
     return redirect("settings_page")

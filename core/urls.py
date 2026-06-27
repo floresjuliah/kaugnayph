@@ -98,4 +98,9 @@ urlpatterns = [
     #ADMIN: SETTINGS
     path("admin/settings/", views.settings_page, name="settings_page"),
     path("admin/settings/change-password/", views.admin_change_password, name="admin_change_password"),
+    path("admin/settings/update-contact/start/", views.admin_update_contact_start, name="admin_update_contact_start"),
+    path("admin/settings/update-contact/verify/", views.admin_update_contact_verify, name="admin_update_contact_verify"),
+    path("admin/settings/update-email/start/", views.admin_update_email_start, name="admin_update_email_start"),
+    path("admin/settings/update-email/verify/", views.admin_update_email_verify, name="admin_update_email_verify"),
+    path("admin/settings/avatar/", views.admin_change_avatar, name="admin_change_avatar"),
 ]
