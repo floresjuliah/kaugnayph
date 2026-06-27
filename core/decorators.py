@@ -1,7 +1,7 @@
 from functools import wraps
 #from pyexpat.errors import messages
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden
 from .auth_utils import get_current_user
 
@@ -107,21 +107,43 @@ def role_required(*role_names):
         return wrapper
     return decorator
 
-def permission_required(permission_name):
+def permission_required(*permission_names):
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             from .models import RolePermissions
+
             user = get_current_user(request)
-            if not user or not user.role:
-                return HttpResponseForbidden('Access denied.')
-            has_perm = RolePermissions.objects.filter(
+
+            if not user:
+                return redirect("admin_login")
+
+            if not user.role:
+                return render(
+                    request,
+                    "adminpanel/no_permission.html",
+                    status=403
+                )
+
+            #Chairman HAS access to everything
+            if user.role.rolename == "Barangay Chairman":
+                return view_func(request, *args, **kwargs)
+
+            #User has ANY of the listed permissions
+            has_permission = RolePermissions.objects.filter(
                 role=user.role,
-                permission__name=permission_name
+                permission__name__in=permission_names
             ).exists()
-            if not has_perm:
-                return HttpResponseForbidden('No permission.')
+
+            if not has_permission:
+                return render(
+                    request,
+                    "adminpanel/no_permission.html",
+                    status=403
+                )
+
             return view_func(request, *args, **kwargs)
+
         return wrapper
     return decorator
 
