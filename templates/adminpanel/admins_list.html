@@ -5,126 +5,162 @@
 
 {% block admin_content %}
 
-<link rel="stylesheet" href="{% static 'css/admin_case_records.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_standard.css' %}">
 
-<div class="admins-page">
+<div class="admin-page">
 
-    <div class="resident-header-row">
-        <div class="admin-title-stack">
-            <h1 class="admins-title">Admins</h1>
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Admins</h1>
+    </div>
 
-            <a href="/admin/register/" class="add-admin-btn">
+    <form method="GET" class="admin-toolbar">
+        <div class="admin-toolbar-left">
+
+            <div class="admin-search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query }}"
+                    placeholder="Search admin, username, email, or position"
+                >
+            </div>
+
+            <select name="position" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if position_filter == "All" %}selected{% endif %}>All Positions</option>
+
+                {% for position in positions %}
+                    <option value="{{ position }}" {% if position_filter == position %}selected{% endif %}>
+                        {{ position }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="status" class="admin-filter" onchange="this.form.submit()">
+                <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
+                <option value="Active" {% if status_filter == "Active" %}selected{% endif %}>Active</option>
+                <option value="Inactive" {% if status_filter == "Inactive" %}selected{% endif %}>Inactive</option>
+            </select>
+
+        </div>
+
+        <div class="admin-toolbar-right">
+            <a href="/admin/register/" class="admin-primary-btn">
                 + Add Admin
             </a>
         </div>
+    </form>
 
-        <div class="resident-stats">
-            <div class="resident-stat-item">
+    <div class="admin-stats">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon blue">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Total Admins</p>
                 <h3>{{ total_admins|default:"0" }}</h3>
             </div>
+        </div>
 
-            <div class="resident-stat-item">
-                <p>Active Admins</p>
-                <h3 class="stat-success">{{ active_admins|default:"0" }}</h3>
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon green">
+                <i class="fa-solid fa-user-check"></i>
             </div>
+            <div class="admin-stat-info">
+                <p>Active Admins</p>
+                <h3>{{ active_admins|default:"0" }}</h3>
+            </div>
+        </div>
 
-            <div class="resident-stat-item">
+        <div class="admin-stat-item">
+            <div class="admin-stat-icon red">
+                <i class="fa-solid fa-user-slash"></i>
+            </div>
+            <div class="admin-stat-info">
                 <p>Inactive Admins</p>
-                <h3 class="stat-warning">{{ inactive_admins|default:"0" }}</h3>
+                <h3>{{ inactive_admins|default:"0" }}</h3>
             </div>
         </div>
     </div>
 
-    <form method="GET" class="case-filter-row">
-        <div class="case-search-box">
-            <span>⌕</span>
-            <input
-                type="text"
-                name="search"
-                value="{{ search_query }}"
-                placeholder="Search admin, username, email, or position"
-            >
-        </div>
+    <div class="admin-table-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Official</th>
+                        <th>Position</th>
+                        <th>Status</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
 
-        <select name="position" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if position_filter == "All" %}selected{% endif %}>All Positions</option>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin.firstname }} {{ admin.lastname }}</td>
 
-            {% for position in positions %}
-                <option value="{{ position }}" {% if position_filter == position %}selected{% endif %}>
-                    {{ position }}
-                </option>
-            {% endfor %}
-        </select>
+                        <td>{{ admin.position.name|default:"—" }}</td>
 
-        <select name="status" class="case-filter-select" onchange="this.form.submit()">
-            <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Status</option>
-            <option value="Active" {% if status_filter == "Active" %}selected{% endif %}>Active</option>
-            <option value="Inactive" {% if status_filter == "Inactive" %}selected{% endif %}>Inactive</option>
-        </select>
-
-    </form>
-
-    <div class="admins-card">
-        <div class="table-scroll">
-        <table class="admins-table">
-            <thead>
-                <tr>
-                    <th>OFFICIAL</th>
-                    <th>POSITION</th>
-                    <th>STATUS</th>
-                    <th class="actions-col">ACTIONS</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for admin in admins %}
-                <tr>
-                    <td>{{ admin.firstname }} {{ admin.lastname }}</td>
-
-                    <td>{{ admin.position.name|default:"—" }}</td>
-
-                    <td>
-                        {% if admin.is_active %}
-                            <span class="status-badge active">Active</span>
-                        {% else %}
-                            <span class="status-badge inactive">Inactive</span>
-                        {% endif %}
-                    </td>
-
-                    <td class="actions-col">
-                        <div class="admin-actions">
-                            <a href="{% url 'admin_detail' admin.userid %}" class="admin-action-btn" title="View">👁️</a>
-
-                            <a href="{% url 'admin_edit' admin.userid %}" class="admin-action-btn" title="Edit">✎</a>
-
+                        <td>
                             {% if admin.is_active %}
-                                <a href="{% url 'admin_deactivate' admin.userid %}" class="admin-action-btn delete" title="Deactivate">🗑️</a>
+                                <span class="admin-badge green">Active</span>
                             {% else %}
-                                <a href="{% url 'admin_reactivate' admin.userid %}" class="admin-action-btn" title="Reactivate">🔄</a>
+                                <span class="admin-badge red">Inactive</span>
                             {% endif %}
-                        </div>
-                    </td>
-                </tr>
+                        </td>
 
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="no-admins">
-                        No admins found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        <td class="actions-column">
+                            <div class="admin-actions">
+
+                                <a href="{% url 'admin_detail' admin.userid %}"
+                                   class="admin-action-btn"
+                                   title="View">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+
+                                <a href="{% url 'admin_edit' admin.userid %}"
+                                   class="admin-action-btn"
+                                   title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+
+                                {% if admin.is_active %}
+                                    <a href="{% url 'admin_deactivate' admin.userid %}"
+                                       class="admin-action-btn danger"
+                                       title="Deactivate">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'admin_reactivate' admin.userid %}"
+                                       class="admin-action-btn"
+                                       title="Reactivate">
+                                        <i class="fa-solid fa-rotate-right"></i>
+                                    </a>
+                                {% endif %}
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="empty-row">
+                            No admins found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
-        <div class="admins-pagination">
+        <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
                 of {{ page_obj.paginator.count }} admins
             </p>
 
-            <div class="pagination-buttons">
+            <div class="admin-pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if position_filter != 'All' %}&position={{ position_filter|urlencode }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
                         Previous
@@ -144,11 +180,11 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="next-page" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if position_filter != 'All' %}&position={{ position_filter|urlencode }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if position_filter != 'All' %}&position={{ position_filter|urlencode }}{% endif %}{% if status_filter != 'All' %}&status={{ status_filter }}{% endif %}">
                         Next
                     </a>
                 {% else %}
-                    <span class="disabled next-page">Next</span>
+                    <span class="disabled">Next</span>
                 {% endif %}
             </div>
         </div>
