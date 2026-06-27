@@ -1556,7 +1556,11 @@ def admin_register(request):
 
 #ADMIN DETAILS VIEW
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_detail_view(request, user_id):
     try:
         admin_user = Users.objects.select_related(
@@ -1578,7 +1582,11 @@ def admin_detail_view(request, user_id):
 
 # ADMIN DEACTIVATE ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_deactivate_view(request, user_id):
     current_admin = get_current_user(request)
 
@@ -1647,7 +1655,11 @@ def admin_deactivate_view(request, user_id):
 
 # ADMIN EDIT ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users",
+    "edit_users",
+    "deactivate_users"
+)
 def admin_edit_view(request, user_id):
     try:
         admin_user = Users.objects.select_related(
@@ -1753,7 +1765,11 @@ def admin_edit_view(request, user_id):
 
 #ADMIN REACTIVATE ADMIN
 @admin_login_required
-@permission_required('create_users')
+@permission_required(
+    "create_users", 
+    "edit_users",
+    "deactivate_users"
+)
 def admin_reactivate_view(request, user_id):
     current_admin = get_current_user(request)
 
@@ -2162,6 +2178,7 @@ def serve_verification_file(request, rv_id, file_type):
 
 # Admin Announcement List
 @admin_login_required
+@permission_required("view_announcements")
 def admin_announcements_view(request):
     from django.core.paginator import Paginator
 
@@ -2515,6 +2532,10 @@ def admin_feedback_detail_view(request, announcement_id):
 
 # ADMIN CASE RECORDS
 @admin_login_required
+@permission_required(
+    "view_complaints", 
+    "manage_complaints"
+)
 def case_records_view(request):
     from django.core.paginator import Paginator
     import re
@@ -2910,6 +2931,10 @@ def complaint_timeline_view(request, complaint_id):
 
 # ADMIN: DOCUMENT REQUESTS LIST
 @admin_login_required
+@permission_required(
+    "view_document_requests",
+    "process_document_requests"
+)
 def admin_document_requests_view(request):
     from django.core.paginator import Paginator
 
@@ -2984,6 +3009,10 @@ def admin_document_requests_view(request):
 
 # ADMIN: DOCUMENT REQUEST DETAILS
 @admin_login_required
+@permission_required(
+    "view_document_requests",
+    "process_document_requests"
+)
 def admin_document_request_detail_view(request, drid):
     try:
         doc_request = DocumentRequests.objects.select_related(
@@ -3159,6 +3188,10 @@ def admin_document_request_detail_view(request, drid):
 #COMPLAINT UPDATES 
 # ADMIN CASE DETAIL
 @admin_login_required
+@permission_required(
+    "view_complaints", 
+    "manage_complaints"
+)
 def case_detail_view(request, complaint_id):
     """
     Full complaint lifecycle management per the barangay complaint process:
@@ -3921,6 +3954,10 @@ def admin_inquiry_detail_view(request, cuid):
 
 #admin add inquiry to faq
 @admin_login_required
+@permission_required(
+    "view_inquiries",
+    "reply_inquiries"    
+)
 def add_inquiry_to_faq(request, inquiry_id):
     inquiry = get_object_or_404(Inquiry, cuid=inquiry_id)
 
@@ -3941,6 +3978,7 @@ def add_inquiry_to_faq(request, inquiry_id):
     return redirect(url)
 
 @admin_login_required
+@permission_required("view_audit_logs")
 def audit_logs_view(request):
     from django.core.paginator import Paginator
 
@@ -4230,6 +4268,7 @@ def admins_list_view(request):
 
 
 @admin_login_required
+@permission_required("view_sms_outbox")
 def sms_outbox_view(request):
     sms_list = SMSOutbox.objects.select_related('sent_by').order_by('-sent_at')
 
