@@ -12,7 +12,14 @@
       </a>
     </div>
 
-  <div class="ann-card" style="cursor: default;">
+  <div class="ann-card" 
+     style="cursor: default;"
+     data-title="{{ announcement.title }}"
+     data-content="{{ announcement.content }}"
+     data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Admin{% endif %}"
+     data-date="{{ announcement.created_at|date:'m/d/Y' }}"
+     data-catname="{{ announcement.category.name|default:'General Updates' }}"
+     data-image="{% if announcement.file_path %}/media/{{ announcement.file_path }}{% endif %}">
 
     <!-- Header -->
     <div class="ann-card-top">
@@ -282,14 +289,12 @@
   function saveAsPDF(btn) {
     const card = btn.closest('.ann-card');
 
-    const title = card.dataset.title || card.querySelector('.ann-title')?.textContent.trim() || 'Announcement';
-    const content = card.dataset.content || card.querySelector('.ann-excerpt')?.textContent.trim() || '';
+    const title = card.dataset.title || 'Announcement';
+    const content = card.dataset.content || '';
     const author = card.dataset.author || 'Barangay Admin';
-    const time = card.dataset.time || '';
+    const date = card.dataset.date || '';
     const catname = card.dataset.catname || 'General Updates';
-
-    const lang = getCurrentLanguage();
-    const agoText = lang === "tl" ? "nakalipas" : "ago";
+    const imageSrc = card.dataset.image || '';
 
     const html = `
       <html>
@@ -301,13 +306,15 @@
           h1 { font-size: 22px; margin-bottom: 8px; }
           .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
           p { font-size: 15px; line-height: 1.7; }
+          img { max-width: 100%; border-radius: 10px; margin-top: 20px; }
         </style>
       </head>
       <body>
         <div class="badge">${catname}</div>
         <h1>${title}</h1>
-        <div class="meta"><strong>${author}</strong> · ${time} ${agoText}</div>
+        <div class="meta"><strong>${author}</strong> · ${date}</div>
         <p>${content}</p>
+        ${imageSrc ? `<img src="${imageSrc}" alt="Announcement image">` : ''}
       </body>
       </html>
     `;
@@ -318,7 +325,7 @@
     win.focus();
     win.print();
     win.close();
-  }
+}
   
 </script>
 
