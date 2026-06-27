@@ -146,7 +146,7 @@ href="{% static 'css/admin_case_detail.css' %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="schedule_mediation">
             <label>Schedule Mediation:</label>
-            <input type="datetime-local" name="hearing_date" required>
+            <input type="datetime-local" name="hearing_date" id="mediation_date" required>
             <select name="lupon_user_id">
                 <option value="">-- Assign Lupon Member (optional) --</option>
                 {% for admin in admin_users %}
@@ -182,7 +182,7 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="2" {% if complaint.status == "For 2nd Hearing" %}selected{% endif %}>Hearing 2</option>
                 <option value="3" {% if complaint.status == "For 3rd Hearing" %}selected{% endif %}>Hearing 3</option>
             </select>
-            <input type="datetime-local" name="hearing_date" required>
+            <input type="datetime-local" name="hearing_date" id="hearing_date" required>
             <button type="submit" class="btn-primary">Schedule Hearing</button>
         </form>
         {% else %}
@@ -235,7 +235,7 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="Resolved Outside Barangay">Resolved Outside Barangay</option>
                 <option value="Settled in Court">Settled in Court</option>
             </select>
-            <input type="date" name="external_date">
+            <input type="date" name="external_date" id="external_date">
             <input type="text" name="external_notes" placeholder="Notes">
             <button type="submit" class="btn-primary">Record Resolution</button>
         </form>
@@ -259,7 +259,11 @@ href="{% static 'css/admin_case_detail.css' %}">
                     <option value="{{ hearing_status.statusid }}" {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}>{{ hearing_status.statustype }}</option>
                 {% endfor %}
             </select>
-            <input type="datetime-local" name="hearing_date" value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
+            <input
+                type="datetime-local"
+                id="advanced_hearing_date"
+                name="hearing_date"
+                value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
             <button type="submit" class="btn-outline">Update Hearing Details</button>
         </form>
     </details>
