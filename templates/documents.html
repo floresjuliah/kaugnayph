@@ -223,7 +223,7 @@
         const label = document.createElement('label');
         label.textContent = field.field_label;
 
-        if (field.is_required) {
+        if (field.is_required && !field.field_label.toLowerCase().includes('middle name')) {
           const requiredMark = document.createElement('span');
           requiredMark.textContent = ' *';
           requiredMark.style.color = '#dc2626';
@@ -256,14 +256,26 @@
           input.type = field.field_type || 'text';
 
           if (field.field_type === 'file') {
-            input.accept = '.jpg,.jpeg,.png,.pdf';
+            input.accept = '.jpg,.jpeg,.png';
+
+            const note = document.createElement('small');
+            note.textContent = 'Only JPG or PNG files are accepted.';
+            note.style.color = '#888';
+            note.style.fontSize = '0.78rem';
+            note.style.display = 'block';
+            note.style.marginTop = '4px';
+
+            group.appendChild(input);
+            group.appendChild(note);
+            body.appendChild(group);
+            return;
           }
         }
 
         input.name = `field_${field.dfid}`;
         input.id = `field_${field.dfid}`;
 
-        if (field.is_required) {
+        if (field.is_required && !field.field_label.toLowerCase().includes('middle name')) {
           input.required = true;
         }
 
@@ -349,7 +361,23 @@
     document.body.style.overflow = '';
   }
 
-  document.getElementById('document-request-form').addEventListener('submit', function () {
+  document.getElementById('document-request-form').addEventListener('submit', function(e) {
+    // File validation FIRST
+    const fileInputs = this.querySelectorAll('input[type="file"]');
+    for (const input of fileInputs) {
+      if (input.files.length > 0) {
+        const file = input.files[0];
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowed.includes(file.type)) {
+          e.preventDefault();
+          e.stopPropagation();
+          alert('Only JPG or PNG files are accepted.');
+          return false;
+        }
+      }
+    }
+
+    // Purpose hidden field
     const purposeInput = Array.from(this.elements).find(element => {
       const label = document.querySelector(`label[for="${element.id}"]`);
       return label && label.textContent.toLowerCase().includes('purpose');

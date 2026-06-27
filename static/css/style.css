@@ -3518,6 +3518,10 @@ footer ul li a:hover {
   border: 1px solid var(--green);
 }
 
+.edit-profile-group--full {
+  width: 100%;
+}
+
 /* AVATAR PREVIEW */
 
 .avatar-preview-wrap {
@@ -4060,8 +4064,6 @@ footer ul li a:hover {
 
 }
 
-
-
 /* FEEDBACK */
 @media (max-width: 768px) {
   .ann-modal {
@@ -4290,7 +4292,7 @@ footer ul li a:hover {
   }
 }
 
-/* TRACK SUBMISSION  - DOCU REQUEST*/
+/* TRACK SUBMISSION  - DOCU REQUEST */
 @media (max-width: 768px) {
   .track-table thead {
     display: none;
@@ -4315,6 +4317,33 @@ footer ul li a:hover {
     font-weight: 700;
     color: #172964;
     margin-right: 6px;
+  }
+}
+
+/* COMPLAINT TIMELINE */
+@media (max-width: 768px) {
+  .hearing-table thead {
+    display: none;
+  }
+
+  .hearing-table tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e0e4ee;
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .hearing-table td {
+    display: block;
+    font-size: 0.85rem;
+    padding: 6px 0;
+  }
+
+  .hearing-table td::before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #172964;
   }
 }
 
