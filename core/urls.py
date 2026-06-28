@@ -32,6 +32,7 @@ urlpatterns = [
     path('announcements/<int:announcement_id>/feedback/', views.submit_announcement_feedback, name='submit_feedback'),
     path('announcements/<int:announcement_id>/', views.announcement_detail, name='announcement_detail'),
     path('track/', views.tracksub, name='tracksub'),
+    path("toggle-sms-subscription/", views.toggle_sms_subscription, name="toggle_sms_subscription"),
     
     
     path(

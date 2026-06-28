@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db.models import Q
@@ -1921,6 +1922,22 @@ def residentprofile(request):
         'active_complaints': active_complaints,
         'recent_requests': recent_requests,
         'latest_announcements': latest_announcements,
+    })
+
+#RESIDENT CHANGE SMS SUBSCRIPTION
+@login_required
+@require_POST
+def toggle_sms_subscription(request):
+    resident = get_current_user(request)
+
+    subscription = SMSSubscriptions.objects.get(user=resident)
+
+    subscription.is_active = not subscription.is_active
+    subscription.save(update_fields=["is_active"])
+
+    return JsonResponse({
+        "success": True,
+        "is_active": subscription.is_active
     })
 
     
