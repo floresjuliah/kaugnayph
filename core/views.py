@@ -2689,6 +2689,7 @@ def document_request_view(request):
         captcha_form = CaptchaOnlyForm(request.POST)
 
         if not captcha_form.is_valid():
+            messages.error(request, "Incorrect security code. Please try again.")
             return render(request, "documents.html", documents_context(captcha_form))
 
         document_type_id = request.POST.get("document_type_id", "").strip()
