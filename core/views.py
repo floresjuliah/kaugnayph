@@ -3050,6 +3050,14 @@ def admin_document_request_detail_view(request, drid):
                 doc_request.processed_by = current_admin
                 doc_request.save()
 
+                if resident and resident.contactno:
+                    send_sms(
+                        resident.contactno,
+                        f"KaugnayPH: A remark has been added to your document request {doc_id} "
+                        f"({doc_request.document_type.name}): {remarks}",
+                        sent_by=current_admin,
+                    )
+
                 AuditLogs.objects.create(
                     user=current_admin,
                     action="Update Document Request Remarks",
