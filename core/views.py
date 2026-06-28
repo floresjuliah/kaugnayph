@@ -179,11 +179,11 @@ def filecomplaint(request):
                 messages.error(request, "Invalid incident date format.")
                 return render(request, "filecomplaint.html", complaint_context())
 
-            if incident_date > max_incident_date:
+            if incident_date.date() > max_incident_date:
                 messages.error(request, "Incident date cannot be in the future.")
                 return render(request, "filecomplaint.html", complaint_context())
 
-            if incident_date < min_incident_date:
+            if incident_date.date() < min_incident_date:
                 messages.error(
                     request,
                     f"Incident date cannot be earlier than "
