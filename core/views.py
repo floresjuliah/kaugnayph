@@ -24,6 +24,9 @@ from core.utils import (
     validate_upload,
     generate_case_number,
     generate_certificate_number,
+    format_full_name,
+    mask_contact,
+    mask_email,
 )
 from datetime import date, datetime, timedelta
 import uuid
@@ -75,6 +78,8 @@ from django.shortcuts import render, get_object_or_404
 from datetime import timedelta
 from django.utils import timezone
 from django.core.paginator import Paginator
+
+from .utils import format_full_name, mask_contact, mask_email
 
 
 # PUBLIC PAGES
@@ -4478,6 +4483,13 @@ def settings_page(request):
         "avatars": AvatarOptions.objects.filter(
             is_active=True
         ).order_by("avatarid"),
+
+        "display_name": format_full_name(
+        current_user.lastname,
+        current_user.firstname
+        ),
+        "masked_contact": mask_contact(current_user.contactno),
+        "masked_email": mask_email(current_user.email),
     })
 
 #ADMIN CHANGE PASSWORD

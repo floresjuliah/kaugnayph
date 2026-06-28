@@ -60,7 +60,7 @@
                 <div class="settings-info-row">
                     <div>
                         <label>Contact Number</label>
-                        <p>{{ current_user.contactno|default:"+63 912 345 6789" }}</p>
+                        <p>{{ masked_contact }}</p>
                     </div>
 
                     <button class="outline-btn small" type="button" onclick="openPasswordModal('contact')">
@@ -71,7 +71,7 @@
                 <div class="settings-info-row">
                     <div>
                         <label>Email Address</label>
-                        <p>{{ current_user.email|default:"allyana.villafuerte@kaugnay.ph" }}</p>
+                        <p>{{ masked_email }}</p>
                     </div>
 
                     <button class="outline-btn small" type="button" onclick="openPasswordModal('email')">
