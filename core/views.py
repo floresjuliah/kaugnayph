@@ -962,6 +962,8 @@ def admin_reset_password_view(request):
         module_name="Authentication",
         table_name="Users",
         record_id=user.userid,
+        old_value="Password reset via forgot-password flow",
+        new_value="Password updated",
         ip_address=request.META.get("REMOTE_ADDR"),
         user_agent=request.META.get("HTTP_USER_AGENT"),
         created_at=timezone.now(),
@@ -1225,6 +1227,7 @@ def otp_verify_view(request):
             module_name="Authentication",
             table_name="Users",
             record_id=fresh_user.userid,
+            new_value=f"Admin '{fresh_user.username}' logged in.",
             ip_address=request.META.get("REMOTE_ADDR"),
             user_agent=request.META.get("HTTP_USER_AGENT"),
             created_at=timezone.now(),
@@ -2218,7 +2221,7 @@ def resident_records_view(request):
         "total_residents": total_residents,
         "pending_count": ResidentVerification.objects.filter(status="Pending").count(),
         "verified_count": ResidentVerification.objects.filter(status="Approved").count(),
-        "sms_count": Settings.objects.filter(receive_sms=True).count(),
+        "sms_subscribers": Settings.objects.filter(receive_sms=True).count(),
     })
 
 # RESIDENT PROFILE

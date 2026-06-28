@@ -118,6 +118,17 @@ body {
     margin-bottom: 0;
 }
 
+/* Hamburger Button */
+.sidebar-toggle-btn {
+    display: none; /* Hidden on desktop */
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+    color: #1d2a3d;
+    margin-right: auto;
+}
+
 .admin-content {
     padding: 32px;
     width: 100%;
