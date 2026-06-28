@@ -29,6 +29,11 @@
         </p>
 
         <p>
+            <strong>Incident Date & Time:</strong>
+            {{ complaint.incident_date|date:"Y/m/d H:i"|default:"—" }}
+        </p>
+
+        <p>
             <strong>Current Status:</strong>
             <span class="status-badge status-{{ complaint.status|slugify }}">
                 {{ complaint.status }}

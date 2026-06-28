@@ -179,11 +179,11 @@ def filecomplaint(request):
                 messages.error(request, "Invalid incident date format.")
                 return render(request, "filecomplaint.html", complaint_context())
 
-            if incident_date > max_incident_date:
+            if incident_date.date() > max_incident_date:
                 messages.error(request, "Incident date cannot be in the future.")
                 return render(request, "filecomplaint.html", complaint_context())
 
-            if incident_date < min_incident_date:
+            if incident_date.date() < min_incident_date:
                 messages.error(
                     request,
                     f"Incident date cannot be earlier than "
@@ -296,11 +296,18 @@ def documents(request):
 def faqs(request):
     faqs = FAQs.objects.filter(is_active=True)
 
+    cutoff = timezone.make_aware(datetime(2026,6,28,16,0))
+
+    announcements = Announcements.objects.filter(
+        created_at__gte=cutoff
+    ).order_by('-created_at')
+
     return render(
         request,
         'faqs.html',
         {
-            'faqs': faqs
+            'faqs': faqs,
+            'announcements': announcements,
         }
     )
 
