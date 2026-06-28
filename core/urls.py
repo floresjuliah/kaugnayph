@@ -103,4 +103,5 @@ urlpatterns = [
     path("admin/settings/update-email/start/", views.admin_update_email_start, name="admin_update_email_start"),
     path("admin/settings/update-email/verify/", views.admin_update_email_verify, name="admin_update_email_verify"),
     path("admin/settings/avatar/", views.admin_change_avatar, name="admin_change_avatar"),
+    path("admin/settings/change-username/", views.admin_change_username, name="admin_change_username"),
 ]

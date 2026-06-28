@@ -52,7 +52,7 @@
                         <p>{{ current_user.username|default:"No username set" }}</p>
                     </div>
 
-                    <button class="outline-btn" type="button" onclick="openChangeUsernameModal()">
+                    <button class="outline-btn" type="button" onclick="openPasswordModal('username')">
                         Edit
                     </button>
                 </div>
@@ -242,7 +242,10 @@
                     Cancel
                 </button>
 
-                <button class="modal-btn primary" type="submit">
+                <button
+                    id="editModalSubmitBtn"
+                    class="modal-btn primary"
+                    type="submit">
                     Send OTP
                 </button>
             </div>
@@ -386,8 +389,26 @@
 
             document.getElementById("editInfoForm").action =
                 "{% url 'admin_update_email_start' %}";
+
             document.getElementById("otpForm").action =
                 "{% url 'admin_update_email_verify' %}";
+
+            document.getElementById("editModalSubmitBtn").textContent = "Send OTP";
+
+        } else if (editTarget === "username") {
+            document.getElementById("editModalTitle").textContent = "Edit Username";
+            document.getElementById("editModalDesc").textContent =
+                "Update your username below.";
+            document.getElementById("editModalLabel").textContent = "Username";
+            document.getElementById("editModalInput").type = "text";
+            document.getElementById("editModalInput").name = "new_username";
+            document.getElementById("editModalInput").value = "{{ current_user.username|default:'' }}";
+
+            document.getElementById("editInfoForm").action =
+                "{% url 'admin_change_username' %}";
+
+            document.getElementById("editModalSubmitBtn").textContent = "Save Changes";
+
         } else {
             document.getElementById("editModalTitle").textContent = "Edit Contact Number";
             document.getElementById("editModalDesc").textContent =
@@ -399,8 +420,11 @@
 
             document.getElementById("editInfoForm").action =
                 "{% url 'admin_update_contact_start' %}";
+
             document.getElementById("otpForm").action =
                 "{% url 'admin_update_contact_verify' %}";
+
+            document.getElementById("editModalSubmitBtn").textContent = "Send OTP";
         }
 
         document.getElementById("hiddenPasswordInput").value = passwordValue;

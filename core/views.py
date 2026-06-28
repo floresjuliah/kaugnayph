@@ -4602,3 +4602,63 @@ def admin_change_avatar(request):
 
     messages.success(request, "Avatar updated successfully.")
     return redirect("settings_page")
+
+# ADMIN UPDATE USERNAME
+@admin_login_required
+def admin_change_username(request):
+    if request.method != "POST":
+        return redirect("settings_page")
+
+    current_user = get_current_user(request)
+
+    password = request.POST.get("password", "").strip()
+    new_username = request.POST.get("new_username", "").strip().lower()
+
+    if not check_password(password, current_user.password):
+        messages.error(request, "Password is incorrect.")
+        return redirect("settings_page")
+
+    if not new_username:
+        messages.error(request, "Please enter a username.")
+        return redirect("settings_page")
+
+    if len(new_username) < 4:
+        messages.error(request, "Username must be at least 4 characters long.")
+        return redirect("settings_page")
+
+    if len(new_username) > 50:
+        messages.error(request, "Username cannot exceed 50 characters.")
+        return redirect("settings_page")
+
+    if " " in new_username:
+        messages.error(request, "Username cannot contain spaces.")
+        return redirect("settings_page")
+
+    if new_username == current_user.username:
+        messages.error(request, "New username must be different from your current username.")
+        return redirect("settings_page")
+
+    if Users.objects.filter(username=new_username).exclude(userid=current_user.userid).exists():
+        messages.error(request, "This username is already used by another account.")
+        return redirect("settings_page")
+
+    old_username = current_user.username
+
+    current_user.username = new_username
+    current_user.save()
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Updated Username",
+        module_name="Settings",
+        table_name="Users",
+        record_id=current_user.userid,
+        old_value=old_username,
+        new_value=new_username,
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    messages.success(request, "Username updated successfully.")
+    return redirect("settings_page")

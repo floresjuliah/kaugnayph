@@ -161,10 +161,6 @@ window.addEventListener("click", function(e) {
                 <div class="profile-dropdown"
                     id="profileDropdown">
 
-                    <a href="#">
-                        View Profile
-                    </a>
-
                     <a href="{% url 'settings_page' %}" class="{% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
                         <span class="menu-icon">⚙</span>
                         Settings
