@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
@@ -295,11 +296,18 @@ def documents(request):
 def faqs(request):
     faqs = FAQs.objects.filter(is_active=True)
 
+    cutoff = timezone.make_aware(datetime(2026, 6, 28, 16, 0))
+
+    announcements = Announcements.objects.filter(
+        created_at__gte=cutoff
+    ).order_by("-created_at")
+
     return render(
         request,
-        'faqs.html',
+        "faqs.html",
         {
-            'faqs': faqs
+            "faqs": faqs,
+            "announcements": announcements,
         }
     )
 
