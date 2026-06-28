@@ -115,18 +115,21 @@ def get_sla_for_record(module_name: str, record_id: int):
     ).order_by("-created_at").first()
 
 
-def get_sla_status_live(sla) -> str:
-    """
-    Returns a live-calculated status string.
-    Use this in templates instead of sla.sla_status directly,
-    because sla_status in the DB only updates when an action is taken.
-    """
+def get_sla_status_live(sla):
     if not sla:
         return "No SLA"
-    if sla.resolved_at:
-        return sla.sla_status  # Already finalized
-    if sla.sla_deadline and timezone.now() > sla.sla_deadline:
-        return "Breached"
-    if sla.first_response_at:
-        return "In Progress"
-    return "Pending"
+
+    if sla.sla_status == "Resolved":
+        return "Resolved"
+
+    now = timezone.now()
+
+    if now > sla.sla_deadline:
+        overdue = now - sla.sla_deadline
+        hours = overdue.days * 24 + overdue.seconds // 3600
+        return f"Breached ({hours}h overdue)"
+
+    remaining = sla.sla_deadline - now
+    hours = remaining.days * 24 + remaining.seconds // 3600
+
+    return f"{hours}h remaining"
