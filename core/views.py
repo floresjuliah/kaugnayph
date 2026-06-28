@@ -1282,20 +1282,24 @@ def admin_dashboard_view(request):
             "Certificate Issued",
             "Resolved Outside Barangay",
             "Settled in Court",
-        ]
+        ],
+    ).filter(
+        dateadded__gte=start_date
     ).count()
     cases_resolved = Complaints.objects.filter(
         status__in=[
             "Resolved", "Dismissed", "Settled",
             "Certificate Issued", "Resolved Outside Barangay",
             "Settled in Court",
-        ]
+        ],
+        dateadded__gte=start_date
     ).count()
 
     #Average resolution time for cases that have a datefinish
     resolved_cases = Complaints.objects.filter(
         datefinish__isnull=False,
         dateadded__isnull=False,
+        datefinish__gte=start_date
     ).annotate(
         resolution_duration=ExpressionWrapper(
             F("datefinish") - F("dateadded"),
@@ -1334,23 +1338,35 @@ def admin_dashboard_view(request):
     completed_requests = DocumentRequests.objects.filter(
         processed_at__isnull=False,
         requested_at__isnull=False,
+        processed_at__gte=start_date
     ).annotate(
         processing_duration=ExpressionWrapper(
             F("processed_at") - F("requested_at"),
             output_field=fields.DurationField(),
         )
     )
+
     avg_docreq_duration = completed_requests.aggregate(
         avg=Avg("processing_duration")
     )["avg"]
+
     avg_processing_days = (
         round(avg_docreq_duration.total_seconds() / 86400, 1)
         if avg_docreq_duration else 0
     )
 
+    completed_period = DocumentRequests.objects.filter(
+        status="Completed",
+        requested_at__gte=start_date
+    ).count()
+
+    total_period = DocumentRequests.objects.filter(
+        requested_at__gte=start_date
+    ).count()
+
     completion_rate = (
-        round((docreq_completed / total_requests) * 100)
-        if total_requests else 0
+        round((completed_period / total_period) * 100)
+        if total_period else 0
     )
     
     import json
@@ -2635,7 +2651,7 @@ def case_records_view(request):
         ]
     ).count()
     resolved_cases = all_complaints.filter(
-        status__in=["Resolved", "Settled", "Resolved Outside Barangay", "Settled in Court"]
+        status__in=["Settled", "Resolved Outside Barangay", "Settled in Court"]
     ).count()
     certificates_issued_count = all_complaints.filter(status="Certificate Issued").count()
     flagged_count = all_complaints.filter(is_flagged=True).count()
@@ -3622,9 +3638,13 @@ def case_detail_view(request, complaint_id):
         # Existing simple status changes (kept for flexibility)
         elif action in ("resolve", "review", "dismiss"):
             remarks = request.POST.get("remarks", "").strip()
-            status_map = {"resolve": "Resolved", "review": "Under Review", "dismiss": "Dismissed"}
+            status_map = {
+                "resolve": "Settled",
+                "review": "Under Review",
+                "dismiss": "Dismissed",
+            }
             log_action_map = {
-                "resolve": "Resolve Case", "review": "Mark Case Under Review", "dismiss": "Dismiss Case"
+                "resolve": "Settle Case", "review": "Mark Case Under Review", "dismiss": "Dismiss Case"
             }
             new_status = status_map[action]
             apply_status_change(

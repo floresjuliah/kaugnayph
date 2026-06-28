@@ -312,7 +312,6 @@ class Complaints(models.Model):
         ("Resolved Outside Barangay", "Resolved Outside Barangay"),
         ("Settled in Court", "Settled in Court"),
         ("Under Review", "Under Review"),
-        ("Resolved", "Resolved"),
         ("Dismissed", "Dismissed"),
     ]
 

@@ -42,7 +42,6 @@ SMS_COPY = {
         "and proceed with filing before the proper authority."
     ),
     "Under Review": "KaugnayPH: Your complaint {case_number} is now Under Review.",
-    "Resolved": "KaugnayPH: Your complaint {case_number} has been resolved.",
     "Dismissed": (
         "KaugnayPH: Your complaint {case_number} has been dismissed. "
         "Please contact the barangay office for more information."
@@ -116,9 +115,23 @@ def _complaint_contact_numbers(complaint):
 
 def apply_status_change(complaint, new_status, admin_user, remarks=None, log_action=None):
     logger.debug("apply_status_change: new_status=%r, complaint_id=%s", new_status, complaint.complaintsid)
+
     old_status = complaint.status
     complaint.status = new_status
     complaint.handled_by = admin_user
+
+    #If the new status is a "completed" status and datefinish is not yet set, set it to now.
+    completed_statuses = [
+        "Settled",
+        "Dismissed",
+        "Certificate Issued",
+        "Resolved Outside Barangay",
+        "Settled in Court",
+    ]
+
+    if new_status in completed_statuses and complaint.datefinish is None:
+        complaint.datefinish = timezone.now()
+
     complaint.save()
 
     ComplaintUpdates.objects.create(
