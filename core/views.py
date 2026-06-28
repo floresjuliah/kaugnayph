@@ -252,6 +252,16 @@ def filecomplaint(request):
             updated_at=timezone.now(),
         )
 
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Submit Complaint",
+            module_name="Cases",
+            table_name="Complaints",
+            record_id=complaint.complaintsid,
+            new_value=f"Complaint '{complaint.title}' submitted.",
+            created_at=timezone.now(),
+        )
+
         sms_body = (
             f"KaugnayPH: Your complaint {complaint.case_number} "
             "has been submitted successfully. "
@@ -316,7 +326,7 @@ def admin_faqs(request):
     'faqs': faqs
 })
 
-
+#submit inquiry
 def contactus(request):
     current_user = get_current_user(request)
     
@@ -376,7 +386,17 @@ def contactus(request):
  
         # SLA — start the 24-hour clock
         create_sla("Inquiry", inquiry.cuid, priority="Medium")
- 
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Submit Inquiry",
+            module_name="Inquiry",
+            table_name="Inquiry",
+            record_id=inquiry.cuid,
+            new_value=f"Inquiry '{subject}' submitted.",
+            created_at=timezone.now(),
+        )
+
         messages.success(
             request,
             "Your inquiry has been submitted. We will get back to you within 24 hours."
@@ -385,6 +405,7 @@ def contactus(request):
  
     return render(request, "contactus.html", contact_context())
 
+#view announcements public
 def announcements_view(request):
     announcements = Announcements.objects.all().order_by("-announcement_id")
 
@@ -504,16 +525,36 @@ def create_announcement(request):
 def update_announcement(request, announcement_id):
     if request.method != "PUT":
         return JsonResponse({"error": "PUT required"}, status=400)
+
     data = json.loads(request.body)
+    current_user = get_current_user(request)
+
     try:
         a = Announcements.objects.get(announcement_id=announcement_id)
     except Announcements.DoesNotExist:
         return JsonResponse({"error": "Not found"}, status=404)
+
+    old_value = f"Title: {a.title}; Category: {a.category_id}; Send SMS: {a.send_sms}"
+
     a.title       = data.get("title",       a.title)
     a.content     = data.get("content",     a.content)
     a.send_sms    = data.get("send_sms",    a.send_sms)
     a.category_id = data.get("category_id", a.category_id)
     a.save()
+
+    new_value = f"Title: {a.title}; Category: {a.category_id}; Send SMS: {a.send_sms}"
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Update Announcement",
+        module_name="Announcements",
+        table_name="Announcements",
+        record_id=a.announcement_id,
+        old_value=old_value,
+        new_value=new_value,
+        created_at=timezone.now(),
+    )
+
     return JsonResponse({"message": "Updated"})
 
 #DELETE ANNOUNCEMENT
@@ -521,11 +562,27 @@ def update_announcement(request, announcement_id):
 def delete_announcement(request, announcement_id):
     if request.method != "DELETE":
         return JsonResponse({"error": "DELETE required"}, status=400)
+
+    current_user = get_current_user(request)
+
     try:
         a = Announcements.objects.get(announcement_id=announcement_id)
     except Announcements.DoesNotExist:
         return JsonResponse({"error": "Not found"}, status=404)
+
+    old_title = a.title
     a.delete()
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Delete Announcement",
+        module_name="Announcements",
+        table_name="Announcements",
+        record_id=announcement_id,
+        old_value=f"Announcement '{old_title}' deleted.",
+        created_at=timezone.now(),
+    )
+
     return JsonResponse({"message": "Deleted"})
 
 #CREATE SMS LOG
@@ -599,7 +656,6 @@ def get_role_for_position(position):
 
 
 # RESIDENT LOGIN
-
 def login_view(request):
     if request.session.get("user_id"):
         if request.session.get("user_type") == "Resident":
@@ -640,6 +696,19 @@ def login_view(request):
         return render(request, "auth/login.html")
 
     set_user_session(request, user)
+
+    AuditLogs.objects.create(
+        user=user,
+        action="Resident Login",
+        module_name="Authentication",
+        table_name="Users",
+        record_id=user.userid,
+        new_value=f"Resident '{user.username}' logged in.",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
     return redirect("landing")
 
 # RESIDENT FORGOT PASSWORD
@@ -1430,6 +1499,16 @@ def resident_register_view(request):
         updated_at=timezone.now(),
     )
 
+    AuditLogs.objects.create(
+        user=new_user,
+        action="Register Resident Account",
+        module_name="Authentication",
+        table_name="Users",
+        record_id=new_user.userid,
+        new_value=f"Resident account '{new_user.username}' registered and pending verification.",
+        created_at=timezone.now(),
+    )
+
     messages.success(request,
         "Account created! Please wait for admin verification before logging in.")
     return redirect("login")
@@ -1681,13 +1760,27 @@ def pending_verification_view(request):
 
 
 # LOGOUT
-
 def logout_view(request):
+    current_user = get_current_user(request)
     user_type = request.session.get("user_type", "Resident")
+
+    if current_user:
+        AuditLogs.objects.create(
+            user=current_user,
+            action=f"{user_type} Logout",
+            module_name="Authentication",
+            table_name="Users",
+            record_id=current_user.userid,
+            new_value=f"{user_type} '{current_user.username}' logged out.",
+            created_at=timezone.now(),
+        )
+
     request.session.flush()
     messages.success(request, "You have been logged out successfully.")
+
     if user_type == "Admin":
         return redirect("admin_login")
+
     return redirect("landing")
 
 
@@ -2168,6 +2261,16 @@ def toggle_sms_subscription(request):
 
     subscription.is_active = not subscription.is_active
     subscription.save(update_fields=["is_active"])
+
+    AuditLogs.objects.create(
+        user=resident,
+        action="Updated SMS Subscription",
+        module_name="Settings",
+        table_name="SMSSubscriptions",
+        record_id=subscription.id,
+        new_value=f"SMS subscription {'enabled' if subscription.is_active else 'disabled'}.",
+        created_at=timezone.now(),
+    )
 
     return JsonResponse({
         "success": True,
@@ -4278,6 +4381,8 @@ def add_inquiry_to_faq(request, inquiry_id):
 def audit_logs_view(request):
     from django.core.paginator import Paginator
 
+    current_user = get_current_user(request)
+
     search_query = request.GET.get("search", "").strip()
     module_filter = request.GET.get("module", "All").strip()
     action_filter = request.GET.get("action", "All").strip()
@@ -4332,7 +4437,7 @@ def audit_logs_view(request):
     return render(request, "adminpanel/audit_logs.html", {
         "logs": page_obj,
         "page_obj": page_obj,
-        "user": get_current_user(request),
+        "user": current_user,
         "search_query": search_query,
         "module_filter": module_filter,
         "action_filter": action_filter,
