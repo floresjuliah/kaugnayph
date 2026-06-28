@@ -48,26 +48,30 @@
     <div class="dash-stats-grid">
 
         <div class="dash-stat-card">
-            <div class="card-icon">
-                <img src="{% static 'images/total_residents.png' %}" alt="">
+            <div class="card-icon blue">
+                <i class="fas fa-users"></i>
             </div>
 
-            <p>Total Residents</p>
-            <h2>{{ total_residents|default:"0" }}</h2>
+            <div class="card-content">
+                <p>Total Residents</p>
+                <h2>{{ total_residents|default:"0" }}</h2>
+            </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="card-icon">
-                <img src="{% static 'images/reqsandcases.png' %}" alt="">
+            <div class="card-icon orange">
+                <i class="fas fa-file-alt"></i>
             </div>
 
-            <p>Total Requests</p>
-            <h2>{{ total_requests|default:"0" }}</h2>
+            <div class="card-content">
+                <p>Total Requests</p>
+                <h2>{{ total_requests|default:"0" }}</h2>
+            </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="card-icon">
-                <img src="{% static 'images/reqsandcases.png' %}" alt="">
+            <div class="card-icon red">
+                <i class="fas fa-gavel"></i>
             </div>
 
             <div class="card-content">
@@ -77,8 +81,8 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="card-icon">
-                <img src="{% static 'images/inquiriesandsms.png' %}" alt="">
+            <div class="card-icon purple">
+                <i class="fas fa-envelope"></i>
             </div>
 
             <div class="card-content">
@@ -88,8 +92,8 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="card-icon">
-                <img src="{% static 'images/inquiriesandsms.png' %}" alt="">
+            <div class="card-icon green">
+                <i class="fas fa-paper-plane"></i>
             </div>
 
             <div class="card-content">
