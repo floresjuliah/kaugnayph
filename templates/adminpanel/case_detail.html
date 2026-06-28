@@ -20,7 +20,7 @@ href="{% static 'css/admin_case_detail.css' %}">
             {% elif complaint.status == 'Mediation Scheduled' or complaint.status == 'Mediation Ongoing' %}status-ongoing
             {% elif complaint.status == 'For 1st Hearing' or complaint.status == 'For 2nd Hearing' or complaint.status == 'For 3rd Hearing' %}status-ongoing
             {% elif complaint.status == 'Eligible for Certificate to File Action' %}status-eligible
-            {% elif complaint.status == 'Settled' or complaint.status == 'Resolved' or complaint.status == 'Resolved Outside Barangay' or complaint.status == 'Settled in Court' %}status-resolved
+            {% elif complaint.status == 'Settled' or complaint.status == 'Resolved Outside Barangay' or complaint.status == 'Settled in Court' %}status-resolved
             {% elif complaint.status == 'Certificate Issued' %}status-resolved
             {% elif complaint.status == 'Referred to Proper Barangay' %}status-referred
             {% elif complaint.status == 'Dismissed' %}status-dismissed
@@ -44,7 +44,7 @@ href="{% static 'css/admin_case_detail.css' %}">
             </button>
             {% endif %}
 
-            {% if complaint.status != "Settled" and complaint.status != "Dismissed" and complaint.status != "Certificate Issued" and complaint.status != "Resolved Outside Barangay" and complaint.status != "Settled in Court" and complaint.status != "Resolved" %}
+            {% if complaint.status != "Settled" and complaint.status != "Dismissed" and complaint.status != "Certificate Issued" and complaint.status != "Resolved Outside Barangay" and complaint.status != "Settled in Court" %}
             <button type="submit" name="action" value="resolve" class="btn-success">
                 Resolve Case
             </button>
@@ -68,6 +68,14 @@ href="{% static 'css/admin_case_detail.css' %}">
         <p><strong>Title:</strong> {{ complaint.title }}</p>
         <p><strong>Incident Date:</strong> {{ complaint.incident_date|date:"F d, Y"|default:"—" }}</p>
         <p><strong>Date Submitted:</strong> {{ complaint.dateadded|date:"F d, Y h:i A" }}</p>
+        <p>
+            <strong>Date Finished:</strong>
+            {% if complaint.datefinish %}
+                {{ complaint.datefinish|date:"F d, Y h:i A" }}
+            {% else %}
+                <span class="text-muted">Not yet completed</span>
+            {% endif %}
+        </p>
         {% if complaint.jurisdiction_barangay %}
         <p><strong>Jurisdiction Barangay:</strong> {{ complaint.jurisdiction_barangay }}</p>
         {% endif %}

@@ -146,7 +146,7 @@
                                 {% elif case.status == 'Mediation Scheduled' or case.status == 'Mediation Ongoing' %}status-ongoing
                                 {% elif case.status == 'For 1st Hearing' or case.status == 'For 2nd Hearing' or case.status == 'For 3rd Hearing' %}status-ongoing
                                 {% elif case.status == 'Eligible for Certificate to File Action' %}status-eligible
-                                {% elif case.status == 'Settled' or case.status == 'Resolved' or case.status == 'Resolved Outside Barangay' or case.status == 'Settled in Court' %}status-resolved
+                                {% elif case.status == 'Settled' or case.status == 'Resolved Outside Barangay' or case.status == 'Settled in Court' %}status-resolved
                                 {% elif case.status == 'Certificate Issued' %}status-resolved
                                 {% elif case.status == 'Referred to Proper Barangay' %}status-referred
                                 {% elif case.status == 'Dismissed' %}status-dismissed
