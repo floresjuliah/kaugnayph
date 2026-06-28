@@ -296,18 +296,11 @@ def documents(request):
 def faqs(request):
     faqs = FAQs.objects.filter(is_active=True)
 
-    cutoff = timezone.make_aware(datetime(2026, 6, 28, 16, 0))
-
-    announcements = Announcements.objects.filter(
-        created_at__gte=cutoff
-    ).order_by("-created_at")
-
     return render(
         request,
-        "faqs.html",
+        'faqs.html',
         {
-            "faqs": faqs,
-            "announcements": announcements,
+            'faqs': faqs
         }
     )
 

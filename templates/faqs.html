@@ -89,28 +89,7 @@
     </span>
     <a href="{% url 'contactus' %}" data-en="Contact us" data-tl="Makipag-ugnayan">Contact us</a>
   </p>
-
-  <!-- NEW ANNOUNCEMENTS SECTION -->
-  <hr class="faq-divider">
-    <h2 data-en="New Announcements" data-tl="Mga Bagong Anunsyo">
-      New Announcements
-    </h2>
-
-    {% if announcements %}
-      {% for announcement in announcements %}
-        <div class="announcement-card">
-          <h3>{{ announcement.title }}</h3>
-          <p>{{ announcement.content }}</p>
-          <small>{{ announcement.created_at|date:"F d, Y • g:i A" }}</small>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p data-en="No new announcements." data-tl="Wala pang bagong anunsyo.">
-        No new announcements.
-      </p>
-    {% endif %}
-  </div>
-
+  
 </section>
 
 <script>
