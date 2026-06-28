@@ -25,7 +25,7 @@ from core.utils import (
     generate_case_number,
     generate_certificate_number,
 )
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import uuid
 from core.moderation import moderate_text, moderate_image
 from core.sla_utils import (
@@ -174,7 +174,7 @@ def filecomplaint(request):
         incident_date = None
         if incident_date_raw:
             try:
-                incident_date = date.fromisoformat(incident_date_raw)
+                incident_date = datetime.fromisoformat(incident_date_raw)
             except ValueError:
                 messages.error(request, "Invalid incident date format.")
                 return render(request, "filecomplaint.html", complaint_context())

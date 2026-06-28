@@ -335,7 +335,7 @@ class Complaints(models.Model):
     file_path = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="For Chairman Review", blank=True, null=True)
 
-    incident_date = models.DateField(blank=True, null=True)
+    incident_date = models.DateTimeField(blank=True, null=True)
 
     dateadded = models.DateTimeField(db_column='DateAdded', auto_now_add=True)
     datefinish = models.DateTimeField(db_column='DateFinish', blank=True, null=True)

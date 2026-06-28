@@ -54,13 +54,12 @@
             {% csrf_token %}
 
             <div class="complaint-row">
-                <input
-                    type="date"
-                    name="incident_date"
-                    min="{{ min_incident_date|date:'Y-m-d' }}"
-                    max="{{ max_incident_date|date:'Y-m-d' }}"
-                    value="{{ max_incident_date|date:'Y-m-d' }}"
-                    >
+            <input
+                type="datetime-local"
+                name="incident_date"
+                min="{{ min_incident_date|date:'Y-m-d' }}T00:00"
+                max="{{ max_incident_date|date:'Y-m-d' }}T23:59"
+            >
             </div>
 
             <div class="complaint-row">
