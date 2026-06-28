@@ -54,3 +54,34 @@ def validate_upload(file):
         return False, "File content does not match image format."
 
     return True, None
+
+#MASKING HELPER
+
+def format_full_name(last_name, first_name, middle_name=None):
+    """
+    Returns: Dela Cruz, Juan P.
+    """
+    mi = ""
+
+    if middle_name:
+        mi = f" {middle_name[0]}."
+
+    return f"{last_name}, {first_name}{mi}"
+
+def mask_contact(contact):
+    if not contact:
+        return "—"
+
+    if len(contact) <= 7:
+        return contact
+
+    return contact[:5] + "*" * (len(contact) - 7) + contact[-2:]
+
+def mask_email(email):
+    if not email:
+        return "—"
+
+    if len(email) <= 7:
+        return email
+
+    return email[:2] + "*" * (len(email) - 7) + email[-5:]
