@@ -301,18 +301,11 @@ def documents(request):
 def faqs(request):
     faqs = FAQs.objects.filter(is_active=True)
 
-    cutoff = timezone.make_aware(datetime(2026,6,28,16,0))
-
-    announcements = Announcements.objects.filter(
-        created_at__gte=cutoff
-    ).order_by('-created_at')
-
     return render(
         request,
         'faqs.html',
         {
-            'faqs': faqs,
-            'announcements': announcements,
+            'faqs': faqs
         }
     )
 
@@ -2069,7 +2062,7 @@ def toggle_sms_subscription(request):
         "is_active": subscription.is_active
     })
 
-    
+#RESIDENT EDIT PROFILE + CHANGE PASSWORD
 @login_required
 @resident_required
 def editprofile_view(request):
@@ -2099,43 +2092,58 @@ def editprofile_view(request):
             return redirect("editprofile")
 
         elif form_type == "password":
-            current_password = request.POST.get("current_password", "")
-            new_password = request.POST.get("new_password", "")
-            confirm_password = request.POST.get("confirm_password", "")
+            current_password = request.POST.get("current_password", "").strip()
+            new_password = request.POST.get("new_password", "").strip()
+            confirm_password = request.POST.get("confirm_password", "").strip()
+
+            if not current_password or not new_password or not confirm_password:
+                messages.error(request, "Please complete all password fields.")
+                return redirect("editprofile")
 
             if not check_password(current_password, user.password):
                 messages.error(request, "Current password is incorrect.")
-                return render(request, "editprofile.html", {
-                    "user": user,
-                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
-                })
+                return redirect("editprofile")
 
             if new_password != confirm_password:
-                messages.error(request, "New passwords do not match.")
-                return render(request, "editprofile.html", {
-                    "user": user,
-                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
-                })
+                messages.error(request, "New password and confirm password do not match.")
+                return redirect("editprofile")
 
             if len(new_password) < 8:
-                messages.error(request, "Password must be at least 8 characters.")
-                return render(request, "editprofile.html", {
-                    "user": user,
-                    "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
-                })
+                messages.error(request, "Password must be at least 8 characters long.")
+                return redirect("editprofile")
+
+            if check_password(new_password, user.password):
+                messages.error(request, "Your new password must be different from your current password.")
+                return redirect("editprofile")
 
             user.password = hash_password(new_password)
+            user.is_password_changed = True
             user.save()
 
-            messages.success(request, "Password updated successfully!")
-            return redirect("editprofile")
+            AuditLogs.objects.create(
+                user=user,
+                action="Changed Password",
+                module_name="Profile",
+                table_name="Users",
+                record_id=user.userid,
+                old_value="Password changed",
+                new_value="Password updated",
+                ip_address=request.META.get("REMOTE_ADDR"),
+                user_agent=request.META.get("HTTP_USER_AGENT"),
+                created_at=timezone.now(),
+            )
+
+            request.session.flush()
+
+            messages.success(request, "Password changed successfully. Please log in again.")
+            return redirect("login")
 
     return render(request, "editprofile.html", {
         "user": user,
         "avatars": AvatarOptions.objects.filter(is_active=True).order_by("avatarid"),
     })
 
-
+#ADMIN VIEW RESIDENT
 @admin_login_required
 @permission_required('view_residents')
 def resident_record_view(request, user_id):

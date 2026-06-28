@@ -25,6 +25,7 @@ urlpatterns = [
     path('dashboard/resident/', views.resident_dashboard_view, name='resident_dashboard'),
     path('pending/', views.pending_verification_view, name='pending_verification'),
     path('profile/', views.residentprofile, name='residentprofile'),
+    path('profile/edit/', views.editprofile_view, name='editprofile'),
     path('file-complaint/', views.filecomplaint, name='filecomplaint'),
     path('documents/', views.documents, name='documents'),
     path('documents/request/', views.document_request_view, name='document_request'),

@@ -3522,6 +3522,18 @@ footer ul li a:hover {
   border: 1px solid var(--green);
 }
 
+.edit-profile-alert.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.edit-profile-alert.success {
+  background: #e5fdf2;
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
 .edit-profile-group--full {
   width: 100%;
 }
