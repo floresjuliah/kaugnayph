@@ -92,10 +92,24 @@
 
                     <textarea
                         name="admin_remarks"
+                        id="admin_remarks"
                         rows="4"
+                        maxlength="250"
                         placeholder="Enter a new update for the resident..."
                         style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"
+                        oninput="updateRemarksCounter()"
                     ></textarea>
+
+                    <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                        <small id="remarks_counter" style="color:#6b7280;">
+                            0/250
+                        </small>
+                    </div>
+
+                    <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:14px;">
+                        <input type="checkbox" name="send_remark_sms" value="1" checked>
+                        Notify resident via SMS
+                    </label>
 
                     <button type="submit"
                             name="action"
@@ -246,6 +260,19 @@
 
         return true;
     }
+
+    function updateRemarksCounter() {
+        const textarea = document.getElementById("admin_remarks");
+        const counter = document.getElementById("remarks_counter");
+
+        if (!textarea || !counter) return;
+
+        counter.textContent = textarea.value.length + "/250";
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        updateRemarksCounter();
+    });
 
     document.addEventListener("keydown", function(event) {
         if (event.key === "Escape") {

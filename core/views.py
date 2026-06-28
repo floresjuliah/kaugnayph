@@ -3044,13 +3044,14 @@ def admin_document_request_detail_view(request, drid):
 
         if action == "save_remarks":
             old_remarks = doc_request.admin_remarks
+            send_remark_sms = request.POST.get("send_remark_sms") == "1"
 
             if remarks:
                 doc_request.admin_remarks = remarks
                 doc_request.processed_by = current_admin
                 doc_request.save()
 
-                if resident and resident.contactno:
+                if send_remark_sms and resident and resident.contactno:
                     send_sms(
                         resident.contactno,
                         f"KaugnayPH: A remark has been added to your document request {doc_id} "
