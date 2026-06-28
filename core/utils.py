@@ -75,7 +75,7 @@ def mask_contact(contact):
     if len(contact) <= 7:
         return contact
 
-    return contact[:5] + "*" * (len(contact) - 7) + contact[-2:]
+    return contact[:2] + "*" * (len(contact) - 7) + contact[-5:]
 
 def mask_email(email):
     if not email:
