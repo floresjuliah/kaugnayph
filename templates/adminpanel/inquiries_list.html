@@ -108,6 +108,7 @@
                     <th>Subject</th>
                     <th>Category</th>
                     <th>Status</th>
+                    <th>SLA</th>
                     <th>Received At</th>
                     <th class="actions-column">Actions</th>
                 </tr>
@@ -132,6 +133,34 @@
                             <span class="admin-badge blue">{{ record.obj.status|default:"New" }}</span>
                         {% endif %}
                     </td>
+                        <td>
+                            {% if record.sla %}
+                                {% if record.sla_status == "Resolved" %}
+                                    <span class="admin-badge green">
+                                        {{ record.sla_status }}
+                                    </span>
+
+                                {% elif record.sla_status == "Breached" %}
+                                    <span class="admin-badge red">
+                                        {{ record.sla_status }}
+                                    </span>
+
+                                {% elif record.sla_status == "Pending" %}
+                                    <span class="admin-badge yellow">
+                                        {{ record.sla_status }}
+                                    </span>
+
+                                {% else %}
+                                    <span class="admin-badge blue">
+                                        {{ record.sla_status }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="admin-badge gray">
+                                    No SLA
+                                </span>
+                            {% endif %}
+                        </td>
 
                     <td>{{ record.obj.created_at|date:"M d, g:i A" }}</td>
 
@@ -146,7 +175,7 @@
 
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="empty-row">
+                    <td colspan="8" class="empty-row">
                         No inquiries found.
                     </td>
                 </tr>
