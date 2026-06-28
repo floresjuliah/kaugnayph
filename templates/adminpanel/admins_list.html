@@ -90,6 +90,8 @@
                     <tr>
                         <th>Official</th>
                         <th>Position</th>
+                        <th>Contact</th>
+                        <th>Email</th>
                         <th>Status</th>
                         <th class="actions-column">Actions</th>
                     </tr>
@@ -98,7 +100,9 @@
                 <tbody>
                     {% for admin in admins %}
                     <tr>
-                        <td>{{ admin.firstname }} {{ admin.lastname }}</td>
+                        <td>{{admin.display_name}}</td>
+                        <td>{{admin.masked_contact}}</td>
+                        <td>{{admin.masked_email}}</td>     
 
                         <td>{{ admin.position.name|default:"—" }}</td>
 
@@ -145,7 +149,7 @@
 
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="empty-row">
+                        <td colspan="6" class="empty-row">
                             No admins found.
                         </td>
                     </tr>
