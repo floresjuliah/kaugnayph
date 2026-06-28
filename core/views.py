@@ -701,6 +701,98 @@ def admin_login_view(request):
 
     return redirect("otp_verify")
 
+#ADMIN FORGOT PASSWORD
+def admin_forgot_password_view(request):
+    if request.method != "POST":
+        return render(request, "auth/admin_forgot_password.html")
+
+    username = request.POST.get("username", "").strip()
+
+    try:
+        user = Users.objects.select_related(
+            "user_type", "role", "position"
+        ).get(username=username, is_active=True)
+    except Users.DoesNotExist:
+        messages.error(request, "No active admin account found with that username.")
+        return render(request, "auth/admin_forgot_password.html")
+
+    if user.user_type.type_name != "Admin":
+        messages.error(request, "No active admin account found with that username.")
+        return render(request, "auth/admin_forgot_password.html")
+
+    if not user.email:
+        messages.error(request, "No email address is registered for this account.")
+        return render(request, "auth/admin_forgot_password.html")
+
+    request.session["pending_user_id"] = user.userid
+    request.session["from_forgot_password"] = True
+
+    otp, cooldown = generate_otp(user, purpose="forgot_password")
+
+    if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
+        messages.error(request, f"Please wait {mins}m {secs}s before requesting another OTP.")
+        return render(request, "auth/admin_forgot_password.html")
+
+    send_email_otp(user.email, otp.code)
+    request.session["otp_method"] = "email"
+
+    messages.success(request, "OTP has been sent to your registered email address.")
+    return redirect("otp_verify")
+
+
+#ADMIN RESET PASSWORD
+def admin_reset_password_view(request):
+    pending_id = request.session.get("pending_user_id")
+
+    if not pending_id or not request.session.get("forgot_password_verified"):
+        messages.error(request, "Please verify your OTP first.")
+        return redirect("admin_forgot_password")
+
+    try:
+        user = Users.objects.get(userid=pending_id, is_active=True)
+    except Users.DoesNotExist:
+        messages.error(request, "Account not found.")
+        return redirect("admin_forgot_password")
+
+    if request.method != "POST":
+        return render(request, "auth/admin_reset_password.html")
+
+    new_password = request.POST.get("new_password", "").strip()
+    confirm_password = request.POST.get("confirm_password", "").strip()
+
+    if len(new_password) < 8:
+        messages.error(request, "Password must be at least 8 characters.")
+        return render(request, "auth/admin_reset_password.html")
+
+    if new_password != confirm_password:
+        messages.error(request, "Passwords do not match.")
+        return render(request, "auth/admin_reset_password.html")
+
+    user.password = hash_password(new_password)
+    user.is_password_changed = True
+    user.save()
+
+    AuditLogs.objects.create(
+        user=user,
+        action="Changed Password",
+        module_name="Authentication",
+        table_name="Users",
+        record_id=user.userid,
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    request.session.pop("pending_user_id", None)
+    request.session.pop("from_forgot_password", None)
+    request.session.pop("forgot_password_verified", None)
+    request.session.pop("otp_method", None)
+
+    messages.success(request, "Password reset successful. Please log in.")
+    return redirect("admin_login")
+
 
 # FIRST LOGIN
 
@@ -858,11 +950,22 @@ def otp_verify_view(request):
         messages.error(request, "Please enter a valid 6-digit OTP.")
         return render(request, "auth/otp_verify.html")
 
-    purpose = "first_login" if request.session.get("from_first_login") else "login"
+    if request.session.get("from_first_login"):
+        purpose = "first_login"
+    elif request.session.get("from_forgot_password"):
+        purpose = "forgot_password"
+    else:
+        purpose = "login"
 
     result = verify_otp(user, code, purpose=purpose)
 
     if result == 'ok':
+
+        # FORGOT PASSWORD FLOW
+        if request.session.get("from_forgot_password"):
+            request.session["forgot_password_verified"] = True
+            messages.success(request, "OTP verified. Please set your new password.")
+            return redirect("admin_reset_password")
 
         # FIRST LOGIN FLOW
         if request.session.get("from_first_login"):
@@ -971,7 +1074,12 @@ def resend_otp_view(request):
     except Users.DoesNotExist:
         return redirect("login")
 
-    purpose = "first_login" if request.session.get("from_first_login") else "login"
+    if request.session.get("from_first_login"):
+        purpose = "first_login"
+    elif request.session.get("from_forgot_password"):
+        purpose = "forgot_password"
+    else:
+        purpose = "login"
     otp, cooldown = generate_otp(user, purpose=purpose)
 
     if cooldown:
@@ -1032,7 +1140,12 @@ def send_email_otp_view(request):
         )
         return redirect("otp_verify")
 
-    purpose = "first_login" if request.session.get("from_first_login") else "login"
+    if request.session.get("from_first_login"):
+        purpose = "first_login"
+    elif request.session.get("from_forgot_password"):
+        purpose = "forgot_password"
+    else:
+        purpose = "login"
 
     otp = OTP.objects.filter(
         user=user,

@@ -105,4 +105,8 @@ urlpatterns = [
     path("admin/settings/update-email/verify/", views.admin_update_email_verify, name="admin_update_email_verify"),
     path("admin/settings/avatar/", views.admin_change_avatar, name="admin_change_avatar"),
     path("admin/settings/change-username/", views.admin_change_username, name="admin_change_username"),
+
+    #ADMIN: FORGOT PASSWORD
+    path('admin/forgot-password/', views.admin_forgot_password_view, name='admin_forgot_password'),
+    path('admin/reset-password/', views.admin_reset_password_view, name='admin_reset_password'),
 ]
