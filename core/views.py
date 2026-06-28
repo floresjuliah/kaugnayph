@@ -1997,6 +1997,9 @@ def resident_records_view(request):
             "rv": rv,
             "status": status,
             "sms_sub": sms_sub,
+            "display_name": format_full_name(u.lastname, u.firstname),
+            "masked_contact": mask_contact(u.contactno),
+            "masked_email": mask_email(u.email)
         })
 
     paginator = Paginator(records, 10)

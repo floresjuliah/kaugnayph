@@ -98,6 +98,8 @@
             <thead>
                 <tr>
                     <th>Full Name</th>
+                    <th>Contact Number</th>
+                    <th>Email</th>
                     <th>Verification Status</th>
                     <th>SMS Subscriber</th>
                     <th class="actions-column">Actions</th>
@@ -107,7 +109,9 @@
             <tbody>
                 {% for rec in records %}
                 <tr>
-                    <td>{{ rec.user.firstname }} {{ rec.user.lastname }}</td>
+                    <td>{{ rec.display_name }}</td>
+                    <td>{{ rec.masked_contact }}</td>
+                    <td>{{ rec.masked_email }}</td>
 
                     <td>
                         {% if rec.status == "Approved" %}
@@ -134,7 +138,7 @@
 
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="empty-row">No resident records found.</td>
+                    <td colspan="6" class="empty-row">No resident records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
