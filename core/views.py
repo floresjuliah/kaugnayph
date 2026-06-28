@@ -642,6 +642,113 @@ def login_view(request):
     set_user_session(request, user)
     return redirect("landing")
 
+# RESIDENT FORGOT PASSWORD
+def forgot_password_view(request):
+    if request.method != "POST":
+        return render(request, "auth/forgot_password.html")
+
+    contact_no = request.POST.get("contact_no", "").strip()
+
+    try:
+        user = Users.objects.select_related(
+            "user_type", "role", "position"
+        ).get(contactno=contact_no, is_active=True)
+    except Users.DoesNotExist:
+        messages.error(request, "No active resident account found with that mobile number.")
+        return render(request, "auth/forgot_password.html")
+
+    if user.user_type.type_name != "Resident":
+        messages.error(request, "No active resident account found with that mobile number.")
+        return render(request, "auth/forgot_password.html")
+
+    if not user.email:
+        messages.error(request, "No email address is registered for this account.")
+        return render(request, "auth/forgot_password.html")
+
+    request.session["pending_user_id"] = user.userid
+    request.session["from_forgot_password"] = True
+    request.session["forgot_password_user_type"] = "resident"
+
+    otp, cooldown = generate_otp(user, purpose="forgot_password")
+
+    if cooldown:
+        mins = cooldown // 60
+        secs = cooldown % 60
+        messages.error(request, f"Please wait {mins}m {secs}s before requesting another OTP.")
+        return render(request, "auth/forgot_password.html")
+
+    send_email_otp(user.email, otp.code)
+    request.session["otp_method"] = "email"
+
+    messages.success(request, "OTP has been sent to your registered email address.")
+    return redirect("otp_verify")
+
+# RESIDENT RESET PASSWORD
+def reset_password_view(request):
+    pending_id = request.session.get("pending_user_id")
+
+    if not pending_id or not request.session.get("forgot_password_verified"):
+        messages.error(request, "Please verify your OTP first.")
+        return redirect("forgot_password")
+
+    try:
+        user = Users.objects.get(userid=pending_id, is_active=True)
+    except Users.DoesNotExist:
+        messages.error(request, "Account not found.")
+        return redirect("forgot_password")
+
+    if user.user_type.type_name != "Resident":
+        messages.error(request, "Invalid account type.")
+        return redirect("forgot_password")
+
+    if request.method != "POST":
+        return render(request, "auth/reset_password.html")
+
+    new_password = request.POST.get("new_password", "").strip()
+    confirm_password = request.POST.get("confirm_password", "").strip()
+
+    if not new_password or not confirm_password:
+        messages.error(request, "Please complete all password fields.")
+        return render(request, "auth/reset_password.html")
+
+    if len(new_password) < 8:
+        messages.error(request, "Password must be at least 8 characters long.")
+        return render(request, "auth/reset_password.html")
+
+    if new_password != confirm_password:
+        messages.error(request, "New password and confirm password do not match.")
+        return render(request, "auth/reset_password.html")
+
+    if check_password(new_password, user.password):
+        messages.error(request, "Your new password must be different from your current password.")
+        return render(request, "auth/reset_password.html")
+
+    user.password = hash_password(new_password)
+    user.is_password_changed = True
+    user.save()
+
+    AuditLogs.objects.create(
+        user=user,
+        action="Changed Password",
+        module_name="Authentication",
+        table_name="Users",
+        record_id=user.userid,
+        old_value="Password reset",
+        new_value="Password updated",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    request.session.pop("pending_user_id", None)
+    request.session.pop("from_forgot_password", None)
+    request.session.pop("forgot_password_verified", None)
+    request.session.pop("forgot_password_user_type", None)
+    request.session.pop("otp_method", None)
+
+    messages.success(request, "Password reset successful. Please log in.")
+    return redirect("login")
+
 
 # ADMIN LOGIN
 
@@ -971,6 +1078,10 @@ def otp_verify_view(request):
         if request.session.get("from_forgot_password"):
             request.session["forgot_password_verified"] = True
             messages.success(request, "OTP verified. Please set your new password.")
+
+            if request.session.get("forgot_password_user_type") == "resident":
+                return redirect("reset_password")
+
             return redirect("admin_reset_password")
 
         # FIRST LOGIN FLOW
@@ -1069,7 +1180,6 @@ def otp_verify_view(request):
 
 
 # RESEND OTP
-
 def resend_otp_view(request):
     pending_id = request.session.get("pending_user_id")
     if not pending_id:
@@ -1117,12 +1227,15 @@ def resend_otp_view(request):
             )
 
     else:
-        send_sms(
-            user.contactno,
-            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
-        )
-
-        request.session["otp_method"] = "sms"
+        if request.session.get("otp_method") == "email":
+            send_email_otp(user.email, otp.code)
+            request.session["otp_method"] = "email"
+        else:
+            send_sms(
+                user.contactno,
+                f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+            )
+            request.session["otp_method"] = "sms"
 
     messages.success(request, "New OTP sent.")
     return redirect("otp_verify")
@@ -1192,7 +1305,6 @@ def send_email_otp_view(request):
 
 
 # RESIDENT REGISTER
-
 def _validate_register_form(data, files):
     errors = []
 

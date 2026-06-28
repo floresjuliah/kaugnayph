@@ -20,6 +20,10 @@ urlpatterns = [
     path('otp/verify/', views.otp_verify_view, name='otp_verify'),
     path('otp/resend/', views.resend_otp_view, name='resend_otp'),
     path('otp/send-email/', views.send_email_otp_view, name='send_email_otp'),
+    
+    #RESIDENT FORGOT PASSWORD
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('reset-password/', views.reset_password_view, name='reset_password'),
 
     #RESIDENT
     path('dashboard/resident/', views.resident_dashboard_view, name='resident_dashboard'),

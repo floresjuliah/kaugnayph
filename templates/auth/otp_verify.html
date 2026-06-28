@@ -1,5 +1,92 @@
 {% load static %}
 
+{% if request.session.forgot_password_user_type == "resident" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OTP Verification – KaugnayPH</title>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="register-page">
+
+  <div class="left-panel">
+    <p class="welcome-text">Welcome to</p>
+
+    <div class="logo-circle">
+      <img src="{% static 'images/kaugnayPH.png' %}" alt="KaugnayPH Logo">
+    </div>
+
+    <p class="brand-name">KAUGNAYPH</p>
+
+    <p class="brand-desc">
+      A Web-Based Barangay Communication and Resident
+      Concern Management System with SMS Notification
+    </p>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'landing' %}">Home</a></li>
+      <li><span>|</span></li>
+      <li><a href="{% url 'aboutus' %}">About Us</a></li>
+    </ul>
+  </div>
+
+  <div class="right-panel">
+    <div class="form-card">
+
+      <h1>OTP Verification</h1>
+
+      {% if request.session.otp_method == "email" %}
+        <p class="subtitle">An OTP has been sent to your registered email address.</p>
+      {% elif request.session.otp_method == "sms" %}
+        <p class="subtitle">An OTP has been sent to your registered mobile number.</p>
+      {% else %}
+        <p class="subtitle">An OTP has been sent to your registered contact method.</p>
+      {% endif %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="form-notice form-notice--{{ message.tags }}">
+            <p>{{ message }}</p>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="otp_code">Enter OTP</label>
+          <input
+            type="text"
+            id="otp_code"
+            name="otp_code"
+            maxlength="6"
+            inputmode="numeric"
+            placeholder="Enter 6-digit OTP"
+            autofocus
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn-create">Verify OTP</button>
+      </form>
+
+      <p class="signin-link">
+        <a href="{% url 'resend_otp' %}">Resend OTP</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>
+
+{% else %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,3 +157,5 @@
 
 </body>
 </html>
+
+{% endif %}
