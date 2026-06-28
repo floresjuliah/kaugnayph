@@ -4412,6 +4412,11 @@ def admins_list_view(request):
     paginator = Paginator(admins, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
 
+    for a in page_obj:
+        a.display_name = format_full_name(a.lastname, a.firstname)
+        a.masked_contact = mask_contact(a.contactno)
+        a.masked_email = mask_email(a.email)
+
     context = {
         "admins": page_obj,
         "page_obj": page_obj,
