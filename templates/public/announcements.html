@@ -348,7 +348,7 @@
 
   function openFeedback(btn) {
     const card = btn.closest('.ann-card');
-    currentAnnouncementId = card.dataset.id;
+    currentAnnouncementId = card.dataset.id; //stores the announcement ID.
     const existingRating = parseInt(card.dataset.myRating) || 0;
 
     document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));

@@ -172,7 +172,7 @@
       closeAvatarModal();
     }
   }
-// Password match validation - runs live as user types, only after they start typing
+
 const currentPasswordInput = document.getElementById('current_password');
 const newPasswordInput = document.getElementById('new_password');
 const confirmPasswordInput = document.getElementById('confirm_password');
@@ -182,12 +182,11 @@ function validatePasswordForm() {
   const newPass = newPasswordInput.value;
   const confirmPass = confirmPasswordInput.value;
 
-  // If user hasn't touched any password field, don't require anything
+
   if (current === '' && newPass === '' && confirmPass === '') {
     return true;
   }
 
-  // Once they start typing in any field, all become required
   if (current === '') {
     return 'Please enter your current password.';
   }
@@ -214,6 +213,33 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     alert(result);
   }
 });
+
+
+// Masking
+const contactField = document.querySelector('.readonly-field');
+document.querySelectorAll('.edit-profile-group').forEach(group => {
+  const label = group.querySelector('label');
+  const field = group.querySelector('.readonly-field');
+  if (!label || !field) return;
+
+  const text = field.textContent.trim();
+
+  if (label.textContent.includes('Mobile Number')) {
+    if (text.length > 7) {
+      field.textContent = text.slice(0, 5) + '*'.repeat(text.length - 7) + text.slice(-2);
+    }
+  }
+
+  if (label.textContent.includes('Email')) {
+    if (text.includes('@')) {
+      const [local, domain] = text.split('@');
+      if (local.length > 2) {
+        field.textContent = local.slice(0, 2) + '*'.repeat(local.length - 2) + '@' + domain;
+      }
+    }
+  }
+});
+
 </script>
 
 {% endblock %}
