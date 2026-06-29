@@ -132,7 +132,13 @@ def send_sms(contact_number, message, sent_by=None):
 # EMAIL OTP
 def send_email_otp(email_address, otp_code):
     subject = "KaugnayPH Email OTP"
-    message = f"Your KaugnayPH OTP is {otp_code}. This code is valid for 5 minutes."
+    message = (
+        f"Your KaugnayPH OTP is {otp_code}. "
+        "This code is valid for 5 minutes.\n\n"
+        "Security Reminder:\n"
+        "Never share your OTP with anyone. "
+        "KaugnayPH will never ask for your OTP or password via email, SMS, phone call, or social media."
+    )
 
     send_mail(
         subject,

@@ -609,21 +609,28 @@ def _redirect_by_type(request):
 
 def _send_otp_or_error(request, user, purpose, template, context=None):
     otp, cooldown = generate_otp(user, purpose=purpose)
+
     if cooldown:
         mins = cooldown // 60
         secs = cooldown % 60
-        messages.error(request,
-            f"Please wait {mins}m {secs}s before requesting a new OTP.")
+        messages.error(
+            request,
+            f"Please wait {mins}m {secs}s before requesting a new OTP."
+        )
         return render(request, template, context or {})
-    send_sms(user.contactno,
-             f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes.")
+
+    send_sms(
+        user.contactno,
+        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
+    )
+
     return None
 
 def _send_admin_login_otp(request, user, otp):
     try:
         send_sms(
             user.contactno,
-            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
         )
         request.session["otp_method"] = "sms"
     except Exception:
@@ -867,7 +874,7 @@ def admin_login_view(request):
 
     sms_sent = send_sms(
         user.contactno,
-        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
     )
 
     if sms_sent:
@@ -1103,7 +1110,7 @@ def admin_first_login_view(request):
     # SEND OTP TO NEW NUMBER
     send_sms(
         data["contact_no"],
-        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
     )
     request.session["otp_method"] = "sms"
     return redirect("otp_verify")
@@ -1281,10 +1288,15 @@ def resend_otp_view(request):
 
         return render(request, "auth/otp_verify.html")
 
-    if purpose == "login":
+    otp_method = request.session.get("otp_method", "sms")
+
+    if otp_method == "email":
+        send_email_otp(user.email, otp.code)
+        request.session["otp_method"] = "email"
+    else:
         sms_sent = send_sms(
             user.contactno,
-            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
+            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
         )
 
         if sms_sent:
@@ -1297,17 +1309,6 @@ def resend_otp_view(request):
                 request,
                 "SMS delivery failed. OTP has been sent to your registered email address instead."
             )
-
-    else:
-        if request.session.get("otp_method") == "email":
-            send_email_otp(user.email, otp.code)
-            request.session["otp_method"] = "email"
-        else:
-            send_sms(
-                user.contactno,
-                f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes."
-            )
-            request.session["otp_method"] = "sms"
 
     messages.success(request, "New OTP sent.")
     return redirect("otp_verify")
