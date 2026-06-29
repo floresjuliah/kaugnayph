@@ -100,85 +100,86 @@
     </div>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Request ID</th>
-                    <th>Name</th>
-                    <th>Document Type</th>
-                    <th>Date Requested</th>
-                    <th>Status</th>
-                    <th>SLA</th>
-                    <th class="actions-column">Actions</th>
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Name</th>
+                        <th>Document Type</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                        <th>SLA</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for record in records %}
-                <tr>
-                    <td>{{ record.doc_id }}</td>
-                    <td>{{ record.obj.user.firstname }} {{ record.obj.user.lastname }}</td>
-                    <td>{{ record.obj.document_type.name }}</td>
-                    <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.doc_id }}</td>
+                        <td>{{ record.obj.user.firstname }} {{ record.obj.user.lastname }}</td>
+                        <td>{{ record.obj.document_type.name }}</td>
+                        <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
 
-                    <td>
-                        {% if record.status == "Completed" %}
-                            <span class="admin-badge green">{{ record.status }}</span>
-                        {% elif record.status == "Pending" %}
-                            <span class="admin-badge yellow">{{ record.status }}</span>
-                        {% elif record.status == "Rejected" %}
-                            <span class="admin-badge red">{{ record.status }}</span>
-                        {% elif record.status == "Processing" %}
-                            <span class="admin-badge blue">{{ record.status }}</span>
-                        {% else %}
-                            <span class="admin-badge gray">{{ record.status }}</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if record.sla %}
-                            {% if record.sla_status == "Resolved" %}
-                                <span class="admin-badge green">
-                                    {{ record.sla_status }}
-                                </span>
-                            {% elif record.sla_status == "Breached" %}
-                                <span class="admin-badge red">
-                                    {{ record.sla_status }}
-                                </span>
-                            {% elif record.sla_status == "Pending" %}
-                                <span class="admin-badge yellow">
-                                    {{ record.sla_status }}
-                                </span>
+                        <td>
+                            {% if record.status == "Completed" %}
+                                <span class="admin-badge green">{{ record.status }}</span>
+                            {% elif record.status == "Pending" %}
+                                <span class="admin-badge yellow">{{ record.status }}</span>
+                            {% elif record.status == "Rejected" %}
+                                <span class="admin-badge red">{{ record.status }}</span>
+                            {% elif record.status == "Processing" %}
+                                <span class="admin-badge blue">{{ record.status }}</span>
                             {% else %}
-                                <span class="admin-badge blue">
-                                    {{ record.sla_status }}
+                                <span class="admin-badge gray">{{ record.status }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.sla %}
+                                {% if record.sla_status == "Resolved" %}
+                                    <span class="admin-badge green">
+                                        {{ record.sla_status }}
+                                    </span>
+                                {% elif record.sla_status == "Breached" %}
+                                    <span class="admin-badge red">
+                                        {{ record.sla_status }}
+                                    </span>
+                                {% elif record.sla_status == "Pending" %}
+                                    <span class="admin-badge yellow">
+                                        {{ record.sla_status }}
+                                    </span>
+                                {% else %}
+                                    <span class="admin-badge blue">
+                                        {{ record.sla_status }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="admin-badge gray">
+                                    No SLA
                                 </span>
                             {% endif %}
-                        {% else %}
-                            <span class="admin-badge gray">
-                                No SLA
-                            </span>
-                        {% endif %}
-                    </td>
+                        </td>
 
-                    <td class="actions-column">
-                        <div class="admin-actions">
-                            <a href="{% url 'admin_document_request_detail' record.obj.drid %}" class="admin-action-btn">
-                                View
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                        <td class="actions-column">
+                            <div class="admin-actions">
+                                <a href="{% url 'admin_document_request_detail' record.obj.drid %}" class="admin-action-btn">
+                                    View
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
 
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="empty-row">
-                        No document requests found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-row">
+                            No document requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-table-footer">

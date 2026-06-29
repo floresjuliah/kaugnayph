@@ -85,75 +85,76 @@
     </div>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Date Posted</th>
-                    <th class="actions-column">Actions</th>                
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Date Posted</th>
+                        <th class="actions-column">Actions</th>                
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for announcement in announcements %}
-                <tr>
-                    <td>{{ announcement.title }}</td>
+                <tbody>
+                    {% for announcement in announcements %}
+                    <tr>
+                        <td>{{ announcement.title }}</td>
 
-                    <td>
-                        <span class="admin-badge {% if announcement.category.name == 'Emergency' %}red{% else %}green{% endif %}">
-                            {{ announcement.category.name|default:"General" }}
-                        </span>
-                    </td>
+                        <td>
+                            <span class="admin-badge {% if announcement.category.name == 'Emergency' %}red{% else %}green{% endif %}">
+                                {{ announcement.category.name|default:"General" }}
+                            </span>
+                        </td>
 
-                    <td>{{ announcement.created_at|date:"M d, Y" }}</td>
+                        <td>{{ announcement.created_at|date:"M d, Y" }}</td>
 
-                    <td class="actions-column">
-                        <div class="admin-actions">
+                        <td class="actions-column">
+                            <div class="admin-actions">
 
-                            <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}"
-                            class="admin-action-btn"
-                            title="View">
-                                <i class="fa-regular fa-eye"></i>
-                            </a>
+                                <a href="{% url 'admin_announcement_detail' announcement.announcement_id %}"
+                                class="admin-action-btn"
+                                title="View">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
 
-                            <a href="{% url 'admin_feedback_detail' announcement.announcement_id %}"
-                            class="admin-action-btn"
-                            title="View Feedback">
-                                <i class="fa-solid fa-chart-column"></i>
-                            </a>
+                                <a href="{% url 'admin_feedback_detail' announcement.announcement_id %}"
+                                class="admin-action-btn"
+                                title="View Feedback">
+                                    <i class="fa-solid fa-chart-column"></i>
+                                </a>
 
-                            <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}"
-                            class="admin-action-btn"
-                            title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </a>
+                                <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}"
+                                class="admin-action-btn"
+                                title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
 
-                            <form
-                                method="POST"
-                                action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
-                                style="display:inline;"
-                                onsubmit="return openDeleteModal(event, this);"
-                            >
-                                {% csrf_token %}
-                                <button type="submit" class="admin-action-btn" title="Delete">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </form>
+                                <form
+                                    method="POST"
+                                    action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
+                                    style="display:inline;"
+                                    onsubmit="return openDeleteModal(event, this);"
+                                >
+                                    {% csrf_token %}
+                                    <button type="submit" class="admin-action-btn" title="Delete">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </form>
 
-                        </div>
-                    </td>
-                </tr>
+                            </div>
+                        </td>
+                    </tr>
 
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="empty-row">
-                        No announcements found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="empty-row">
+                            No announcements found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-table-footer">

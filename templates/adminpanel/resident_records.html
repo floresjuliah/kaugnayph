@@ -94,55 +94,57 @@
     </div>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Full Name</th>
-                    <th>Contact Number</th>
-                    <th>Email</th>
-                    <th>Verification Status</th>
-                    <th>SMS Subscriber</th>
-                    <th class="actions-column">Actions</th>
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Contact Number</th>
+                        <th>Email</th>
+                        <th>Verification Status</th>
+                        <th>SMS Subscriber</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for rec in records %}
-                <tr>
-                    <td>{{ rec.display_name }}</td>
-                    <td>{{ rec.masked_contact }}</td>
-                    <td>{{ rec.masked_email }}</td>
+                <tbody>
+                    {% for rec in records %}
+                    <tr>
+                        <td>{{ rec.display_name }}</td>
+                        <td>{{ rec.masked_contact }}</td>
+                        <td>{{ rec.masked_email }}</td>
 
-                    <td>
-                        {% if rec.status == "Approved" %}
-                            <span class="admin-badge green">Verified</span>
-                        {% elif rec.status == "Pending" %}
-                            <span class="admin-badge yellow">Pending</span>
-                        {% elif rec.status == "Rejected" %}
-                            <span class="admin-badge red">Rejected</span>
-                        {% else %}
-                            <span class="admin-badge gray">No Submission</span>
-                        {% endif %}
-                    </td>
+                        <td>
+                            {% if rec.status == "Approved" %}
+                                <span class="admin-badge green">Verified</span>
+                            {% elif rec.status == "Pending" %}
+                                <span class="admin-badge yellow">Pending</span>
+                            {% elif rec.status == "Rejected" %}
+                                <span class="admin-badge red">Rejected</span>
+                            {% else %}
+                                <span class="admin-badge gray">No Submission</span>
+                            {% endif %}
+                        </td>
 
-                    <td>{% if rec.sms_sub %}Yes{% else %}No{% endif %}</td>
+                        <td>{% if rec.sms_sub %}Yes{% else %}No{% endif %}</td>
 
-                    <td class="actions-column">
-                        <div class="admin-actions">
-                            <a href="{% url 'resident_record_view' rec.user.userid %}" class="admin-action-btn">
-                                View
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                        <td class="actions-column">
+                            <div class="admin-actions">
+                                <a href="{% url 'resident_record_view' rec.user.userid %}" class="admin-action-btn">
+                                    View
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
 
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="empty-row">No resident records found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-row">No resident records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>    
 
         <div class="admin-table-footer">
             <p>

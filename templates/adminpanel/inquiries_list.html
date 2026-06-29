@@ -100,88 +100,89 @@
     </div>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Resident</th>
-                    <th>Contact Number</th>
-                    <th>Subject</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>SLA</th>
-                    <th>Received At</th>
-                    <th class="actions-column">Actions</th>
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Resident</th>
+                        <th>Contact Number</th>
+                        <th>Subject</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>SLA</th>
+                        <th>Received At</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for record in records %}
-                <tr>
-                    <td>{{ record.obj.firstname }} {{ record.obj.lastname }}</td>
-                    <td>{{ record.obj.contactno }}</td>
-                    <td>{{ record.obj.messagesubject|default:"No subject" }}</td>
-                    <td>{{ record.obj.faq_category.category_name|default:"Uncategorized" }}</td>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.obj.firstname }} {{ record.obj.lastname }}</td>
+                        <td>{{ record.obj.contactno }}</td>
+                        <td>{{ record.obj.messagesubject|default:"No subject" }}</td>
+                        <td>{{ record.obj.faq_category.category_name|default:"Uncategorized" }}</td>
 
-                    <td>
-                        {% if record.obj.status == "Replied" %}
-                            <span class="admin-badge green">{{ record.obj.status|default:"New" }}</span>
-                        {% elif record.obj.status == "Pending" %}
-                            <span class="admin-badge yellow">{{ record.obj.status|default:"New" }}</span>
-                        {% elif record.obj.status == "Closed" %}
-                            <span class="admin-badge gray">{{ record.obj.status|default:"New" }}</span>
-                        {% else %}
-                            <span class="admin-badge blue">{{ record.obj.status|default:"New" }}</span>
-                        {% endif %}
-                    </td>
                         <td>
-                            {% if record.sla %}
-                                {% if record.sla_status == "Resolved" %}
-                                    <span class="admin-badge green">
-                                        {{ record.sla_status }}
-                                    </span>
-
-                                {% elif record.sla_status == "Breached" %}
-                                    <span class="admin-badge red">
-                                        {{ record.sla_status }}
-                                    </span>
-
-                                {% elif record.sla_status == "Pending" %}
-                                    <span class="admin-badge yellow">
-                                        {{ record.sla_status }}
-                                    </span>
-
-                                {% else %}
-                                    <span class="admin-badge blue">
-                                        {{ record.sla_status }}
-                                    </span>
-                                {% endif %}
+                            {% if record.obj.status == "Replied" %}
+                                <span class="admin-badge green">{{ record.obj.status|default:"New" }}</span>
+                            {% elif record.obj.status == "Pending" %}
+                                <span class="admin-badge yellow">{{ record.obj.status|default:"New" }}</span>
+                            {% elif record.obj.status == "Closed" %}
+                                <span class="admin-badge gray">{{ record.obj.status|default:"New" }}</span>
                             {% else %}
-                                <span class="admin-badge gray">
-                                    No SLA
-                                </span>
+                                <span class="admin-badge blue">{{ record.obj.status|default:"New" }}</span>
                             {% endif %}
                         </td>
+                            <td>
+                                {% if record.sla %}
+                                    {% if record.sla_status == "Resolved" %}
+                                        <span class="admin-badge green">
+                                            {{ record.sla_status }}
+                                        </span>
 
-                    <td>{{ record.obj.created_at|date:"M d, g:i A" }}</td>
+                                    {% elif record.sla_status == "Breached" %}
+                                        <span class="admin-badge red">
+                                            {{ record.sla_status }}
+                                        </span>
 
-                    <td class="actions-column">
-                        <div class="admin-actions">
-                            <a href="{% url 'admin_inquiry_detail' record.obj.cuid %}" class="admin-action-btn">
-                                View
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                                    {% elif record.sla_status == "Pending" %}
+                                        <span class="admin-badge yellow">
+                                            {{ record.sla_status }}
+                                        </span>
 
-                {% empty %}
-                <tr>
-                    <td colspan="8" class="empty-row">
-                        No inquiries found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                    {% else %}
+                                        <span class="admin-badge blue">
+                                            {{ record.sla_status }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="admin-badge gray">
+                                        No SLA
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                        <td>{{ record.obj.created_at|date:"M d, g:i A" }}</td>
+
+                        <td class="actions-column">
+                            <div class="admin-actions">
+                                <a href="{% url 'admin_inquiry_detail' record.obj.cuid %}" class="admin-action-btn">
+                                    View
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="empty-row">
+                            No inquiries found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-table-footer">

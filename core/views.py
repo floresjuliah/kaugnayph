@@ -4686,6 +4686,9 @@ def sms_outbox_view(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    for sms in page_obj:
+        sms.masked_recipient = mask_contact(sms.recipient_number)
+
     return render(
         request,
         "adminpanel/SMS_outbox.html",
