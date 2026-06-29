@@ -14,50 +14,51 @@
     </div>
 
     <div class="admin-table-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Message</th>
+                        <th>Sender</th>
+                        <th>Status</th>
+                        <th>Time Sent</th>
+                    </tr>
+                </thead>
 
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Recipient</th>
-                    <th>Message</th>
-                    <th>Sender</th>
-                    <th>Status</th>
-                    <th>Time Sent</th>
-                </tr>
-            </thead>
+                <tbody>
+                    {% for sms in page_obj %}
+                    <tr>
+                        <td>{{ sms.masked_recipient }}</td>
 
-            <tbody>
-                {% for sms in page_obj %}
-                <tr>
-                    <td>{{ sms.recipient_number }}</td>
+                        <td>{{ sms.message|truncatechars:80 }}</td>
 
-                    <td>{{ sms.message|truncatechars:80 }}</td>
+                        <td>{{ sms.sent_by|default:"System" }}</td>
 
-                    <td>{{ sms.sent_by|default:"System" }}</td>
+                        <td>
+                            <span class="admin-badge
+                                {% if sms.status == 'Sent' %}green
+                                {% elif sms.status == 'Pending' %}yellow
+                                {% elif sms.status == 'Failed' %}red
+                                {% else %}blue
+                                {% endif %}">
+                                {{ sms.status|default:"Pending" }}
+                            </span>
+                        </td>
 
-                    <td>
-                        <span class="admin-badge
-                            {% if sms.status == 'Sent' %}green
-                            {% elif sms.status == 'Pending' %}yellow
-                            {% elif sms.status == 'Failed' %}red
-                            {% else %}blue
-                            {% endif %}">
-                            {{ sms.status|default:"Pending" }}
-                        </span>
-                    </td>
+                        <td>{{ sms.sent_at|date:"M d, Y h:i A" }}</td>
+                    </tr>
 
-                    <td>{{ sms.sent_at|date:"M d, Y h:i A" }}</td>
-                </tr>
-
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="empty-row">
-                        No SMS records available yet.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-row">
+                            No SMS records available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>    
 
         <div class="admin-table-footer">
 

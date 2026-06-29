@@ -4007,3 +4007,54 @@ EDIT RESIDENT PROFILE PAGE
 .compact-filter-row .case-filter-date {
     flex: 0 0 auto;
 }
+
+/* =========================
+   MOBILE: SIDEBAR / HAMBURGER
+========================= */
+
+@media (max-width: 768px) {
+
+    /* Sidebar becomes an off-canvas drawer */
+    .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1001;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .admin-sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Main column takes full width, no longer fights the sidebar for space */
+    .admin-main {
+        width: 100%;
+    }
+
+    /* Show the hamburger only on mobile */
+    .sidebar-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Dark backdrop behind the open drawer */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1000;
+    }
+
+    .admin-sidebar.active ~ .sidebar-overlay,
+    .sidebar-overlay.active {
+        display: block;
+    }
+}

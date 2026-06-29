@@ -84,69 +84,70 @@
     </div>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Question</th>
-                    <th>Category</th>
-                    <th>Created By</th>
-                    <th>Status</th>
-                    <th>Updated At</th>
-                    <th class="actions-column">Actions</th>
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Category</th>
+                        <th>Created By</th>
+                        <th>Status</th>
+                        <th>Updated At</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for faq in faqs %}
-                <tr>
-                    <td>{{ faq.question }}</td>
+                <tbody>
+                    {% for faq in faqs %}
+                    <tr>
+                        <td>{{ faq.question }}</td>
 
-                    <td>
-                        <span class="admin-badge gray">
-                            {{ faq.faq_category.category_name }}
-                        </span>
-                    </td>
+                        <td>
+                            <span class="admin-badge gray">
+                                {{ faq.faq_category.category_name }}
+                            </span>
+                        </td>
 
-                    <td>
-                        {% if faq.created_by %}
-                            {{ faq.created_by.firstname }} {{ faq.created_by.lastname }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
+                        <td>
+                            {% if faq.created_by %}
+                                {{ faq.created_by.firstname }} {{ faq.created_by.lastname }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
 
-                    <td>
-                        {% if faq.is_active %}
-                            <span class="admin-badge green">Active</span>
-                        {% else %}
-                            <span class="admin-badge red">Inactive</span>
-                        {% endif %}
-                    </td>
+                        <td>
+                            {% if faq.is_active %}
+                                <span class="admin-badge green">Active</span>
+                            {% else %}
+                                <span class="admin-badge red">Inactive</span>
+                            {% endif %}
+                        </td>
 
-                    <td>{{ faq.updated_at|date:"M d, Y h:i A" }}</td>
+                        <td>{{ faq.updated_at|date:"M d, Y h:i A" }}</td>
 
-                    <td class="actions-column">
-                        <div class="admin-actions">
-                            <a href="{% url 'admin_edit_faq' faq.faq_id %}" class="admin-action-btn">
-                                Edit
-                            </a>
+                        <td class="actions-column">
+                            <div class="admin-actions">
+                                <a href="{% url 'admin_edit_faq' faq.faq_id %}" class="admin-action-btn">
+                                    Edit
+                                </a>
 
-                            <a href="{% url 'admin_toggle_faq' faq.faq_id %}" class="admin-action-btn danger">
-                                {% if faq.is_active %}Deactivate{% else %}Activate{% endif %}
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                                <a href="{% url 'admin_toggle_faq' faq.faq_id %}" class="admin-action-btn danger">
+                                    {% if faq.is_active %}Deactivate{% else %}Activate{% endif %}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
 
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="empty-row">
-                        No FAQs found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-row">
+                            No FAQs found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-table-footer">

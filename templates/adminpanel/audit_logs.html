@@ -58,60 +58,61 @@
     </form>
 
     <div class="admin-table-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Date / Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Module</th>
-                    <th>Table</th>
-                    <th>Record ID</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Date / Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Module</th>
+                        <th>Table</th>
+                        <th>Record ID</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log.created_at|date:"M d, Y g:i A" }}</td>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at|date:"M d, Y g:i A" }}</td>
 
-                    <td>
-                        {% if log.user %}
-                            {{ log.user.firstname }} {{ log.user.lastname }}
-                        {% else %}
-                            System
-                        {% endif %}
-                    </td>
+                        <td>
+                            {% if log.user %}
+                                {{ log.user.firstname }} {{ log.user.lastname }}
+                            {% else %}
+                                System
+                            {% endif %}
+                        </td>
 
-                    <td>
-                        <span class="admin-badge blue">{{ log.action }}</span>
-                    </td>
+                        <td>
+                            <span class="admin-badge blue">{{ log.action }}</span>
+                        </td>
 
-                    <td>{{ log.module_name|default:"-" }}</td>
-                    <td>{{ log.table_name|default:"-" }}</td>
-                    <td>{{ log.record_id|default:"-" }}</td>
+                        <td>{{ log.module_name|default:"-" }}</td>
+                        <td>{{ log.table_name|default:"-" }}</td>
+                        <td>{{ log.record_id|default:"-" }}</td>
 
-                    <td>
-                        {% if log.new_value %}
-                            {{ log.new_value|truncatechars:80 }}
-                        {% elif log.old_value %}
-                            {{ log.old_value|truncatechars:80 }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                </tr>
+                        <td>
+                            {% if log.new_value %}
+                                {{ log.new_value|truncatechars:80 }}
+                            {% elif log.old_value %}
+                                {{ log.old_value|truncatechars:80 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
 
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="empty-row">
-                        No audit logs found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-row">
+                            No audit logs found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-table-footer">
