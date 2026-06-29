@@ -112,16 +112,24 @@ def send_sms(contact_number, message, sent_by=None):
         gateway_response = r.text
         success = r.status_code == 200 and "Failure:1" not in gateway_response
 
+        
+        if not success:
+            error_message = f"HTTP {r.status_code}: {gateway_response[:200]}"
+
     except requests.Timeout:
         error_message = "Request timed out"
     except requests.RequestException as e:
         error_message = str(e)
 
+    
+    now = timezone.now()
+
     SMSOutbox.objects.create(
         recipient_number=contact_number,
         message=message,
         sent_by=sent_by,
-        sent_at=timezone.now(),
+        sent_at=now,
+        created_at=now,          # ADD THIS
         status="sent" if success else "failed",
         error_message=error_message,
         gateway_response=gateway_response,

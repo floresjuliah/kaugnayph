@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class UserTypes(models.Model):
@@ -497,7 +498,7 @@ class SMSOutbox(models.Model):
     related_record_id = models.IntegerField(blank=True, null=True)
     user_id = models.IntegerField(blank=True, null=True)
 
-    created_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, blank=True, null=True)
 
     class Meta:
         db_table = 'SMS_Outbox'
