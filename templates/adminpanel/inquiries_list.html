@@ -51,7 +51,6 @@
                 value="{{ date_to }}"
                 class="admin-filter"
                 title="Received date"
-                onchange="this.form.submit()"
             >
 
         </div>
@@ -209,5 +208,23 @@
     </div>
 
 </div>
+<script>
+    document.querySelectorAll('input[type="date"]').forEach(function (dateInput) {
+        dateInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
 
+                if (this.value && this.value.length === 10) {
+                    this.form.submit();
+                }
+            }
+        });
+
+        dateInput.addEventListener("blur", function () {
+            if (this.value && this.value.length === 10) {
+                this.form.submit();
+            }
+        });
+    });
+</script>
 {% endblock %}

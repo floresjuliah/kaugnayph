@@ -39,9 +39,10 @@
                 name="date"
                 value="{{ date_filter }}"
                 class="admin-filter"
-                title="Date posted"
-                onchange="this.form.submit()"
+                title="Date requested"
             >
+
+            
 
         </form>
 
@@ -240,6 +241,20 @@
         });
 
     }, 5000);
+</script>
+
+<script>
+    document.querySelectorAll('input[type="date"]').forEach(function (dateInput) {
+        dateInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+
+                if (/^\d{4}-\d{2}-\d{2}$/.test(this.value)) {
+                    this.form.submit();
+                }
+            }
+        });
+    });
 </script>
 
 {% endblock %}

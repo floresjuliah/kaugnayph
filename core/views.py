@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from datetime import datetime
+from datetime import datetime, time
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
@@ -56,6 +57,7 @@ from .models import (
 )
 
 from django.utils.dateparse import parse_datetime 
+from django.utils.dateparse import parse_date
 from django.urls import reverse
 from urllib.parse import urlencode
 
@@ -2593,9 +2595,15 @@ def admin_announcements_view(request):
         )
 
     if date_filter:
-        announcements = announcements.filter(
-            created_at__date=date_filter
-        )
+        selected_date = parse_date(date_filter)
+
+        if selected_date:
+            start = timezone.make_aware(datetime.combine(selected_date, time.min))
+            end = timezone.make_aware(datetime.combine(selected_date, time.max))
+
+            announcements = announcements.filter(
+                created_at__range=(start, end)
+            )
 
     announcements = announcements.order_by("-announcement_id")
 
@@ -2954,7 +2962,15 @@ def case_records_view(request):
     if date_from:
         complaints = complaints.filter(incident_date__gte=date_from)
     if date_to:
-        complaints = complaints.filter(incident_date__lte=date_to)
+        selected_date = parse_date(date_to)
+
+        if selected_date:
+            start = timezone.make_aware(datetime.combine(selected_date, time.min))
+            end = timezone.make_aware(datetime.combine(selected_date, time.max))
+
+            complaints = complaints.filter(
+                incident_date__range=(start, end)
+            )
 
     if search_query:
         case_id_match = re.search(r"(\d+)$", search_query)
@@ -3354,9 +3370,15 @@ def admin_document_requests_view(request):
         doc_requests = doc_requests.filter(document_type_id=document_type_filter)
 
     if date_filter:
-        doc_requests = doc_requests.filter(
-            requested_at__date=date_filter
-        )
+        selected_date = parse_date(date_filter)
+
+        if selected_date:
+            start = timezone.make_aware(datetime.combine(selected_date, time.min))
+            end = timezone.make_aware(datetime.combine(selected_date, time.max))
+
+            doc_requests = doc_requests.filter(
+                requested_at__range=(start, end)
+            )
 
     doc_requests = doc_requests.order_by("-requested_at")
 
@@ -4235,7 +4257,15 @@ def admin_inquiries_view(request):
             inquiries = inquiries.filter(faq_category_id=category_filter)
 
     if date_to:
-        inquiries = inquiries.filter(created_at__date=date_to)
+        selected_date = parse_date(date_to)
+
+        if selected_date:
+            start = timezone.make_aware(datetime.combine(selected_date, time.min))
+            end = timezone.make_aware(datetime.combine(selected_date, time.max))
+
+            inquiries = inquiries.filter(
+                created_at__range=(start, end)
+            )
 
     inquiries = inquiries.order_by("-created_at")
 
@@ -4415,7 +4445,15 @@ def audit_logs_view(request):
         logs = logs.filter(action=action_filter)
 
     if date_filter:
-        logs = logs.filter(created_at__date=date_filter)
+        selected_date = parse_date(date_filter)
+
+        if selected_date:
+            start = timezone.make_aware(datetime.combine(selected_date, time.min))
+            end = timezone.make_aware(datetime.combine(selected_date, time.max))
+
+            logs = logs.filter(
+                created_at__range=(start, end)
+            )
 
     logs = logs.order_by("-created_at")
 
