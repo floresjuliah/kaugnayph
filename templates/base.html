@@ -212,6 +212,7 @@
 
   <div id="smsConfirmModal" class="sms-modal-overlay" style="display:none;">
     <div class="sms-modal">
+      <div class="sms-modal-icon" id="smsConfirmIcon"></div>
       <h3 id="smsConfirmTitle">Confirm SMS Change</h3>
       <p id="smsConfirmMessage"></p>
 
@@ -224,8 +225,36 @@
 
   <div id="smsSuccessModal" class="sms-modal-overlay" style="display:none;">
     <div class="sms-modal">
+      <div class="sms-modal-icon sms-modal-icon--success">
+        <svg width="70" height="70" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="15" cy="15" r="15" fill="#C7FAD4"/>
+        <path d="M20 6.33782C18.5291 5.48697 16.8214 5 15 5C9.47715 5 5 9.47715 5 15C5 20.5228 9.47715 25 15 25C20.5228 25 25 20.5228 25 15C25 14.3151 24.9311 13.6462 24.8 13" stroke="#34C759" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M11 15.5C11 15.5 12.5 15.5 14.5 19C14.5 19 20.0588 9.83333 25 8" stroke="#34C759" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+      </div>
       <h3 id="smsSuccessTitle"></h3>
       <p id="smsSuccessMessage"></p>
+      <div id="smsEnabledContent" style="display:none;">
+        <ul class="sms-modal-list">
+          <li>Document requests</li>
+          <li>Complaints</li>
+          <li>Inquiries</li>
+          <li>Emergency announcements</li>
+        </ul>
+        <div class="sms-security-reminder">
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.9982 2C8.99043 2 7.04018 4.01899 4.73371 4.7549C3.79589 5.05413 3.32697 5.20374 3.1372 5.41465C2.94743 5.62556 2.89186 5.93375 2.78072 6.55013C1.59143 13.146 4.1909 19.244 10.3903 21.6175C11.0564 21.8725 11.3894 22 12.0015 22C12.6135 22 12.9466 21.8725 13.6126 21.6175C19.8116 19.2439 22.4086 13.146 21.219 6.55013C21.1078 5.93364 21.0522 5.6254 20.8624 5.41449C20.6726 5.20358 20.2037 5.05405 19.2659 4.75499C16.9585 4.01915 15.0061 2 11.9982 2Z" stroke="#2D4EAA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 12.5C10 12.5 10.5 12.5 11 13.5C11 13.5 12.5882 11 14 10.5" stroke="#2D4EAA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke="#2D4EAA" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div class="sms-security-reminder__text">
+            <strong>Security Reminder</strong>
+            <p>Official KaugnayPH messages will never ask for your password or verification code.</p>
+          </div>
+        </div>
+      </div>
+
 
       <div class="sms-modal-actions">
         <button type="button" id="smsSuccessOkBtn" class="sms-confirm-btn">OK</button>
@@ -308,23 +337,45 @@
       let intendedSmsState = null;
 
       if (smsToggle) {
-        smsToggle.addEventListener("change", function() {
-          intendedSmsState = smsToggle.checked;
-          smsToggle.checked = !intendedSmsState;
+  smsToggle.addEventListener("change", function() {
+    intendedSmsState = smsToggle.checked;
+    smsToggle.checked = !intendedSmsState;
 
-          if (intendedSmsState) {
-            smsConfirmTitle.textContent = "Enable SMS Notifications?";
-            smsConfirmMessage.textContent = "You will receive SMS notifications for announcements and service updates from Barangay 761.";
-            smsConfirmBtn.textContent = "Enable";
-          } else {
-            smsConfirmTitle.textContent = "Disable SMS Notifications?";
-            smsConfirmMessage.textContent = "You will no longer receive SMS notifications for announcements and service updates from Barangay 761.";
-            smsConfirmBtn.textContent = "Disable";
-          }
+    const smsConfirmIcon = document.getElementById("smsConfirmIcon");
 
-          smsConfirmModal.style.display = "flex";
-        });
-      }
+    if (intendedSmsState) {
+      smsConfirmTitle.textContent = "Enable SMS Notifications?";
+      smsConfirmMessage.textContent = "You'll now receive official SMS updates from KaugnayPH regarding your document requests, complaints, inquiries, and emergency announcements.";
+      smsConfirmBtn.textContent = "Enable";
+      smsConfirmBtn.classList.remove('disable');
+      smsConfirmBtn.classList.add('enable');
+
+      smsConfirmIcon.innerHTML = `
+        <svg width="60" height="60" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="15" cy="15" r="15" fill="#C7FAD4"/>
+        <path d="M20 22.43H16L11.55 25.39C10.89 25.83 10 25.36 10 24.56V22.43C7 22.43 5 20.43 5 17.43V11.4299C5 8.42993 7 6.42993 10 6.42993H20C23 6.42993 25 8.42993 25 11.4299V17.43C25 20.43 23 22.43 20 22.43Z" stroke="#34C759" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15.0001 15.3599V15.1499C15.0001 14.4699 15.4201 14.1099 15.8401 13.8199C16.2501 13.5399 16.66 13.1799 16.66 12.5199C16.66 11.5999 15.9201 10.8599 15.0001 10.8599C14.0801 10.8599 13.3401 11.5999 13.3401 12.5199" stroke="#34C759" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14.9955 17.75H15.0045" stroke="#34C759" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+    } else {
+      smsConfirmTitle.textContent = "Disable SMS Notifications?";
+      smsConfirmMessage.textContent = "You will no longer receive SMS notifications for announcements and service updates from Barangay 761.";
+      smsConfirmBtn.textContent = "Disable";
+      smsConfirmBtn.classList.remove('enable');
+      smsConfirmBtn.classList.add('disable');
+
+      smsConfirmIcon.innerHTML = `
+        <svg width="60" height="60" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11.5" cy="11.5" r="9.5" fill="#FEEFD2"/>
+          <circle cx="11.5" cy="11.5" r="9.58333" stroke="#FFA537" stroke-width="1.5"/>
+          <path d="M11.4914 14.375H11.5" stroke="#FFA537" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M11.5 11.5L11.5 7.66667" stroke="#FFA537" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+    }
+
+    smsConfirmModal.style.display = "flex";
+  });
+}
 
       if (smsCancelBtn) {
         smsCancelBtn.addEventListener("click", function() {
@@ -349,11 +400,13 @@
               smsToggle.checked = data.is_active;
 
               if (data.is_active) {
-                smsSuccessTitle.textContent = "SMS Notifications Enabled";
-                smsSuccessMessage.textContent = "You will now receive SMS notifications for announcements and service updates from Barangay 761.";
+                smsSuccessTitle.textContent = "SMS Notifications Enabled!";
+                smsSuccessMessage.textContent = "You'll now receive official SMS updates from KaugnayPH regarding your:";
+                document.getElementById('smsEnabledContent').style.display = 'block';
               } else {
                 smsSuccessTitle.textContent = "SMS Notifications Disabled";
-                smsSuccessMessage.textContent = "You will no longer receive SMS notifications for announcements and service updates from Barangay 761. You can enable them again at any time.";
+                smsSuccessMessage.textContent = "You will no longer receive SMS notifications. You can enable them again at any time.";
+                document.getElementById('smsEnabledContent').style.display = 'none';
               }
 
               smsSuccessModal.style.display = "flex";
@@ -380,6 +433,5 @@
   }
 
 </script>
-
 </body>
 </html>
