@@ -587,6 +587,122 @@ def delete_announcement(request, announcement_id):
 
     return JsonResponse({"message": "Deleted"})
 
+#incoming sms api
+@csrf_exempt
+def incoming_sms_webhook(request):
+    data = request.POST if request.method == "POST" else request.GET
+
+    phone = (data.get("phone") or data.get("mobile") or data.get("sender") or "").strip()
+    message = (data.get("message") or data.get("Memo") or "").strip()
+    port = (data.get("port") or "").strip()
+    received_at = data.get("received_at")
+
+    if not phone or not message:
+        return JsonResponse({
+            "status": "error",
+            "message": "phone and message are required"
+        }, status=400)
+
+    authorized_admin = Users.objects.filter(
+        contactno=phone,
+        is_active=True,
+        role__rolename__in=["Barangay Chairman", "Barangay Secretary"]
+    ).first()
+
+    if not authorized_admin:
+        return JsonResponse({
+            "status": "error",
+            "message": "Unauthorized sender"
+        }, status=403)
+
+    if not message.startswith("#ANNOUNCE#"):
+        return JsonResponse({
+            "status": "error",
+            "message": "Invalid command. Use #ANNOUNCE#Category#Message"
+        }, status=400)
+
+    parts = message.split("#", 3)
+
+    if len(parts) < 4:
+        return JsonResponse({
+            "status": "error",
+            "message": "Invalid format. Use #ANNOUNCE#Category#Message"
+        }, status=400)
+
+    category_name = parts[2].strip()
+    announcement_content = parts[3].strip()
+
+    if not category_name or not announcement_content:
+        return JsonResponse({
+            "status": "error",
+            "message": "Category and message are required"
+        }, status=400)
+
+    category = AnnouncementCategories.objects.filter(
+        name__iexact=category_name
+    ).first()
+
+    if not category:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Announcement category '{category_name}' not found"
+        }, status=400)
+
+    title = f"{category.name} Announcement"
+
+    text_check = moderate_text(f"{title} {announcement_content}")
+    if text_check["flagged"]:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Announcement content was flagged for: {text_check['reason']}"
+        }, status=400)
+
+    announcement = Announcements.objects.create(
+        title=title,
+        content=announcement_content,
+        file_path=None,
+        send_sms=True,
+        category=category,
+        posted_by=authorized_admin,
+        created_at=timezone.now()
+    )
+
+    sent_count = 0
+
+    for sub in SMSSubscriptions.objects.select_related("user").filter(is_active=True):
+        if sub.user and sub.user.contactno:
+            if send_sms(
+                sub.user.contactno,
+                f"KaugnayPH: {announcement.title}\n{announcement.content}",
+                sent_by=authorized_admin
+            ):
+                sent_count += 1
+
+    AuditLogs.objects.create(
+        user=authorized_admin,
+        action="Remote SMS Announcement",
+        module_name="Announcements",
+        table_name="Announcements",
+        record_id=announcement.announcement_id,
+        old_value="",
+        new_value=(
+            f"Remote SMS via GOIP port {port or 'N/A'}; "
+            f"Phone: {phone}; "
+            f"Message: {message}; "
+            f"Received At: {received_at or 'N/A'}"
+        ),
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        created_at=timezone.now()
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Remote SMS announcement created",
+        "announcement_id": announcement.announcement_id,
+        "sms_sent": sent_count
+    })
+
 #CREATE SMS LOG
 @admin_login_required
 def create_sms_log(request):

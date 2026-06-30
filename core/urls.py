@@ -46,6 +46,9 @@ urlpatterns = [
     name='complaint_timeline'
     ),
 
+    # API: INCOMING SMS WEBHOOK
+    path("api/sms/incoming/", views.incoming_sms_webhook, name="incoming_sms_webhook"),
+
     #ADMIN DASHBOARD
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
     path('admin/register/', views.admin_register, name='admin_register'),
