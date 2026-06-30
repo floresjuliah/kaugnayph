@@ -1,0 +1,18 @@
+[Unit]
+Description=Gunicorn for KaugnayPH Django App
+After=network.target
+
+[Service]
+User=juliahflores
+Group=www-data
+WorkingDirectory=/home/juliahflores/project/kaugnayph
+Environment="PATH=/home/juliahflores/project/kaugnayph/venv/bin"
+ExecStart=/home/juliahflores/project/kaugnayph/venv/bin/gunicorn \
+          --workers 3 \
+          --timeout 120 \
+          --bind 127.0.0.1:8000 \
+          kaugnayph.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+

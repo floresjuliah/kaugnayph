@@ -6,4 +6,4 @@ venv/
 .DS_Store
 .env__pycache__/
 *.pyo
-media/
+media/staticfiles/
