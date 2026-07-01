@@ -587,15 +587,42 @@ def delete_announcement(request, announcement_id):
 
     return JsonResponse({"message": "Deleted"})
 
-#incoming sms api
+#incoming sms api / remote sms posting
 @csrf_exempt
 def incoming_sms_webhook(request):
-    data = request.POST if request.method == "POST" else request.GET
+    if request.content_type == "application/json":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            data = {}
+    else:
+        data = request.POST if request.method == "POST" else request.GET
 
-    phone = (data.get("phone") or data.get("mobile") or data.get("sender") or "").strip()
-    message = (data.get("message") or data.get("Memo") or "").strip()
-    port = (data.get("port") or "").strip()
+    phone = (
+        data.get("phone")
+        or data.get("mobile")
+        or data.get("sender")
+        or data.get("number")
+        or ""
+    ).strip()
+
+    message = (
+        data.get("message")
+        or data.get("Memo")
+        or data.get("content")
+        or ""
+    ).strip()
+
+    port = (
+        data.get("port")
+        or data.get("name")
+        or ""
+    ).strip()
+
     received_at = data.get("received_at")
+
+    if phone.startswith("+63"):
+        phone = "0" + phone[3:]
 
     if not phone or not message:
         return JsonResponse({

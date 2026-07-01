@@ -10,6 +10,9 @@
 
     <link rel="stylesheet"
           href="{% static 'css/admin.css' %}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body class="admin-login-page">
@@ -59,9 +62,8 @@
                    placeholder="........"
                    required>
 
-            <span class="toggle-password"
-                  onclick="togglePassword()">
-                👁
+            <span class="toggle-password" onclick="togglePassword()">
+                <i class="fa-regular fa-eye" id="toggleIcon"></i>
             </span>
 
         </div>
@@ -82,17 +84,21 @@
 <script>
 function togglePassword() {
 
-    const passwordInput =
-        document.getElementById("password");
+    const passwordInput = document.getElementById("password");
+    const icon = document.getElementById("toggleIcon");
 
     if (passwordInput.type === "password") {
         passwordInput.type = "text";
-    }
-    else {
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
         passwordInput.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
     }
 }
 </script>
+
 
 </body>
 </html>
