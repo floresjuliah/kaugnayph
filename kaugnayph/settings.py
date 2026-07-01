@@ -21,12 +21,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "barangaythesis.swiftlink.pro",
+    "kaugnayph.swiftlink.pro",
     "127.0.0.1",
     "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://barangaythesis.swiftlink.pro",
+    "https://kaugnayph.swiftlink.pro",
+    
 ]
 
 
