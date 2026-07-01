@@ -4,9 +4,18 @@
 
 {% block admin_content %}
 
+<div style="margin-bottom: 1rem;">
+  <a href="{% url 'announcements' %}"
+     style="color:#2563eb; text-decoration:none; font-size:0.9rem;">
+    ← Back to Announcements
+  </a>
+</div>
+
 <div style="margin-bottom: 1.5rem;">
   <h2 style="margin: 0 0 0.25rem;">Announcement Feedback</h2>
-  <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Resident Likert ratings per announcement.</p>
+  <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">
+    Resident Likert ratings per announcement.
+  </p>
 </div>
 
 <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
