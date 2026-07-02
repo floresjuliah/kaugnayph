@@ -140,6 +140,10 @@ class Users(models.Model):
         on_delete=models.SET_NULL,
     )
 
+    def __str__(self):
+        full_name = f"{self.firstname or ''} {self.lastname or ''}".strip()
+        return full_name or self.username or f"User {self.userid}"
+
     class Meta:
         db_table = 'Users'
 
@@ -494,7 +498,6 @@ class SMSOutbox(models.Model):
     error_message = models.TextField(blank=True, null=True)
     gateway_response = models.TextField(blank=True, null=True)
 
-    module_id = models.IntegerField(blank=True, null=True)
     related_record_id = models.IntegerField(blank=True, null=True)
     user_id = models.IntegerField(blank=True, null=True)
 
@@ -502,13 +505,6 @@ class SMSOutbox(models.Model):
 
     class Meta:
         db_table = 'SMS_Outbox'
-
-class SMSModules(models.Model):
-    smsmoduleid = models.AutoField(db_column='SMSModuleID', primary_key=True)
-    module_name = models.CharField(max_length=50)
-
-    class Meta:
-        db_table = 'SMSModules'
 
 
 class AnnouncementCategories(models.Model):

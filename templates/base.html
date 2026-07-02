@@ -63,7 +63,7 @@
       <li><a href="{% url 'contactus' %}" {% if active_page == 'contactus' %}class="active"{% endif %} data-en="Contact Us" data-tl="Makipag-ugnayan">Contact Us</a></li>
     </ul>
 
-    {% if request.session.user_id %}
+    {% if request.session.user_id and request.session.user_type == "Resident" %}
     <div class="nav-dropdown user-dropdown">
       <a href="#" class="nav-user-trigger">
         {% if request.session.avatar_path %}
