@@ -4086,3 +4086,7 @@ EDIT RESIDENT PROFILE PAGE
 .toggle-password:hover {
     color: #2563eb;
 }
+
+.forgot-password {
+    margin-top: 12px;
+}

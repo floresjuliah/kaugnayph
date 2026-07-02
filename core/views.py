@@ -127,6 +127,8 @@ def announcement_detail(request, announcement_id):
 @login_required
 @resident_required
 def filecomplaint(request):
+
+
     incident_date = None
     current_user = get_current_user(request)
 

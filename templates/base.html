@@ -51,7 +51,7 @@
     <ul class="nav-links">
       <li><a href="{% url 'landing' %}" {% if active_page == 'home' %}class="active"{% endif %} data-en="Home" data-tl="Home">Home</a></li>
       <li><a href="{% url 'aboutus' %}" {% if active_page == 'aboutus' %}class="active"{% endif %} data-en="About Us" data-tl="Tungkol Sa Amin">About Us</a></li>
-      <li class="nav-dropdown">
+      <li class="nav-dropdown services-dropdown">
         <a href="#" {% if active_page == 'services' %}class="active"{% endif %} data-en="Services ▾" data-tl="Serbisyo ▾">Services ▾</a>
         <ul class="dropdown-menu">
           <li><a href="{% url 'filecomplaint' %}" data-en="File a Complaint" data-tl="Maghain ng Reklamo">File a Complaint</a></li>
@@ -64,7 +64,7 @@
     </ul>
 
     {% if request.session.user_id %}
-    <div class="nav-dropdown">
+    <div class="nav-dropdown user-dropdown">
       <a href="#" class="nav-user-trigger">
         {% if request.session.avatar_path %}
           <img src="/static/{{ request.session.avatar_path }}" alt="Profile avatar" style="width:51px; height:51px; border-radius:50%; object-fit:cover;">
@@ -288,7 +288,7 @@
 
       document.documentElement.lang = lang === "tl" ? "fil" : "en";
     }
-
+    
     document.addEventListener('DOMContentLoaded', function() {
       const savedLang = localStorage.getItem("kaugnay_lang") || "en";
       setLanguage(savedLang);
@@ -301,6 +301,44 @@
           a.classList.add('active');
         }
       });
+
+      const servicesTrigger = document.querySelector(".services-dropdown > a");
+      const servicesDropdown = document.querySelector(".services-dropdown");
+
+      if (servicesTrigger && servicesDropdown) {
+        servicesTrigger.addEventListener("click", function (e) {
+          e.preventDefault();
+          servicesDropdown.classList.toggle("open");
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!servicesDropdown.contains(e.target)) {
+            servicesDropdown.classList.remove("open");
+          }
+        });
+      }
+
+      const userDropdown = document.querySelector(".user-dropdown");
+      const userTrigger = document.querySelector(".user-dropdown .nav-user-trigger");
+
+      if (userDropdown && userTrigger) {
+        userTrigger.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Close the services dropdown
+          servicesDropdown?.classList.remove("open");
+
+          // Toggle the user dropdown
+          userDropdown.classList.toggle("open");
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!userDropdown.contains(e.target)) {
+            userDropdown.classList.remove("open");
+          }
+        });
+      }
 
       const helpTrigger = document.getElementById('help-trigger');
       const helpBack = document.getElementById('help-back');

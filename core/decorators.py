@@ -12,6 +12,10 @@ def login_required(view_func):
     def wrapper(request, *args, **kwargs):
 
         if not request.session.get("user_id"):
+            messages.info(
+                request,
+                "Please log in to access this page."
+            )
             return redirect("login")
 
         return view_func(
