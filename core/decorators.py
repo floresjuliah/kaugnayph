@@ -81,9 +81,11 @@ def resident_required(view_func):
             return redirect("login")
 
         if user.user_type.type_name != "Resident":
-            return HttpResponseForbidden(
-                "Residents only."
+            messages.error(
+                request,
+                "Resident-only page. You have been redirected to the Admin Dashboard."
             )
+            return redirect("admin_dashboard")
 
         if not user.is_verified:
             return redirect(
