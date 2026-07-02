@@ -92,6 +92,22 @@ def verify_otp(user, code, purpose='login'):
     otp.save()
     return 'ok'
 
+# SMS QUEUE
+def queue_sms(contact_number, message, sent_by=None):
+    now = timezone.now()
+
+    SMSOutbox.objects.create(
+        recipient_number=contact_number,
+        message=message,
+        sent_by=sent_by,
+        sent_at=None,
+        created_at=now,
+        status="pending",
+        error_message="",
+        gateway_response="",
+    )
+
+    return True
 
 # SMS 
 def send_sms(contact_number, message, sent_by=None):

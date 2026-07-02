@@ -65,7 +65,7 @@ from .auth_utils import (
     hash_password, check_password, generate_otp,
     verify_otp, send_sms, send_email_otp,
     set_user_session, get_current_user,
-    has_permission,
+    has_permission, queue_sms
 )
  
 from .decorators import (
@@ -82,6 +82,8 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 
 from .utils import format_full_name, mask_contact, mask_email
+
+from django.db.models import Sum, Avg, Count, F, ExpressionWrapper, fields, Max
 
 
 # PUBLIC PAGES
@@ -273,7 +275,7 @@ def filecomplaint(request):
         )
 
         if current_user.contactno:
-            send_sms(
+            queue_sms(
                 current_user.contactno,
                 sms_body,
                 sent_by=current_user
@@ -512,17 +514,34 @@ def create_announcement(request):
         category_id=data.get("category_id", 1),
         posted_by=current_user, created_at=timezone.now()
     )
+    sms_failed = 0
+    sms_sent = 0
+
     if send_sms_flag == 1:
         for sub in SMSSubscriptions.objects.select_related("user").filter(is_active=True):
-            send_sms(sub.user.contactno,
-                     f"KaugnayPH: {announcement.title}", sent_by=current_user)
+            if sub.user and sub.user.contactno:
+                sms_success = queue_sms(
+                    sub.user.contactno,
+                    f"KaugnayPH: {announcement.title}",
+                    sent_by=current_user
+                )
+
+                if sms_success:
+                    sms_sent += 1
+                else:
+                    sms_failed += 1
     AuditLogs.objects.create(
         user=current_user, action="Create Announcement",
         module_name="Announcements", table_name="Announcements",
         record_id=announcement.announcement_id,
         new_value=f"'{title}' created.", created_at=timezone.now()
     )
-    return JsonResponse({"message": "Created", "announcement_id": announcement.announcement_id})
+    return JsonResponse({
+        "message": "Created",
+        "announcement_id": announcement.announcement_id,
+        "sms_sent": sms_sent,
+        "sms_failed": sms_failed,
+    })
 
 #UPDATE ANNOUNCEMENT
 @csrf_exempt
@@ -697,15 +716,20 @@ def incoming_sms_webhook(request):
     )
 
     sent_count = 0
+    failed_count = 0
 
     for sub in SMSSubscriptions.objects.select_related("user").filter(is_active=True):
         if sub.user and sub.user.contactno:
-            if send_sms(
+            sms_success = queue_sms(
                 sub.user.contactno,
                 f"KaugnayPH: {announcement.title}\n{announcement.content}",
                 sent_by=authorized_admin
-            ):
+            )
+
+            if sms_success:
                 sent_count += 1
+            else:
+                failed_count += 1
 
     AuditLogs.objects.create(
         user=authorized_admin,
@@ -729,7 +753,8 @@ def incoming_sms_webhook(request):
         "status": "success",
         "message": "Remote SMS announcement created",
         "announcement_id": announcement.announcement_id,
-        "sms_sent": sent_count
+        "sms_sent": sent_count,
+        "sms_failed": failed_count
     })
 
 #CREATE SMS LOG
@@ -738,7 +763,7 @@ def create_sms_log(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
     data = json.loads(request.body)
-    send_sms(data.get("recipient_number"), data.get("message"))
+    queue_sms(data.get("recipient_number"), data.get("message"))
     return JsonResponse({"message": "SMS logged"})
 
 #GET SMS LOG
@@ -807,6 +832,20 @@ def get_role_for_position(position):
         return Roles.objects.get(rolename=role_name)
     except Roles.DoesNotExist:
         return None
+
+def send_sms_with_warning(request, contact_number, message, sent_by=None):
+    queue_sms(
+        contact_number,
+        message,
+        sent_by=sent_by
+    )
+
+    messages.info(
+        request,
+        "The action was completed, and the SMS notification has been queued for sending."
+    )
+
+    return True
 
 
 # RESIDENT LOGIN
@@ -1551,6 +1590,9 @@ def _validate_register_form(data, files):
 
     allowed_types = {'image/jpeg', 'image/png', 'image/jpg'}
 
+    MAX_UPLOAD_SIZE_MB = 10
+    MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
     for label, f in [("ID Photo", files['id_image']), ("Selfie", files['selfie'])]:
         if not f:
             errors.append(f"Please upload a {label}.")
@@ -1561,8 +1603,8 @@ def _validate_register_form(data, files):
                 errors.append(f"{label}: {err}")
             elif f.content_type not in allowed_types:
                 errors.append(f"{label} must be JPG or PNG.")
-            elif f.size > 5 * 1024 * 1024:
-                errors.append(f"{label} must be less than 5MB.")
+            elif f.size > MAX_UPLOAD_SIZE:
+                errors.append(f"{label} must be less than {MAX_UPLOAD_SIZE_MB}MB or below.")
 
     return errors
 
@@ -1710,19 +1752,21 @@ def admin_dashboard_view(request):
     ).count()
     total_sms = SMSOutbox.objects.count()
 
-    # ---- ANNOUNCEMENT ANALYTICS ----
+    #ANNOUNCEMENT ANALYTICS
+
     total_announcements = Announcements.objects.count()
-    
-    total_views = (
-        Announcements.objects.aggregate(
-            total=Count("view_count")
-        )["total"]
-        or 0
+
+    announcement_stats = Announcements.objects.aggregate(
+        total_views=Sum("view_count"),
+        avg_views=Avg("view_count"),
     )
+
+    total_views = announcement_stats["total_views"] or 0
+    avg_views_per_post = round(announcement_stats["avg_views"] or 0, 1)
 
     most_viewed_announcement = (
         Announcements.objects
-        .order_by("-view_count")
+        .order_by("-view_count", "-created_at")
         .first()
     )
 
@@ -1879,7 +1923,7 @@ def admin_dashboard_view(request):
         # Announcement Analytics
         "total_announcements": total_announcements,
         "total_views": total_views,
-        "unique_visitors": unique_visitors,
+        "avg_views_per_post": avg_views_per_post,
         "most_viewed_announcement": most_viewed_announcement,
 
         # Case Analytics
@@ -2017,7 +2061,7 @@ def admin_register(request):
         is_password_changed=False,
     )
 
-    send_sms(
+    sms_success = queue_sms(
         contact_no,
         f"KaugnayPH: Account created. "
         f"Username: {username} | Temp Password: {temp_password} "
@@ -2038,11 +2082,18 @@ def admin_register(request):
         created_at=timezone.now()
     )
 
-    messages.success(
-        request,
-        f"Staff account created! Username: {username} | "
-        f"Temp Password: {temp_password} (also sent via SMS)"
-    )
+    if sms_success:
+        messages.success(
+            request,
+            f"Staff account created! Username: {username} | "
+            f"Temp Password: {temp_password} (also sent via SMS)"
+        )
+    else:
+        messages.warning(
+            request,
+            f"Staff account created! Username: {username} | "
+            f"Temp Password: {temp_password}. SMS notification failed. Please check the SMS Outbox."
+        )
 
     return redirect("admins_list")
 
@@ -2547,9 +2598,12 @@ def resident_record_view(request, user_id):
                     user=resident,
                     defaults={"is_active": True}
                 )
-            send_sms(resident.contactno,
+            send_sms_with_warning(
+                request,
+                resident.contactno,
                 "KaugnayPH: Your account has been verified! You can now log in.",
-                sent_by=admin)
+                sent_by=admin
+            )
             AuditLogs.objects.create(
                 user=admin, action="Approve Resident",
                 module_name="Verification", table_name="ResidentVerification",
@@ -2570,10 +2624,13 @@ def resident_record_view(request, user_id):
             resident.is_verified = False
             resident.save()
             SMSSubscriptions.objects.filter(user=resident).update(is_active=False)
-            send_sms(resident.contactno,
+            send_sms_with_warning(
+                request,
+                resident.contactno,
                 "KaugnayPH: Your registration was not approved. "
                 "Please visit the barangay office.",
-                sent_by=admin)
+                sent_by=admin
+            )
             AuditLogs.objects.create(
                 user=admin, action="Reject Resident",
                 module_name="Verification", table_name="ResidentVerification",
@@ -2753,6 +2810,19 @@ def admin_announcements_view(request):
     announcements = announcements.order_by("-announcement_id")
 
     total_announcements = all_announcements.count()
+    announcement_stats = all_announcements.aggregate(
+    total_views=Sum("view_count"),
+    avg_views=Avg("view_count"),
+    )
+
+    total_views = announcement_stats["total_views"] or 0
+    avg_views_per_post = round(announcement_stats["avg_views"] or 0, 1)
+
+    most_viewed = (
+        all_announcements
+        .order_by("-view_count", "-created_at")
+        .first()
+    )
 
     general_count = all_announcements.filter(
         category__name__iexact="General"
@@ -2775,8 +2845,10 @@ def admin_announcements_view(request):
         "date_filter": date_filter,
 
         "total_announcements": total_announcements,
-        "general_count": general_count,
-        "emergency_count": emergency_count,
+       
+       "total_views": total_views,
+        "most_viewed": most_viewed,
+        "avg_views_per_post": avg_views_per_post,
     })
 
 # ADMIN ANNOUNCEMENT DETAIL
@@ -2997,7 +3069,7 @@ def admin_announcement_create_view(request):
                 "user"
             ).filter(is_active=True):
 
-                send_sms(
+                queue_sms(
                     sub.user.contactno,
                     f"KaugnayPH: {announcement.title}",
                     sent_by=current_admin
@@ -3341,7 +3413,7 @@ def document_request_view(request):
         doc_id = generate_document_id(doc_request.drid)
 
         if current_user and current_user.contactno:
-            send_sms(
+            queue_sms(
                 current_user.contactno,
                 f"KaugnayPH: Your document request {doc_id} ({document_type.name}) has been submitted and is now pending review.",
                 sent_by=current_user,
@@ -3609,7 +3681,8 @@ def admin_document_request_detail_view(request, drid):
                 doc_request.save()
 
                 if send_remark_sms and resident and resident.contactno:
-                    send_sms(
+                    send_sms_with_warning(
+                        request,
                         resident.contactno,
                         f"KaugnayPH: A remark has been added to your document request {doc_id} "
                         f"({doc_request.document_type.name}): {remarks}",
@@ -3646,7 +3719,8 @@ def admin_document_request_detail_view(request, drid):
             resolve_sla("DocumentRequest", doc_request.drid)
 
             if resident and resident.contactno:
-                send_sms(
+                send_sms_with_warning(
+                    request,
                     resident.contactno,
                     f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
                     "has been completed. Please visit the barangay office to claim it.",
@@ -3678,7 +3752,8 @@ def admin_document_request_detail_view(request, drid):
             record_first_response("DocumentRequest", doc_request.drid)
 
             if resident and resident.contactno:
-                send_sms(
+                send_sms_with_warning(
+                    request,
                     resident.contactno,
                     f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
                     "is now being processed.",
@@ -3716,7 +3791,8 @@ def admin_document_request_detail_view(request, drid):
             resolve_sla("DocumentRequest", doc_request.drid)
 
             if resident and resident.contactno:
-                send_sms(
+                send_sms_with_warning(
+                    request,
                     resident.contactno,
                     f"KaugnayPH: Your document request {doc_id} ({doc_request.document_type.name}) "
                     "has been rejected. Please contact the barangay office for more details.",
@@ -3825,7 +3901,7 @@ def case_detail_view(request, complaint_id):
                 "Referred to Proper Barangay", case_number, jurisdiction=target_barangay
             )
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+                queue_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Complaint referred to proper barangay.")
 
         elif action == "mark_recorded":
@@ -3856,7 +3932,7 @@ def case_detail_view(request, complaint_id):
             sms_body = build_sms_for_status("Ongoing", case_number)
 
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(
+                queue_sms(
                     complaint.complainant_user.contactno,
                     sms_body,
                     sent_by=current_admin
@@ -3918,7 +3994,7 @@ def case_detail_view(request, complaint_id):
                 "Mediation Scheduled", case_number, hearing_date=hearing.hearing_date
             )
             for party_contact in _complaint_contact_numbers(complaint):
-                send_sms(party_contact, sms_body, sent_by=current_admin)
+                queue_sms(party_contact, sms_body, sent_by=current_admin)
 
             messages.success(request, "Mediation scheduled.")
 
@@ -3954,7 +4030,7 @@ def case_detail_view(request, complaint_id):
 
             if sms_body:
                 for party_contact in _complaint_contact_numbers(complaint):
-                    send_sms(party_contact, sms_body, sent_by=current_admin)
+                    queue_sms(party_contact, sms_body, sent_by=current_admin)
 
             messages.success(request, f"Mediation outcome recorded: {outcome}.")
 
@@ -4008,7 +4084,7 @@ def case_detail_view(request, complaint_id):
 
             sms_body = build_sms_for_status(status_label, case_number, hearing_date=hearing.hearing_date)
             for party_contact in _complaint_contact_numbers(complaint):
-                send_sms(party_contact, sms_body, sent_by=current_admin)
+                queue_sms(party_contact, sms_body, sent_by=current_admin)
 
             messages.success(request, f"{level_name} scheduled.")
 
@@ -4097,7 +4173,7 @@ def case_detail_view(request, complaint_id):
                 sms_body = build_sms_for_status("Settled", case_number)
                 if sms_body:
                     for party_contact in _complaint_contact_numbers(complaint):
-                        send_sms(party_contact, sms_body, sent_by=current_admin)
+                        queue_sms(party_contact, sms_body, sent_by=current_admin)
 
             elif hearing.hearing_level.level_type == "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)":
                 # Final Outcome After Hearing 3, no settlement
@@ -4150,7 +4226,7 @@ def case_detail_view(request, complaint_id):
 
             sms_body = build_sms_for_status("Certificate Issued", case_number)
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+                queue_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
 
             messages.success(request, f"Certificate {cert.certificate_no} issued.")
 
@@ -4193,7 +4269,7 @@ def case_detail_view(request, complaint_id):
             )
             sms_body = build_sms_for_status(new_status, case_number)
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
+                queue_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Case status updated successfully.")
 
         # Existing hearing level / official management
@@ -4249,7 +4325,7 @@ def case_detail_view(request, complaint_id):
             )
 
             if complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(
+                queue_sms(
                     complaint.complainant_user.contactno,
                     sms_body,
                     sent_by=current_admin
@@ -4299,7 +4375,7 @@ def case_detail_view(request, complaint_id):
                 messages.success(request, "Official assigned successfully.")
 
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
-                send_sms(
+                queue_sms(
                     complaint.complainant_user.contactno,
                     sms_body,
                     sent_by=current_admin
@@ -4491,7 +4567,8 @@ def admin_inquiry_detail_view(request, cuid):
 
             sms_reply = f"KaugnayPH Reply: {admin_reply}"
 
-            send_sms(
+            send_sms_with_warning(
+                request,
                 inquiry.contactno,
                 sms_reply,
                 sent_by=current_admin,

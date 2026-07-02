@@ -22,7 +22,7 @@ def generate_document_id(document_request_id):
 
 ALLOWED_MIME_TYPES      = {'image/jpeg', 'image/png', 'image/jpg'}
 ALLOWED_EXTENSIONS      = {'jpg', 'jpeg', 'png'}   
-MAX_UPLOAD_BYTES        = 5 * 1024 * 1024  # 5 MB
+MAX_UPLOAD_BYTES        = 10 * 1024 * 1024  # 10 MB
 
 def validate_upload(file):
     """

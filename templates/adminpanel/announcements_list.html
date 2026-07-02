@@ -54,33 +54,41 @@
     </div>
 
     <div class="admin-stats">
+
         <div class="admin-stat-item">
             <div class="admin-stat-icon blue">
-                <i class="fa-solid fa-newspaper"></i>
+                <i class="fa-solid fa-eye"></i>
             </div>
             <div class="admin-stat-info">
-                <p>Total Announcements</p>
-                <h3>{{ total_announcements|default:"0" }}</h3>
+                <p>Total Views</p>
+                <h3>{{ total_views|default:"0" }}</h3>
             </div>
         </div>
 
         <div class="admin-stat-item">
             <div class="admin-stat-icon green">
-                <i class="fa-solid fa-bullhorn"></i>
+                <i class="fa-solid fa-chart-line"></i>
             </div>
             <div class="admin-stat-info">
-                <p>General Posts</p>
-                <h3>{{ general_count|default:"0" }}</h3>
+                <p>Most Viewed</p>
+
+                {% if most_viewed %}
+                    <h3>{{ most_viewed.view_count }}</h3>
+                    <small>{{ most_viewed.title }}</small>
+                {% else %}
+                    <h3>0</h3>
+                    <small>No announcements</small>
+                {% endif %}
             </div>
         </div>
 
         <div class="admin-stat-item">
-            <div class="admin-stat-icon red">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="admin-stat-icon orange">
+                <i class="fa-solid fa-chart-simple"></i>
             </div>
             <div class="admin-stat-info">
-                <p>Emergency Posts</p>
-                <h3>{{ emergency_count|default:"0" }}</h3>
+                <p>Avg Views/Post</p>
+                <h3>{{ avg_views_per_post|default:"0" }}</h3>
             </div>
         </div>
     </div>
