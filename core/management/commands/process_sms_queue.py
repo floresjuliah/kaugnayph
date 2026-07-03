@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 import requests
+import time
 
 from core.models import SMSOutbox
 
@@ -70,3 +71,6 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"SMS {sms.outboxid} -> {sms.status}"
             )
+            if success:
+                delay = 10 if len(sms.message) <= 160 else 17
+                time.sleep(delay)

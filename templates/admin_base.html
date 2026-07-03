@@ -164,16 +164,18 @@ window.addEventListener("click", function(e) {
                     id="profileDropdown">
 
                     <a href="{% url 'settings_page' %}" class="{% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}">
-                        <span class="menu-icon">⚙</span>
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-gear"></i>
+                        </span>
                         Settings
                     </a>
 
                     <div class="dropdown-divider"></div>
 
-                    <a href="{% url 'logout' %}"
-                    class="logout-link">
-
-                        <span>↪</span>
+                    <a href="{% url 'logout' %}" class="logout-link">
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </span>
                         Logout
                     </a>
 
