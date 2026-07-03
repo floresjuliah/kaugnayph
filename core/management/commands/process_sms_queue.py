@@ -33,6 +33,7 @@ class Command(BaseCommand):
             sms.save(update_fields=["status"])
 
             success = False
+            retry_later = False
             gateway_response = ""
             error_message = ""
 
@@ -52,13 +53,27 @@ class Command(BaseCommand):
                 if not success:
                     error_message = f"HTTP {r.status_code}: {gateway_response[:200]}"
 
+                    if r.status_code != 200:
+                        retry_later = True
+
             except requests.Timeout:
                 error_message = "Request timed out"
+                retry_later = True
+
             except requests.RequestException as e:
                 error_message = str(e)
+                retry_later = True
 
-            sms.status = "sent" if success else "failed"
-            sms.sent_at = timezone.now()
+            if success:
+                sms.status = "sent"
+                sms.sent_at = timezone.now()
+            elif retry_later:
+                sms.status = "pending"
+                sms.sent_at = None
+            else:
+                sms.status = "failed"
+                sms.sent_at = timezone.now()
+
             sms.gateway_response = gateway_response
             sms.error_message = error_message
             sms.save(update_fields=[
@@ -71,6 +86,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"SMS {sms.outboxid} -> {sms.status}"
             )
+
             if success:
                 delay = 10 if len(sms.message) <= 160 else 17
                 time.sleep(delay)
