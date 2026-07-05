@@ -103,13 +103,11 @@ window.addEventListener("click", function(e) {
                 FAQs
             </a>
 
-            {% if request.session.role == "Barangay Chairman" %}
-                <a href="{% url 'audit_logs' %}"
-                    class="{% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    Audit Logs
-                </a>
-            {% endif %}
+            <a href="{% url 'audit_logs' %}"
+                class="{% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Audit Logs
+            </a>
 
             <a href="{% url 'sms_outbox' %}"
                 class="{% if request.resolver_match.url_name == 'sms_outbox' %}active{% endif %}">

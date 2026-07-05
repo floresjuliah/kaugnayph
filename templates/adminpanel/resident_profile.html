@@ -86,11 +86,13 @@
                 <div class="resident-profile-divider"></div>
 
                 {% if rv and rv.id_image_path %}
-                    <img
-                        src="{% url 'verification_file' rv.rv_id 'id' %}"
-                        alt="ID Photo"
-                        class="resident-id-photo"
-                    >
+                    <a href="{% url 'verification_file' rv.rv_id 'id' %}" target="_blank">
+                        <img
+                            src="{% url 'verification_file' rv.rv_id 'id' %}"
+                            alt="ID Photo"
+                            class="resident-id-photo"
+                        >
+                    </a>
                 {% else %}
                     <p class="no-id-text">No ID submitted.</p>
                 {% endif %}
@@ -103,11 +105,13 @@
                 <div class="resident-profile-divider"></div>
 
                 {% if rv and rv.selfie_image_path %}
-                    <img
-                        src="{% url 'verification_file' rv.rv_id 'selfie' %}"
-                        alt="Selfie with ID"
-                        class="resident-id-photo"
-                    >
+                    <a href="{% url 'verification_file' rv.rv_id 'selfie' %}" target="_blank">
+                        <img
+                            src="{% url 'verification_file' rv.rv_id 'selfie' %}"
+                            alt="Selfie with ID"
+                            class="resident-id-photo"
+                        >
+                    </a>
                 {% else %}
                     <p class="no-id-text">No selfie with ID submitted.</p>
                 {% endif %}
