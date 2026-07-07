@@ -616,7 +616,7 @@ body {
 ========================= */
 
 .ann-page-top {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 
 .ann-page-top h1 {
@@ -625,7 +625,7 @@ body {
     color: #1e293b;
     letter-spacing: -0.5px;
     line-height: 1.15;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .ann-back-link {
@@ -644,21 +644,22 @@ body {
     background: #ffffff;
     border: 1px solid #d9e4ef;
     border-radius: 12px;
-    padding: 28px;
+    padding: 22px 28px;
     box-shadow: none;
-    height: 520px;
-    overflow-y: auto;
+    height: auto;
+    min-height: calc(100vh - 220px);
+    overflow: visible;
 }
 
 .ann-form-card hr {
     border: none;
     border-top: 1px solid #e2e8f0;
-    margin: 28px 0;
+    margin: 16px 0;
 }
 
 .ann-form-group,
 .ann-detail-group {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .ann-form-group label,
@@ -672,10 +673,11 @@ body {
 
 .ann-form-card .form-control {
     width: 100%;
-    min-height: 44px;
+    height: 42px;
+    min-height: 42px;
     border: 1px solid #d9e4ef;
     border-radius: 8px;
-    padding: 13px 14px;
+    padding: 10px 14px;
     background: #ffffff;
     color: #1e293b;
     font-size: 14px;
@@ -687,31 +689,31 @@ body {
 }
 
 .ann-textarea {
-    min-height: 150px;
+    min-height: 90px;
     resize: vertical;
 }
 
 .ann-upload-box {
     border: 1.5px dashed #9fb0c7;
     border-radius: 8px;
-    padding: 30px;
+    padding: 18px;
     text-align: center;
     color: #52698a;
     background: #fbfdff;
 }
 
 .ann-upload-icon {
-    font-size: 28px;
-    margin-bottom: 6px;
+    font-size: 22px;
+    margin-bottom: 4px;
 }
 
 .ann-broadcast-section {
-    margin-top: 24px;
+    margin-top: 12px;
 }
 
 .ann-broadcast-section h2 {
-    font-size: 24px;
-    margin-bottom: 18px;
+    font-size: 20px;
+    margin-bottom: 10px;
     color: #0f172a;
 }
 
@@ -4089,4 +4091,39 @@ EDIT RESIDENT PROFILE PAGE
 
 .forgot-password {
     margin-top: 12px;
+}
+
+.admin-table .admin-badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* General */
+.admin-table .admin-badge-general {
+    background: #dff8e8 !important;
+    color: #00853e !important;
+}
+
+/* Emergency */
+.admin-table .admin-badge-emergency {
+    background: #ffe4e4 !important;
+    color: #e11d1d !important;
+}
+
+/* Events */
+.admin-table .admin-badge-events {
+    background: #fff0d9 !important;
+    color: #f97316 !important;
+}
+
+/* Sports */
+.admin-table .admin-badge-sports {
+    background: #e3f0ff !important;
+    color: #0066d9 !important;
 }

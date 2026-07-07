@@ -1,0 +1,191 @@
+.ann-page {
+    height: calc(100vh - 90px);
+    overflow: hidden;
+}
+
+.ann-page-top {
+    margin-bottom: 14px;
+}
+
+.ann-page-top h1 {
+    font-size: 30px;
+    font-weight: 650;
+    color: #1e293b;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin: 0;
+}
+
+.ann-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #52698a;
+    font-size: 13px;
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.ann-back-link:hover {
+    color: #0066ff;
+}
+
+.ann-form-card {
+    background: #ffffff;
+    border: 1px solid #d9e4ef;
+    border-radius: 12px;
+    padding: 22px 28px;
+    box-shadow: none;
+
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.ann-form-group {
+    margin-bottom: 14px;
+}
+
+.ann-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #52698a;
+    margin-bottom: 6px;
+}
+
+.ann-form-card .form-control {
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    border: 1px solid #d9e4ef;
+    border-radius: 8px;
+    padding: 9px 14px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 14px;
+    outline: none;
+}
+
+.ann-form-card .form-control:focus {
+    border-color: #0066ff;
+}
+
+.ann-textarea {
+    height: 85px !important;
+    min-height: 85px !important;
+    resize: none;
+}
+
+.ann-upload-box {
+    border: 1.5px dashed #9fb0c7;
+    border-radius: 8px;
+    padding: 16px 22px;
+    text-align: center;
+    color: #52698a;
+    background: #fbfdff;
+}
+
+.ann-upload-icon {
+    font-size: 26px;
+    color: #52698a;
+    margin-bottom: 8px;
+}
+
+.ann-upload-icon i {
+    display: block;
+}
+
+.ann-upload-box p {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.ann-upload-box .form-control {
+    height: 36px;
+    min-height: 36px;
+    padding: 6px 10px;
+    margin-top: 6px !important;
+}
+
+.ann-form-card .btn-primary {
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ann-form-card hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 14px 0;
+}
+
+.ann-broadcast-section {
+    margin-top: 0;
+}
+
+.ann-broadcast-section h2 {
+    font-size: 20px;
+    margin: 0 0 10px;
+    color: #0f172a;
+}
+
+.ann-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1e293b;
+    margin: 0;
+}
+
+@media (max-height: 760px) {
+    .ann-page-top h1 {
+        font-size: 26px;
+    }
+
+    .ann-page-top {
+        margin-bottom: 10px;
+    }
+
+    .ann-form-card {
+        padding: 16px 24px;
+    }
+
+    .ann-form-group {
+        margin-bottom: 10px;
+    }
+
+    .ann-form-card .form-control {
+        height: 36px;
+        min-height: 36px;
+    }
+
+    .ann-textarea {
+        height: 65px !important;
+        min-height: 65px !important;
+    }
+
+    .ann-upload-box {
+        padding: 12px 18px;
+    }
+
+    .ann-upload-icon {
+        font-size: 18px;
+    }
+
+    .ann-upload-box p {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+    .ann-form-card hr {
+        margin: 10px 0;
+    }
+
+    .ann-broadcast-section h2 {
+        font-size: 18px;
+    }
+}

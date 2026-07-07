@@ -11,8 +11,11 @@
 
 <div class="settings-page">
 
-    <a href="javascript:history.back()" class="settings-back">← Back</a>
-
+    <a href="javascript:history.back()" class="settings-back">
+        <i class="fa-solid fa-chevron-left"></i>
+        Back
+    </a>
+    
     <h1 class="settings-title">Settings</h1>
 
     <!-- PROFILE -->
@@ -48,33 +51,54 @@
 
                 <div class="settings-info-row">
                     <div>
-                        <label>Username</label>
-                        <p>{{ current_user.username|default:"No username set" }}</p>
+                        <div class="settings-icon">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+
+                        <div>
+                            <label>Username</label>
+                            <p>{{ current_user.username|default:"No username set" }}</p>
+                        </div>
                     </div>
 
                     <button class="outline-btn" type="button" onclick="openPasswordModal('username')">
+                        <i class="fa-solid fa-pen"></i>
                         Edit
                     </button>
                 </div>
 
                 <div class="settings-info-row">
                     <div>
-                        <label>Contact Number</label>
-                        <p>{{ masked_contact }}</p>
+                        <div class="settings-icon">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+
+                        <div>
+                            <label>Contact Number</label>
+                            <p>{{ masked_contact }}</p>
+                        </div>
                     </div>
 
-                    <button class="outline-btn small" type="button" onclick="openPasswordModal('contact')">
+                    <button class="outline-btn" type="button" onclick="openPasswordModal('contact')">
+                        <i class="fa-solid fa-pen"></i>
                         Edit
                     </button>
                 </div>
 
                 <div class="settings-info-row">
                     <div>
-                        <label>Email Address</label>
-                        <p>{{ masked_email }}</p>
+                        <div class="settings-icon">
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+
+                        <div>
+                            <label>Email Address</label>
+                            <p>{{ masked_email }}</p>
+                        </div>
                     </div>
 
                     <button class="outline-btn small" type="button" onclick="openPasswordModal('email')">
+                        <i class="fa-solid fa-pen"></i>
                         Edit
                     </button>
                 </div>

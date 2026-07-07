@@ -92,9 +92,10 @@
 
 /* Buttons */
 .admin-primary-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
 
     height: 46px;
     min-width: 180px;
@@ -279,10 +280,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 7px 14px;
-    border-radius: 9px;
+    min-width: 88px;
+    padding: 9px 16px;
+    border-radius: 10px;
     font-size: 13px;
     font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .admin-badge.green {
@@ -340,10 +344,6 @@
     }
 }
 
-.admin-badge.blue {
-    background: #dbeafe;
-    color: #0066ff;
-}
 
 /* Actions Column */
 
@@ -504,3 +504,26 @@
     font-size: 15px;
 }
 
+/* =========================
+   CATEGORY BADGES
+========================= */
+
+.badge-general {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.badge-emergency {
+    background: #FDEAEA;
+    color: #D32F2F;
+}
+
+.badge-events {
+    background: #FFF4E5;
+    color: #E67E22;
+}
+
+.badge-sports {
+    background: #E8F0FE;
+    color: #1565C0;
+}

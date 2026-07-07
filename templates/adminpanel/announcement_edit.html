@@ -1,12 +1,20 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block admin_title %}Edit Announcement{% endblock %}
 
 {% block admin_content %}
 
+<link rel="stylesheet" href="{% static 'css/announcement_edit.css' %}">
+
+
 <div class="ann-page">
 
     <div class="ann-page-top">
+        <a href="{% url 'announcements' %}" class="ann-back-link">
+            <i class="fa-solid fa-chevron-left"></i>
+            Back to Announcements
+        </a>
         <h1>Edit Announcement</h1>
     </div>
 
@@ -53,7 +61,9 @@
 
                 <div class="ann-upload-box">
 
-                    <div class="ann-upload-icon">↥</div>
+                    <div class="ann-upload-icon">
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    </div>
 
                     {% if announcement.file_path %}
                         <p>Current file: {{ announcement.file_path }}</p>
@@ -119,7 +129,8 @@
                         type="submit"
                         class="btn btn-outline-danger"
                     >
-                        🗑 Delete Announcement
+                        <i class="fa-solid fa-trash"></i>
+                        Delete Announcement
                     </button>
 
                 </form>

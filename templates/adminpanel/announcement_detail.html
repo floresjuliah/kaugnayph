@@ -1,68 +1,113 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block admin_title %}View Announcement Details{% endblock %}
 
 {% block admin_content %}
 
-<div class="ann-page">
+<link rel="stylesheet" href="{% static 'css/announcement_detail.css' %}">
+
+<div class="ann-detail-page">
 
     <div class="ann-page-top">
         <a href="{% url 'announcements' %}" class="ann-back-link">
-            ← Back to Announcements
+            <i class="fa-solid fa-chevron-left"></i>
+            Back to Announcements
         </a>
 
-        <h1>
-            View Announcement:<br>
-            {{ announcement.title }}
-        </h1>
+        <h1>View Announcement</h1>
     </div>
 
-    <div class="ann-form-card">
+    <div class="ann-detail-card">
 
         <div class="ann-detail-header">
-            <h2>Announcement Details</h2>
+
+            <div>
+                <h2>{{ announcement.title }}</h2>
+                <p class="ann-subtitle">
+                    Announcement Information
+                </p>
+            </div>
 
             <div class="ann-detail-actions">
-                <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}" class="btn btn-primary">
-                    Edit Announcement
+
+                <a href="{% url 'admin_announcement_edit' announcement.announcement_id %}"
+                   class="btn btn-primary">
+                    Edit
                 </a>
 
                 <form
                     method="POST"
                     action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
                     style="display:inline;"
-                    onsubmit="return confirm('Are you sure you want to delete this announcement?');"
-                >
+                    onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger">
-                        🗑 Delete Announcement
+
+                    <button type="submit"
+                            class="btn btn-outline-danger">
+                        Delete
                     </button>
+
                 </form>
+
             </div>
+
         </div>
 
-        <div class="ann-detail-group">
-            <label>Announcement Title</label>
-            <p>{{ announcement.title }}</p>
+        <div class="ann-grid">
+
+            <div class="ann-field">
+                <label>Announcement Title</label>
+                <div class="ann-value">
+                    {{ announcement.title }}
+                </div>
+            </div>
+
+            <div class="ann-field">
+                <label>Category</label>
+                <div class="ann-value">
+                    {{ announcement.category.name|default:"General" }}
+                </div>
+            </div>
+
+            <div class="ann-field">
+                <label>Date Posted</label>
+                <div class="ann-value">
+                    {{ announcement.created_at|date:"F d, Y" }}
+                </div>
+            </div>
+
+            <div class="ann-field">
+                <label>Broadcast</label>
+
+                <div class="ann-value">
+
+                    {% if announcement.send_sms %}
+                        Sent as SMS
+                    {% else %}
+                        Not sent as SMS
+                    {% endif %}
+
+                </div>
+            </div>
+
         </div>
 
-        <div class="ann-detail-group">
-            <label>Category</label>
+        <div class="ann-full-field">
 
-            <span class="ann-badge general">
-                {{ announcement.category.name|default:"General" }}
-            </span>
-        </div>
+            <label>Description</label>
 
-        <div class="ann-detail-group">
-            <label>Full Description</label>
+            <div class="ann-description">
 
-            <div class="ann-description-box">
                 {{ announcement.content }}
+
             </div>
+
         </div>
 
-        <div class="ann-detail-group">
+        <div class="ann-full-field">
+
             <label>Attachment</label>
 
             {% if announcement.file_path %}
@@ -72,10 +117,11 @@
                     {% if ".jpg" in file or ".jpeg" in file or ".png" in file or ".gif" in file or ".webp" in file %}
 
                         <div class="ann-image-preview">
+
                             <img
                                 src="/media/{{ announcement.file_path }}"
-                                alt="Announcement Attachment"
-                            >
+                                alt="Attachment">
+
                         </div>
 
                     {% else %}
@@ -83,9 +129,10 @@
                         <a
                             href="/media/{{ announcement.file_path }}"
                             target="_blank"
-                            class="ann-file-link"
-                        >
+                            class="ann-file-link">
+
                             View Attached File
+
                         </a>
 
                     {% endif %}
@@ -94,31 +141,14 @@
 
             {% else %}
 
-                <p class="ann-no-file">
+                <div class="ann-no-file">
+
                     No attachment uploaded.
-                </p>
+
+                </div>
 
             {% endif %}
-        </div>
 
-        <div class="ann-detail-group">
-            <label>Date Posted</label>
-
-            <p>
-                {{ announcement.created_at|date:"F d, Y" }}
-            </p>
-        </div>
-
-        <hr>
-
-        <div class="ann-detail-group">
-            <h3>Broadcast</h3>
-
-            {% if announcement.send_sms %}
-                <p>Sent as SMS</p>
-            {% else %}
-                <p>Not sent as SMS</p>
-            {% endif %}
         </div>
 
     </div>

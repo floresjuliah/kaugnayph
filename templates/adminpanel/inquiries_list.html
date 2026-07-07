@@ -120,7 +120,13 @@
                         <td>{{ record.obj.firstname }} {{ record.obj.lastname }}</td>
                         <td>{{ record.obj.contactno }}</td>
                         <td>{{ record.obj.messagesubject|default:"No subject" }}</td>
-                        <td>{{ record.obj.faq_category.category_name|default:"Uncategorized" }}</td>
+                        <td>
+                            {% with category=record.obj.faq_category.category_name|default:"Uncategorized" %}
+                                <span class="admin-badge admin-badge-{{ category|slugify }}">
+                                    {{ category }}
+                                </span>
+                            {% endwith %}
+                        </td>
 
                         <td>
                             {% if record.obj.status == "Replied" %}
@@ -134,31 +140,16 @@
                             {% endif %}
                         </td>
                             <td>
-                                {% if record.sla %}
-                                    {% if record.sla_status == "Resolved" %}
-                                        <span class="admin-badge green">
-                                            {{ record.sla_status }}
-                                        </span>
-
-                                    {% elif record.sla_status == "Breached" %}
-                                        <span class="admin-badge red">
-                                            {{ record.sla_status }}
-                                        </span>
-
-                                    {% elif record.sla_status == "Pending" %}
-                                        <span class="admin-badge yellow">
-                                            {{ record.sla_status }}
-                                        </span>
-
-                                    {% else %}
-                                        <span class="admin-badge blue">
-                                            {{ record.sla_status }}
-                                        </span>
-                                    {% endif %}
+                                {% if record.sla_status == "Resolved" %}
+                                    <span class="admin-badge green">{{ record.sla_status }}</span>
+                                {% elif "Breached" in record.sla_status %}
+                                    <span class="admin-badge red">{{ record.sla_status }}</span>
+                                {% elif "remaining" in record.sla_status %}
+                                    <span class="admin-badge yellow">{{ record.sla_status }}</span>
+                                {% elif record.sla_status %}
+                                    <span class="admin-badge blue">{{ record.sla_status }}</span>
                                 {% else %}
-                                    <span class="admin-badge gray">
-                                        No SLA
-                                    </span>
+                                    <span class="admin-badge gray">No SLA</span>
                                 {% endif %}
                             </td>
 

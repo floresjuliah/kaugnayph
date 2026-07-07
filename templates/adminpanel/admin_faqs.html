@@ -46,7 +46,8 @@
 
         <div class="admin-toolbar-right">
             <a href="{% url 'admin_add_faq' %}" class="admin-primary-btn">
-                + Add FAQ
+                <i class="fa-solid fa-plus"></i>
+                Add FAQ
             </a>
         </div>
     </form>
@@ -103,7 +104,7 @@
                         <td>{{ faq.question }}</td>
 
                         <td>
-                            <span class="admin-badge gray">
+                            <span class="admin-badge admin-badge-{{ faq.faq_category.category_name|slugify }}">
                                 {{ faq.faq_category.category_name }}
                             </span>
                         </td>
@@ -112,7 +113,7 @@
                             {% if faq.created_by %}
                                 {{ faq.created_by.firstname }} {{ faq.created_by.lastname }}
                             {% else %}
-                                -
+                                System
                             {% endif %}
                         </td>
 

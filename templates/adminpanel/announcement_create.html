@@ -1,4 +1,9 @@
 {% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/announcement_create.css' %}">
+{% endblock %}
 
 {% block admin_title %}Create Announcement{% endblock %}
 
@@ -8,7 +13,8 @@
 
     <div class="ann-page-top">
         <a href="{% url 'announcements' %}" class="ann-back-link">
-            ← Back to Announcements Table
+            <i class="fa-solid fa-chevron-left"></i>
+            Back to Announcements
         </a>
 
         <h1>Create New Announcement</h1>
@@ -54,8 +60,9 @@
                 <label>Upload/Attach</label>
 
                 <div class="ann-upload-box">
-                    <div class="ann-upload-icon">↥</div>
-
+                    <div class="ann-upload-icon">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
                     <p>Upload/Attach Images or Files Here</p>
 
                     <input

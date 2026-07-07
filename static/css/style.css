@@ -3023,8 +3023,8 @@ footer ul li a:hover {
 }
 
 .profile-header__avatar svg {
-  width: 110px;
-  height: 110px;
+  width: 180px;
+  height: 180px;
 }
 
 .profile-header__details h1 {
@@ -4611,6 +4611,17 @@ footer ul li a:hover {
   }
   .info-card--directory {
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card {
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 

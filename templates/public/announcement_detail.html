@@ -119,6 +119,16 @@
   </div>
 </div>
 
+<!-- LOGIN ALERT MODAL -->
+<div class="ann-modal-overlay" id="loginAlertModal" onclick="this.classList.remove('active')">
+  <div class="ann-modal">
+    <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Login Required</p>
+    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">Please log in as a resident to leave feedback.</p>
+    <a href="{% url 'login' %}" class="ann-modal-close" style="display:inline-block; text-decoration:none;">Sign In</a>
+    <button class="ann-modal-close" onclick="event.stopPropagation(); document.getElementById('loginAlertModal').classList.remove('active')" style="margin-left:8px;">Close</button>
+  </div>
+</div>
+
 <!-- FEEDBACK MODAL -->
 <div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
   <div class="ann-modal">
@@ -199,10 +209,7 @@
   }
 
   function showFeedbackLoginAlert() {
-    translatedAlert(
-      "Please log in as a resident to leave feedback.",
-      "Mangyaring mag-login bilang residente upang makapagbigay ng feedback."
-    );
+    document.getElementById('loginAlertModal').classList.add('active');
   }
 
   function openFeedback() {

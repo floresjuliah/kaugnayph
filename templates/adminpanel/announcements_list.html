@@ -48,7 +48,7 @@
 
         <div class="admin-toolbar-right">
             <a href="{% url 'admin_announcement_create' %}" class="admin-primary-btn">
-                + Create Announcement
+                <i class="fa-solid fa-plus"></i> Create Announcement
             </a>
         </div>
     </div>
@@ -111,7 +111,7 @@
                         <td>{{ announcement.title }}</td>
 
                         <td>
-                            <span class="admin-badge {% if announcement.category.name == 'Emergency' %}red{% else %}green{% endif %}">
+                            <span class="admin-badge admin-badge-{{ announcement.category.name|default:'General'|slugify }}">
                                 {{ announcement.category.name|default:"General" }}
                             </span>
                         </td>

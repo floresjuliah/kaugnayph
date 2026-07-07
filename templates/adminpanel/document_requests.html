@@ -121,7 +121,7 @@
                         <td>{{ record.obj.document_type.name }}</td>
                         <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
 
-                        <td>
+                       <td>
                             {% if record.status == "Completed" %}
                                 <span class="admin-badge green">{{ record.status }}</span>
                             {% elif record.status == "Pending" %}
@@ -136,28 +136,16 @@
                         </td>
 
                         <td>
-                            {% if record.sla %}
-                                {% if record.sla_status == "Resolved" %}
-                                    <span class="admin-badge green">
-                                        {{ record.sla_status }}
-                                    </span>
-                                {% elif record.sla_status == "Breached" %}
-                                    <span class="admin-badge red">
-                                        {{ record.sla_status }}
-                                    </span>
-                                {% elif record.sla_status == "Pending" %}
-                                    <span class="admin-badge yellow">
-                                        {{ record.sla_status }}
-                                    </span>
-                                {% else %}
-                                    <span class="admin-badge blue">
-                                        {{ record.sla_status }}
-                                    </span>
-                                {% endif %}
+                            {% if record.sla_status == "Resolved" %}
+                                <span class="admin-badge green">{{ record.sla_status }}</span>
+                            {% elif "Breached" in record.sla_status %}
+                                <span class="admin-badge red">{{ record.sla_status }}</span>
+                            {% elif "remaining" in record.sla_status %}
+                                <span class="admin-badge yellow">{{ record.sla_status }}</span>
+                            {% elif record.sla_status %}
+                                <span class="admin-badge blue">{{ record.sla_status }}</span>
                             {% else %}
-                                <span class="admin-badge gray">
-                                    No SLA
-                                </span>
+                                <span class="admin-badge gray">No SLA</span>
                             {% endif %}
                         </td>
 

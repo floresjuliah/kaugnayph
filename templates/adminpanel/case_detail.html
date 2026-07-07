@@ -10,7 +10,10 @@ href="{% static 'css/admin_case_detail.css' %}">
 
 <div class="case-page">
 
-<a href="{% url 'case_records' %}" class="case-back-link">← Back to Cases</a>
+<a href="{% url 'case_records' %}" class="case-back-link">
+    <i class="fa-solid fa-chevron-left"></i>
+    Back to Cases
+</a>
 
 <div class="case-detail-header">
     <h1 class="case-detail-title">

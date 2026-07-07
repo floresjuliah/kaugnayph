@@ -2378,10 +2378,10 @@ def resident_records_view(request):
 
     for u in residents:
         rv = ResidentVerification.objects.filter(user=u).first()
-        s = Settings.objects.filter(user=u).first()
+        sub = SMSSubscriptions.objects.filter(user=u).first()
 
         status = rv.status if rv else "No Submission"
-        sms_sub = s.receive_sms if s else False
+        sms_sub = sub.is_active if sub else False
 
         if status_filter != "All" and status != status_filter:
             continue
@@ -2420,7 +2420,7 @@ def resident_records_view(request):
         "total_residents": total_residents,
         "pending_count": ResidentVerification.objects.filter(status="Pending").count(),
         "verified_count": ResidentVerification.objects.filter(status="Approved").count(),
-        "sms_subscribers": Settings.objects.filter(receive_sms=True).count(),
+        "sms_subscribers": SMSSubscriptions.objects.filter(is_active=True).count(),
     })
 
 # RESIDENT PROFILE
@@ -2453,13 +2453,16 @@ def residentprofile(request):
         'latest_announcements': latest_announcements,
     })
 
-#RESIDENT CHANGE SMS SUBSCRIPTION
+# RESIDENT CHANGE SMS SUBSCRIPTION
 @login_required
 @require_POST
 def toggle_sms_subscription(request):
     resident = get_current_user(request)
 
-    subscription = SMSSubscriptions.objects.get(user=resident)
+    subscription, created = SMSSubscriptions.objects.get_or_create(
+        user=resident,
+        defaults={"is_active": False}
+    )
 
     subscription.is_active = not subscription.is_active
     subscription.save(update_fields=["is_active"])
@@ -2573,8 +2576,8 @@ def resident_record_view(request, user_id):
         return redirect("resident_records")
 
     rv      = ResidentVerification.objects.select_related("toid").filter(user=resident).first()
-    s       = Settings.objects.filter(user=resident).first()
-    sms_sub = s.receive_sms if s else False
+    sub     = SMSSubscriptions.objects.filter(user=resident).first()
+    sms_sub = sub.is_active if sub else False
     admin   = get_current_user(request)
 
     if request.method == "POST":

@@ -226,6 +226,15 @@
 
 </section>
 
+<!-- LOGIN ALERT MODAL -->
+<div class="ann-modal-overlay" id="loginAlertModal" onclick="this.classList.remove('active')">
+  <div class="ann-modal">
+    <p style="font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Login Required</p>
+    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">Please log in as a resident to leave feedback.</p>
+    <a href="{% url 'login' %}" class="ann-modal-close" style="display:inline-block; text-decoration:none;">Sign In</a>
+    <button class="ann-modal-close" onclick="event.stopPropagation(); document.getElementById('loginAlertModal').classList.remove('active')" style="margin-left:8px;">Close</button>
+  </div>
+</div>
 
 <!-- FEEDBACK MODAL -->
 <div class="ann-modal-overlay" id="feedbackModal" onclick="closeFeedbackOnOverlay(event)">
@@ -300,13 +309,7 @@
   }
 
   function showFeedbackLoginAlert() {
-    const lang = getCurrentLanguage();
-
-    alert(
-      lang === "tl"
-        ? "Mangyaring mag-login bilang residente upang makapagbigay ng feedback."
-        : "Please log in as a resident to leave feedback."
-    );
+    document.getElementById('loginAlertModal').classList.add('active');
   }
 
   function translatedAlert(enText, tlText) {
@@ -317,10 +320,8 @@
   // SEARCH
   document.getElementById('annSearch').addEventListener('input', function () {
     const q = this.value.toLowerCase();
-
     document.querySelectorAll('.ann-card').forEach(card => {
       const text = card.innerText.toLowerCase();
-
       card.classList.toggle('hidden', q.length > 0 && !text.includes(q));
     });
   });
@@ -330,9 +331,7 @@
     tab.addEventListener('click', function () {
       document.querySelectorAll('.ann-tab').forEach(t => t.classList.remove('active'));
       this.classList.add('active');
-
       const filter = this.dataset.filter;
-
       document.querySelectorAll('.ann-card').forEach(card => {
         if (filter === 'all' || card.dataset.category.includes(filter)) {
           card.classList.remove('hidden');
@@ -348,7 +347,7 @@
 
   function openFeedback(btn) {
     const card = btn.closest('.ann-card');
-    currentAnnouncementId = card.dataset.id; //stores the announcement ID.
+    currentAnnouncementId = card.dataset.id;
     const existingRating = parseInt(card.dataset.myRating) || 0;
 
     document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
@@ -419,39 +418,30 @@
 
   function getCookie(name) {
     let value = null;
-
     if (document.cookie) {
       document.cookie.split(';').forEach(function(c) {
         c = c.trim();
-
         if (c.startsWith(name + '=')) {
           value = decodeURIComponent(c.substring(name.length + 1));
         }
       });
     }
-
     return value;
   }
 
   function toggleMoreMenu(btn) {
     const menu = btn.closest('.ann-more-wrap').querySelector('.ann-more-menu');
     const isOpen = menu.classList.contains('open');
-
     document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
-
-    if (!isOpen) {
-      menu.classList.add('open');
-    }
+    if (!isOpen) menu.classList.add('open');
   }
 
   document.addEventListener('click', function() {
     document.querySelectorAll('.ann-more-menu.open').forEach(m => m.classList.remove('open'));
   });
 
-
-function saveAsPDF(btn) {
+  function saveAsPDF(btn) {
     const card = btn.closest('.ann-card');
-
     const title = card.dataset.title || 'Announcement';
     const content = card.dataset.content || '';
     const author = card.dataset.author || 'Barangay Admin';
@@ -488,7 +478,7 @@ function saveAsPDF(btn) {
     win.focus();
     win.print();
     win.close();
-}
+  }
 </script>
 
 {% endblock %}
