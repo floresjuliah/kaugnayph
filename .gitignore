@@ -7,3 +7,4 @@ venv/
 .env__pycache__/
 *.pyo
 media/staticfiles/
+.env
