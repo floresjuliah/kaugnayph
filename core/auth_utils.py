@@ -184,6 +184,11 @@ def set_user_session(request, user):
     request.session['fullname']  = f'{user.firstname} {user.lastname}'
     request.session['avatar_path'] = user.avatar.image_path if user.avatar else None
 
+    request.session['permissions'] = list(
+        RolePermissions.objects.filter(role=user.role)
+        .values_list('permission__name', flat=True)
+    ) if user.role else []
+
 
 def get_current_user(request):
     uid = request.session.get('user_id')

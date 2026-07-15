@@ -53,7 +53,7 @@
           placeholder="First Name"
           data-placeholder-en="First Name"
           data-placeholder-tl="Pangalan"
-          value="{{ initial_data.firstname|default:'' }}"
+          value="{{ form_data.firstname|default:initial_data.firstname }}"
           required
         >
 
@@ -63,7 +63,7 @@
           placeholder="Last Name"
           data-placeholder-en="Last Name"
           data-placeholder-tl="Apelyido"
-          value="{{ initial_data.lastname|default:'' }}"
+          value="{{ form_data.lastname|default:initial_data.lastname }}"
           required
         >
       </div>
@@ -75,7 +75,7 @@
           placeholder="Mobile Number"
           data-placeholder-en="Mobile Number"
           data-placeholder-tl="Mobile Number"
-          value="{{ initial_data.contactno|default:'' }}"
+          value="{{ form_data.contactno|default:initial_data.contactno }}"
           required
         >
 
@@ -85,6 +85,7 @@
           placeholder="Address"
           data-placeholder-en="Address"
           data-placeholder-tl="Address"
+          value="{{ form_data.address|default:'' }}"
         >
       </div>
 
@@ -94,6 +95,7 @@
         placeholder="Subject"
         data-placeholder-en="Subject"
         data-placeholder-tl="Paksa"
+        value="{{ form_data.messagesubject|default:'' }}"
       >
 
       <textarea
@@ -102,7 +104,7 @@
         data-placeholder-en="Write your message here"
         data-placeholder-tl="Isulat ang iyong mensahe rito"
         required
-      ></textarea>
+      >{{ form_data.message|default:'' }}</textarea>
 
       <!-- CAPTCHA -->
       <div class="form-row">

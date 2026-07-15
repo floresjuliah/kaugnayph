@@ -138,7 +138,7 @@ def filecomplaint(request):
     min_incident_date = today - timedelta(days=7)
     max_incident_date = today
 
-    def complaint_context(captcha_form=None):
+    def complaint_context(captcha_form=None, form_data=None):
         initial_data = {
             "firstname": current_user.firstname,
             "lastname": current_user.lastname,
@@ -150,6 +150,7 @@ def filecomplaint(request):
             "captcha_form": captcha_form or CaptchaOnlyForm(),
             "min_incident_date": min_incident_date,
             "max_incident_date": max_incident_date,
+            "form_data": form_data or {},
         }
 
     if request.method == "POST":
@@ -159,7 +160,7 @@ def filecomplaint(request):
             return render(
                 request,
                 "filecomplaint.html",
-                complaint_context(captcha_form)
+                complaint_context(captcha_form, request.POST)
             )
 
         incident_date_raw    = request.POST.get("incident_date", "").strip()
@@ -344,17 +345,22 @@ def contactus(request):
             "contactno": current_user.contactno,
         }
 
-    def contact_context(captcha_form=None):
+    def contact_context(captcha_form=None, form_data=None):
         return {
             "initial_data": initial_data,
             "captcha_form": captcha_form or CaptchaOnlyForm(),
+            "form_data": form_data or {},
         }
 
     if request.method == "POST":
         captcha_form = CaptchaOnlyForm(request.POST)
 
         if not captcha_form.is_valid():
-            return render(request, "contactus.html", contact_context(captcha_form))
+            return render(
+                request,
+                "contactus.html",
+                contact_context(captcha_form, request.POST)
+            )
 
         firstname = request.POST.get("firstname", "").strip()
         lastname  = request.POST.get("lastname", "").strip()
@@ -365,7 +371,11 @@ def contactus(request):
  
         if not firstname or not lastname or not contactno or not message:
             messages.error(request, "Please fill in all required fields.")
-            return render(request, "contactus.html", contact_context())
+            return render(
+                request,
+                "contactus.html",
+                contact_context(form_data=request.POST)
+            )
  
         # CONTENT MODERATION — check before saving
         check = moderate_text(f"{subject} {message}")
@@ -375,7 +385,11 @@ def contactus(request):
                 "Your message contains inappropriate content and could not be submitted. "
                 "Please revise and try again."
             )
-            return render(request, "contactus.html", contact_context())
+            return render(
+                request,
+                "contactus.html",
+                contact_context(form_data=request.POST)
+            )
  
         # SAVE
         inquiry = Inquiry.objects.create(
@@ -759,6 +773,7 @@ def incoming_sms_webhook(request):
 
 #CREATE SMS LOG
 @admin_login_required
+@permission_required("send_sms")
 def create_sms_log(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
@@ -766,10 +781,14 @@ def create_sms_log(request):
     queue_sms(data.get("recipient_number"), data.get("message"))
     return JsonResponse({"message": "SMS logged"})
 
-#GET SMS LOG
+# GET SMS LOG
 @admin_login_required
+@permission_required("view_sms_outbox")
 def get_sms_logs(request):
-    return JsonResponse(list(SMSOutbox.objects.all().values()), safe=False)
+    return JsonResponse(
+        list(SMSOutbox.objects.all().values()),
+        safe=False
+    )
 
 
 # HELPERS
@@ -1710,6 +1729,7 @@ def resident_register_view(request):
 # DASHBOARDS
 
 @admin_login_required
+@permission_required("view_dashboard")
 def admin_dashboard_view(request):
     from django.db.models import Avg, Count, F, ExpressionWrapper, fields
     from django.core.serializers.json import DjangoJSONEncoder
@@ -2855,8 +2875,8 @@ def admin_announcements_view(request):
     })
 
 # ADMIN ANNOUNCEMENT DETAIL
-
 @admin_login_required
+@permission_required("view_announcements")
 def admin_announcement_detail_view(request, announcement_id):
 
     try:
@@ -2880,6 +2900,7 @@ def admin_announcement_detail_view(request, announcement_id):
 # ADMIN ANNOUNCEMENT EDIT
 
 @admin_login_required
+@permission_required("edit_announcements")
 def admin_announcement_edit_view(request, announcement_id):
 
     try:
@@ -2963,6 +2984,7 @@ def admin_announcement_edit_view(request, announcement_id):
 # ADMIN ANNOUNCEMENT DELETE
 
 @admin_login_required
+@permission_required("delete_announcements")
 def admin_announcement_delete_view(request, announcement_id):
 
     try:
@@ -2981,9 +3003,10 @@ def admin_announcement_delete_view(request, announcement_id):
 
     return redirect("admin_announcement_detail", announcement_id=announcement_id)
 
-# ADMIN ANNOUNCEMENT CREATE
 
+# ADMIN ANNOUNCEMENT CREATE
 @admin_login_required
+@permission_required("create_announcements")
 def admin_announcement_create_view(request):
 
     current_admin = get_current_user(request)
@@ -3096,6 +3119,7 @@ def admin_announcement_create_view(request):
 
 #ADMIN: Feedback View (rating)
 @admin_login_required
+@permission_required("view_announcements")
 def admin_feedback_view(request):
     from django.db.models import Avg, Count, Q
 
@@ -3116,6 +3140,7 @@ def admin_feedback_view(request):
 
 
 @admin_login_required
+@permission_required("view_announcements")
 def admin_feedback_detail_view(request, announcement_id):
     from django.db.models import Avg, Count
 
@@ -3295,17 +3320,23 @@ def document_request_view(request):
     document_types = DocumentTypes.objects.filter(is_active=True)
     current_user = get_current_user(request)
 
-    def documents_context(captcha_form=None, selected_type=None, fields=None):
+    def documents_context(
+        captcha_form=None,
+        selected_type=None,
+        fields=None,
+        form_data=None,
+    ):
         context = {
             "document_types": document_types,
             "resident": current_user,
             "captcha_form": captcha_form or CaptchaOnlyForm(),
+            "form_data": form_data or {},
         }
 
         if selected_type:
             context["selected_type"] = selected_type
 
-        if fields:
+        if fields is not None:
             context["fields"] = fields
 
         return context
@@ -3313,12 +3344,35 @@ def document_request_view(request):
     if request.method == "POST":
         captcha_form = CaptchaOnlyForm(request.POST)
 
-        if not captcha_form.is_valid():
-            messages.error(request, "Incorrect security code. Please try again.")
-            return render(request, "documents.html", documents_context(captcha_form))
-
         document_type_id = request.POST.get("document_type_id", "").strip()
         purpose = request.POST.get("purpose", "").strip()
+
+        if not captcha_form.is_valid():
+            selected_type = None
+            fields = None
+
+            if document_type_id:
+                try:
+                    selected_type = DocumentTypes.objects.get(
+                        dtid=document_type_id,
+                        is_active=True
+                    )
+                    fields = DocumentFields.objects.filter(
+                        document_type=selected_type
+                    )
+                except DocumentTypes.DoesNotExist:
+                    pass
+
+            return render(
+                request,
+                "documents.html",
+                documents_context(
+                    captcha_form=captcha_form,
+                    selected_type=selected_type,
+                    fields=fields,
+                    form_data=request.POST,
+                )
+            )
 
         if not document_type_id:
             messages.error(request, "Please select a document type.")
@@ -3356,7 +3410,11 @@ def document_request_view(request):
             return render(
                 request,
                 "documents.html",
-                documents_context(selected_type=document_type, fields=fields)
+                documents_context(
+                    selected_type=document_type,
+                    fields=fields,
+                    form_data=request.POST,
+                )
             )
 
         # CONTENT MODERATION
@@ -4453,6 +4511,7 @@ def _complaint_contact_numbers(complaint):
 
 #admin inquiry view
 @admin_login_required
+@permission_required("view_inquiries")
 def admin_inquiries_view(request):
     from django.core.paginator import Paginator
 
@@ -4525,6 +4584,7 @@ def admin_inquiries_view(request):
 
 # admin inquiry detail
 @admin_login_required
+@permission_required("view_inquiries")
 def admin_inquiry_detail_view(request, cuid):
     try:
         inquiry = Inquiry.objects.select_related(
@@ -4716,6 +4776,7 @@ def audit_logs_view(request):
 
 # ADMIN FAQS VIEW
 @admin_login_required
+@permission_required("view_inquiries")
 def admin_faqs(request):
     from django.core.paginator import Paginator
 
@@ -4763,8 +4824,9 @@ def admin_faqs(request):
         "user": get_current_user(request),
     })
 
-
+#ADMIN ADD FAQ
 @admin_login_required
+@permission_required("reply_inquiries")
 def admin_add_faq(request):
     categories = FAQCategories.objects.all()
 
@@ -4806,9 +4868,9 @@ def admin_add_faq(request):
         'prefill_category': prefill_category,
     })
 
-
-
+#ADMIN EDIT FAQ
 @admin_login_required
+@permission_required("reply_inquiries")
 def admin_edit_faq(request, faq_id):
     faq = get_object_or_404(FAQs, faq_id=faq_id)
     categories = FAQCategories.objects.all()
@@ -4842,6 +4904,7 @@ def admin_edit_faq(request, faq_id):
 
 
 @admin_login_required
+@permission_required("reply_inquiries")
 def admin_toggle_faq(request, faq_id):
     faq = get_object_or_404(FAQs, faq_id=faq_id)
 

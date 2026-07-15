@@ -197,6 +197,12 @@
     ]
   };
 
+  const restoredFormData = {
+    {% for key, value in form_data.items %}
+      "{{ key|escapejs }}": "{{ value|escapejs }}",
+    {% endfor %}
+  };
+
   function getCurrentLanguage() {
     return localStorage.getItem("kaugnay_lang") || "en";
   }
@@ -286,6 +292,15 @@
 
         input.name = `field_${field.dfid}`;
         input.id = `field_${field.dfid}`;
+
+        const savedValue = restoredFormData[input.name];
+
+        if (
+            savedValue !== undefined &&
+            field.field_type !== "file"
+        ) {
+            input.value = savedValue;
+        }
 
         if (field.is_required && !field.field_label.toLowerCase().includes('middle name')) {
           input.required = true;
@@ -392,9 +407,17 @@
 
   document.addEventListener('DOMContentLoaded', function() {
   const messages = document.querySelectorAll('.form-notice');
+
   if (messages.length > 0) {
     messages[0].scrollIntoView({ behavior: 'smooth' });
   }
+
+  {% if selected_type %}
+    openModal(
+      "{{ selected_type.dtid }}",
+      "{{ selected_type.name|escapejs }}"
+    );
+  {% endif %}
 });
 
 </script>

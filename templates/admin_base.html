@@ -62,64 +62,84 @@ window.addEventListener("click", function(e) {
 
         <nav class="admin-menu">
 
-            <a href="{% url 'admin_dashboard' %}"
-               class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                <i class="fa-solid fa-house"></i>
-                Dashboard
-            </a>
+            {% if "view_dashboard" in request.session.permissions %}
+                <a href="{% url 'admin_dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    Dashboard
+                </a>
+            {% endif %}
 
-            <a href="{% url 'resident_records' %}"
-               class="{% if 'resident_record' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="fa-solid fa-users"></i>
-                Residents
-            </a>
+            {% if "view_residents" in request.session.permissions %}
+                <a href="{% url 'resident_records' %}"
+                class="{% if 'resident_record' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i>
+                    Residents
+                </a>
+            {% endif %}
 
-            <a href="{% url 'announcements' %}"
-               class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">
-                <i class="fa-solid fa-bullhorn"></i>
-                Announcements
-            </a>
+            {% if "view_announcements" in request.session.permissions %}
+                <a href="{% url 'announcements' %}"
+                class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    Announcements
+                </a>
+            {% endif %}
 
-            <a href="{% url 'admin_document_requests' %}">
-                <i class="fa-solid fa-file-lines"></i>
-                Requests
-            </a>
+            {% if "view_document_requests" in request.session.permissions %}
+                <a href="{% url 'admin_document_requests' %}">
+                    <i class="fa-solid fa-file-lines"></i>
+                    Requests
+                </a>
+            {% endif %}
 
-            <a href="{% url 'case_records' %}"
+            {% if "view_complaints" in request.session.permissions %}
+                <a href="{% url 'case_records' %}"
                 class="{% if request.resolver_match.url_name == 'case_records' %}active{% endif %}">
-                <i class="fa-solid fa-scale-balanced"></i>
-                Cases
-            </a>
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    Cases
+                </a>
+            {% endif %}
 
-            <a href="{% url 'admin_inquiries' %}"
+            {% if "view_inquiries" in request.session.permissions %}
+                <a href="{% url 'admin_inquiries' %}"
                 class="{% if request.resolver_match.url_name == 'admin_inquiries' or request.resolver_match.url_name == 'admin_inquiry_detail' %}active{% endif %}">
-                <i class="fa-solid fa-envelope"></i>
-                Inquiries
-            </a>
+                    <i class="fa-solid fa-envelope"></i>
+                    Inquiries
+                </a>
+            {% endif %}
 
-            <a href="{% url 'admin_faqs' %}"
+            {% if "view_inquiries" in request.session.permissions %}
+                <a href="{% url 'admin_faqs' %}"
                 class="{% if request.resolver_match.url_name == 'admin_faqs' or request.resolver_match.url_name == 'admin_add_faq' or request.resolver_match.url_name == 'admin_edit_faq' %}active{% endif %}">
-                <i class="fa-solid fa-circle-question"></i>
-                FAQs
-            </a>
+                    <i class="fa-solid fa-circle-question"></i>
+                    FAQs
+                </a>
+            {% endif %}
 
-            <a href="{% url 'audit_logs' %}"
+            {% if "view_audit_logs" in request.session.permissions %}
+                <a href="{% url 'audit_logs' %}"
                 class="{% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                Audit Logs
-            </a>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Audit Logs
+                </a>
+            {% endif %}
 
-            <a href="{% url 'sms_outbox' %}"
+            {% if "view_sms_outbox" in request.session.permissions %}
+                <a href="{% url 'sms_outbox' %}"
                 class="{% if request.resolver_match.url_name == 'sms_outbox' %}active{% endif %}">
-                <i class="fa-solid fa-comment-sms"></i>
-                SMS Outbox
-            </a>
+                    <i class="fa-solid fa-comment-sms"></i>
+                    SMS Outbox
+                </a>
+            {% endif %}
 
-            <a href="{% url 'admins_list' %}"
-            class="{% if request.resolver_match.url_name == 'admins_list' or request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
-                <i class="fa-solid fa-user-shield"></i>                
-                Admins
-            </a>
+            {% if request.session.role == "Chairman" %}
+                <a href="{% url 'admins_list' %}"
+                class="{% if request.resolver_match.url_name == 'admins_list' or request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    Admins
+                </a>
+            {% endif %}
 
         </nav>
 
@@ -143,7 +163,7 @@ window.addEventListener("click", function(e) {
                         type="button"
                         onclick="toggleDropdown(event)">                  
                     <span class="profile-name">
-                        Admin<br>
+                        {{ request.session.role|default:"Admin" }}<br>
                         {{ request.session.fullname|default:"Jane D." }}
                     </span>
 
