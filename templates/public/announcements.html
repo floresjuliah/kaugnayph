@@ -71,7 +71,7 @@
       data-category="{{ announcement.category.name|default:'general'|lower }}"
       data-title="{{ announcement.title|escapejs }}"
       data-content="{{ announcement.content|striptags|escapejs }}"
-      data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname|escapejs }} {{ announcement.posted_by.lastname|escapejs }}{% else %}Barangay Admin{% endif %}"
+      data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname|escapejs }} {{ announcement.posted_by.lastname|escapejs }}{% else %}Barangay Personnel{% endif %}"
       data-date="{{ announcement.created_at|date:'m/d/Y' }}"
       data-catname="{{ announcement.category.name|default:'General Updates'|escapejs }}"
       data-image="{% if announcement.file_path %}/media/{{ announcement.file_path }}{% endif %}"
@@ -98,7 +98,7 @@
                 {{ announcement.posted_by.firstname }}
                 {{ announcement.posted_by.lastname }}
               {% else %}
-                Barangay Admin
+                Barangay Personnel
               {% endif %}
             </div>
 
@@ -106,7 +106,7 @@
               {% if announcement.posted_by.position %}
                 {{ announcement.posted_by.position.name }}
               {% else %}
-                Barangay Admin
+                Barangay Personnel
               {% endif %}
             </div>
 
@@ -444,7 +444,7 @@
     const card = btn.closest('.ann-card');
     const title = card.dataset.title || 'Announcement';
     const content = card.dataset.content || '';
-    const author = card.dataset.author || 'Barangay Admin';
+    const author = card.dataset.author || 'Barangay Personnel';
     const date = card.dataset.date || '';
     const catname = card.dataset.catname || 'General Updates';
     const imageSrc = card.dataset.image || '';

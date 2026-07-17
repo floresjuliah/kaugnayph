@@ -1,7 +1,7 @@
 {% extends "admin_base.html" %}
 {% load static %}
 
-{% block admin_title %}Admins{% endblock %}
+{% block admin_title %}Personnel{% endblock %}
 
 {% block admin_content %}
 
@@ -10,7 +10,7 @@
 <div class="admin-page">
 
     <div class="admin-page-header">
-        <h1 class="admin-page-title">Admins</h1>
+        <h1 class="admin-page-title">Personnel</h1>
     </div>
 
     <form method="GET" class="admin-toolbar">
@@ -22,7 +22,7 @@
                     type="text"
                     name="search"
                     value="{{ search_query }}"
-                    placeholder="Search admin, username, email, or position"
+                    placeholder="Search personnel, username, email, or position"
                 >
             </div>
 
@@ -47,7 +47,7 @@
         <div class="admin-toolbar-right">
             <a href="/admin/register/" class="admin-primary-btn">
                 <i class="fa-solid fa-user-plus"></i> 
-                Add Admin
+                Add Personnel
             </a>
         </div>
     </form>
@@ -58,7 +58,7 @@
                 <i class="fa-solid fa-users-gear"></i>
             </div>
             <div class="admin-stat-info">
-                <p>Total Admins</p>
+                <p>Total Personnel</p>
                 <h3>{{ total_admins|default:"0" }}</h3>
             </div>
         </div>
@@ -68,7 +68,7 @@
                 <i class="fa-solid fa-user-check"></i>
             </div>
             <div class="admin-stat-info">
-                <p>Active Admins</p>
+                <p>Active Personnel</p>
                 <h3>{{ active_admins|default:"0" }}</h3>
             </div>
         </div>
@@ -78,7 +78,7 @@
                 <i class="fa-solid fa-user-slash"></i>
             </div>
             <div class="admin-stat-info">
-                <p>Inactive Admins</p>
+                <p>Inactive Personnel</p>
                 <h3>{{ inactive_admins|default:"0" }}</h3>
             </div>
         </div>
@@ -151,7 +151,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="6" class="empty-row">
-                            No admins found.
+                            No personnel found.
                         </td>
                     </tr>
                     {% endfor %}
@@ -162,7 +162,7 @@
         <div class="admin-table-footer">
             <p>
                 Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
-                of {{ page_obj.paginator.count }} admins
+                of {{ page_obj.paginator.count }} personnel
             </p>
 
             <div class="admin-pagination">

@@ -2033,7 +2033,7 @@ def admin_register(request):
     try:
         admin_type = UserTypes.objects.get(type_name="Admin")
     except UserTypes.DoesNotExist:
-        messages.error(request, "Admin user type not found.")
+        messages.error(request, "Personnel user type not found.")
         return redirect("admin_register")
 
     try:
@@ -2090,12 +2090,12 @@ def admin_register(request):
 
     AuditLogs.objects.create(
         user=current_admin,
-        action="Create Staff Account",
+        action="Create Personnel Account",
         module_name="UserManagement",
         table_name="Users",
         record_id=new_user.userid,
         new_value=(
-            f"Staff '{username}' created by {current_admin.username}. "
+            f"Personnel '{username}' created by {current_admin.username}. "
             f"Position: {position.name}. System Role: {role.rolename}."
         ),
         created_at=timezone.now()
@@ -2134,7 +2134,7 @@ def admin_detail_view(request, user_id):
             user_type__type_name="Admin"
         )
     except Users.DoesNotExist:
-        messages.error(request, "Admin account not found.")
+        messages.error(request, "Personnel account not found.")
         return redirect("admins_list")
 
     return render(request, "adminpanel/admin_detail.html", {
@@ -2163,7 +2163,7 @@ def admin_deactivate_view(request, user_id):
             is_active=True
         )
     except Users.DoesNotExist:
-        messages.error(request, "Admin account not found.")
+        messages.error(request, "Personnel account not found.")
         return redirect("admins_list")
 
     # Prevent current admin from deactivating their own account
@@ -2206,7 +2206,7 @@ def admin_deactivate_view(request, user_id):
 
         messages.success(
             request,
-            f"Admin account for {admin_user.firstname} {admin_user.lastname} has been deactivated."
+            f"Personnel account for {admin_user.firstname} {admin_user.lastname} has been deactivated."
         )
         return redirect("admins_list")
 
@@ -2233,7 +2233,7 @@ def admin_edit_view(request, user_id):
             user_type__type_name="Admin"
         )
     except Users.DoesNotExist:
-        messages.error(request, "Admin account not found.")
+        messages.error(request, "Personnel account not found.")
         return redirect("admins_list")
 
     positions = Positions.objects.all()
@@ -2320,7 +2320,7 @@ def admin_edit_view(request, user_id):
 
     messages.success(
         request,
-        f"Admin account for {admin_user.firstname} {admin_user.lastname} has been updated."
+        f"Personnel account for {admin_user.firstname} {admin_user.lastname} has been updated."
     )
 
     return redirect("admins_list")
@@ -2365,7 +2365,7 @@ def admin_reactivate_view(request, user_id):
 
     messages.success(
         request,
-        f"Admin account for {admin_user.firstname} {admin_user.lastname} has been reactivated."
+        f"Personnel account for {admin_user.firstname} {admin_user.lastname} has been reactivated."
     )
 
     return redirect("admins_list")

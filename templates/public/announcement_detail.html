@@ -16,7 +16,7 @@
      style="cursor: default;"
      data-title="{{ announcement.title }}"
      data-content="{{ announcement.content }}"
-     data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Admin{% endif %}"
+     data-author="{% if announcement.posted_by %}{{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}{% else %}Barangay Personnel{% endif %}"
      data-date="{{ announcement.created_at|date:'m/d/Y' }}"
      data-catname="{{ announcement.category.name|default:'General Updates' }}"
      data-image="{% if announcement.file_path %}/media/{{ announcement.file_path }}{% endif %}">
@@ -34,14 +34,14 @@
             {% if announcement.posted_by %}
               {{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}
             {% else %}
-              Barangay Admin
+              Barangay Personnel
             {% endif %}
           </div>
           <div class="ann-author-role">
             {% if announcement.posted_by %}
-              {{ announcement.posted_by.role.rolename|default:"Admin" }}
+              {{ announcement.posted_by.role.rolename|default:"Personnel" }}
             {% else %}
-              Barangay Admin
+              Barangay Personnel
             {% endif %}
           </div>
           <div class="ann-time">{{ announcement.created_at|date:"M d, Y" }}</div>
@@ -298,7 +298,7 @@
 
     const title = card.dataset.title || 'Announcement';
     const content = card.dataset.content || '';
-    const author = card.dataset.author || 'Barangay Admin';
+    const author = card.dataset.author || 'Barangay Personnel';
     const date = card.dataset.date || '';
     const catname = card.dataset.catname || 'General Updates';
     const imageSrc = card.dataset.image || '';

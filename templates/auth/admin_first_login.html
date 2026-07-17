@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin First Login</title>
+    <title>Personnel First Login</title>
 
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 
@@ -15,7 +15,7 @@
 <div class="first-login-card">
 
     <h1>Kaugnay<span>PH</span></h1>
-    <p class="login-subtitle">Admin Login</p>
+    <p class="login-subtitle">Personnel Login</p>
 
     <p class="login-note">
         New Log-In detected.<br>
@@ -92,7 +92,7 @@
             </span>
         </div>
 
-        <input type="hidden" name="firstname" value="{{ user.firstname|default:'Admin' }}">
+        <input type="hidden" name="firstname" value="{{ user.firstname|default:'User' }}">
         <input type="hidden" name="lastname" value="{{ user.lastname|default:'User' }}">
 
         <button type="submit">Confirm account</button>

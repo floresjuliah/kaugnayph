@@ -41,12 +41,12 @@
 
             <div class="profile-info-box">
                 <h3>
-                    {{ current_user.firstname|default:"Admin" }}
+                    {{ current_user.firstname|default:"User" }}
                     {{ current_user.lastname|default:"" }}
                 </h3>
 
                 <p class="role-text">
-                    {{ current_user.position.name|default:"Administrator" }}
+                    {{ current_user.position.name|default:"User" }}
                 </p>
 
                 <div class="settings-info-row">

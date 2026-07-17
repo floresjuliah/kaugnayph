@@ -1,21 +1,21 @@
 {% extends "admin_base.html" %}
-{% block admin_title %}Deactivate Admin{% endblock %}
+{% block admin_title %}Deactivate Personnel{% endblock %}
 
 {% block admin_content %}
 
 <div class="admins-page">
 
     <div class="admins-header">
-        <h1 class="admins-title">Deactivate Admin</h1>
+        <h1 class="admins-title">Deactivate Personnel</h1>
 
         <a href="{% url 'admins_list' %}" class="add-admin-btn">
-            Back to Admins
+            Back to Personnel
         </a>
     </div>
 
     <div class="admins-card" style="padding: 28px;">
 
-        <h3>Are you sure you want to deactivate this admin account?</h3>
+        <h3>Are you sure you want to deactivate this personnel account?</h3>
 
         <p><strong>Name:</strong> {{ admin_user.firstname }} {{ admin_user.lastname }}</p>
         <p><strong>Username:</strong> {{ admin_user.username }}</p>
