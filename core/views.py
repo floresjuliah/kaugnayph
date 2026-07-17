@@ -946,6 +946,15 @@ def login_view(request):
         return redirect("landing")
 
     # BARANGAY PERSONNEL LOGIN FLOW
+
+    # Clear stale authentication-flow values from previous attempts.
+    request.session.pop("from_forgot_password", None)
+    request.session.pop("forgot_password_verified", None)
+    request.session.pop("forgot_password_user_type", None)
+    request.session.pop("from_first_login", None)
+    request.session.pop("pending_first_login_data", None)
+    request.session.pop("otp_method", None)
+
     request.session["pending_user_id"] = user.userid
 
     if user.is_first_login:
@@ -985,45 +994,89 @@ def login_view(request):
 
     return redirect("otp_verify")
 
-# RESIDENT FORGOT PASSWORD
+# SHARED RESIDENT AND PERSONNEL FORGOT PASSWORD
 def forgot_password_view(request):
     if request.method != "POST":
         return render(request, "auth/forgot_password.html")
 
-    contact_no = request.POST.get("contact_no", "").strip()
+    identifier = request.POST.get("identifier", "").strip()
 
-    try:
-        user = Users.objects.select_related(
-            "user_type", "role", "position"
-        ).get(contactno=contact_no, is_active=True)
-    except Users.DoesNotExist:
-        messages.error(request, "No active resident account found with that mobile number.")
+    if not identifier:
+        messages.error(
+            request,
+            "Please enter your username or registered mobile number."
+        )
         return render(request, "auth/forgot_password.html")
 
-    if user.user_type.type_name != "Resident":
-        messages.error(request, "No active resident account found with that mobile number.")
+    # Residents use their registered mobile number.
+    user = Users.objects.select_related(
+        "user_type", "role", "position"
+    ).filter(
+        contactno=identifier,
+        user_type__type_name="Resident",
+        is_active=True,
+    ).first()
+
+    account_type = "resident"
+
+    # Barangay personnel use their username.
+    if user is None:
+        user = Users.objects.select_related(
+            "user_type", "role", "position"
+        ).filter(
+            username=identifier,
+            user_type__type_name="Admin",
+            is_active=True,
+        ).first()
+
+        account_type = "admin"
+
+    if user is None:
+        messages.error(
+            request,
+            "No active account was found with that username or mobile number."
+        )
         return render(request, "auth/forgot_password.html")
 
     if not user.email:
-        messages.error(request, "No email address is registered for this account.")
+        messages.error(
+            request,
+            "No email address is registered for this account."
+        )
         return render(request, "auth/forgot_password.html")
+
+    # Clear any stale authentication-flow session values.
+    request.session.pop("forgot_password_verified", None)
+    request.session.pop("from_first_login", None)
+    request.session.pop("pending_first_login_data", None)
 
     request.session["pending_user_id"] = user.userid
     request.session["from_forgot_password"] = True
-    request.session["forgot_password_user_type"] = "resident"
+    request.session["forgot_password_user_type"] = account_type
 
-    otp, cooldown = generate_otp(user, purpose="forgot_password")
+    otp, cooldown = generate_otp(
+        user,
+        purpose="forgot_password"
+    )
 
     if cooldown:
         mins = cooldown // 60
         secs = cooldown % 60
-        messages.error(request, f"Please wait {mins}m {secs}s before requesting another OTP.")
+
+        messages.error(
+            request,
+            f"Please wait {mins}m {secs}s before requesting another OTP."
+        )
         return render(request, "auth/forgot_password.html")
 
     send_email_otp(user.email, otp.code)
     request.session["otp_method"] = "email"
 
-    messages.success(request, "OTP has been sent to your registered email address.")
+    messages.success(
+        request,
+        "OTP has been sent to your registered email address."
+    )
+
     return redirect("otp_verify")
 
 # RESIDENT RESET PASSWORD
@@ -1182,7 +1235,8 @@ def admin_reset_password_view(request):
         user_agent=request.META.get("HTTP_USER_AGENT"),
         created_at=timezone.now(),
     )
-
+    
+    request.session.pop("forgot_password_user_type", None)
     request.session.pop("pending_user_id", None)
     request.session.pop("from_forgot_password", None)
     request.session.pop("forgot_password_verified", None)
