@@ -135,7 +135,7 @@ def filecomplaint(request):
     current_user = get_current_user(request)
 
     today = date.today()
-    min_incident_date = today - timedelta(days=7)
+    min_incident_date = today
     max_incident_date = today
 
     def complaint_context(captcha_form=None, form_data=None):
@@ -195,11 +195,10 @@ def filecomplaint(request):
                 messages.error(request, "Incident date cannot be in the future.")
                 return render(request, "filecomplaint.html", complaint_context())
 
-            if incident_date.date() < min_incident_date:
+            if incident_date.date() != today:
                 messages.error(
                     request,
-                    f"Incident date cannot be earlier than "
-                    f"{min_incident_date.strftime('%B %d, %Y')}. "
+                    "Incident date must be today's date. "
                     "For older incidents, please visit the barangay office directly."
                 )
                 return render(request, "filecomplaint.html", complaint_context())
@@ -4062,22 +4061,19 @@ def case_detail_view(request, complaint_id):
         # STEP 5: First Mediation Session outcome
         elif action == "record_mediation_outcome":
             outcome = request.POST.get("outcome", "").strip()  # "Settled" or "Not Settled"
-            remarks = request.POST.get("remarks", "").strip()
 
             mediation_hearing = all_hearings.filter(hearing_level__level_type="Mediation").last()
             completed_status = HearingStatus.objects.filter(statustype="Completed").first()
             if mediation_hearing and completed_status:
                 mediation_hearing.status = completed_status
                 mediation_hearing.outcome = outcome
-                mediation_hearing.remarks = remarks or None
                 mediation_hearing.save()
 
             if outcome == "Settled":
-                complaint.settlement_notes = remarks or None
                 complaint.settlement_date = timezone.now()
                 apply_status_change(
                     complaint, "Settled", current_admin,
-                    remarks=remarks or "Settled during mediation.",
+                    remarks="Settled during mediation.",
                     log_action="Record Mediation Settlement",
                 )
                 sms_body = build_sms_for_status("Settled", case_number)
@@ -4153,7 +4149,6 @@ def case_detail_view(request, complaint_id):
         elif action == "record_hearing_outcome":
             hearing_id = request.POST.get("hearing_id", "").strip()
             outcome = request.POST.get("outcome", "").strip()
-            remarks = request.POST.get("remarks", "").strip()
             complainant_attendance = request.POST.get("complainant_attendance", "").strip()
             respondent_attendance = request.POST.get("respondent_attendance", "").strip()
 
@@ -4171,7 +4166,6 @@ def case_detail_view(request, complaint_id):
             # from a hearing actually occurring and failing).
             if outcome == "Rescheduled":
                 hearing.outcome = "Rescheduled"
-                hearing.remarks = remarks or None
                 hearing.save()
 
                 ComplaintUpdates.objects.create(
@@ -4186,7 +4180,6 @@ def case_detail_view(request, complaint_id):
             completed_status = HearingStatus.objects.filter(statustype="Completed").first()
             hearing.status = completed_status or hearing.status
             hearing.outcome = outcome
-            hearing.remarks = remarks or None
             hearing.save()
 
             if complainant_attendance:
@@ -4224,11 +4217,10 @@ def case_detail_view(request, complaint_id):
                 )
 
             if outcome == "Settled":
-                complaint.settlement_notes = remarks or None
                 complaint.settlement_date = timezone.now()
                 apply_status_change(
                     complaint, "Settled", current_admin,
-                    remarks=remarks or f"Settled at {hearing.hearing_level.level_type}.",
+                    remarks=f"Settled at {hearing.hearing_level.level_type}.",
                     log_action="Record Hearing Settlement",
                 )
                 sms_body = build_sms_for_status("Settled", case_number)
@@ -4236,21 +4228,59 @@ def case_detail_view(request, complaint_id):
                     for party_contact in _complaint_contact_numbers(complaint):
                         queue_sms(party_contact, sms_body, sent_by=current_admin)
 
-            elif hearing.hearing_level.level_type == "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)":
-                # Final Outcome After Hearing 3, no settlement
+            elif outcome == "Not Settled":
+
+                level = hearing.hearing_level.level_type
+
+            # Hearing 1 → Hearing 2
+            if level == "1st Hearing - Lupong Tagapamayapa (Chairman Present)":
+
                 apply_status_change(
-                    complaint, "Eligible for Certificate to File Action", current_admin,
-                    remarks="No settlement reached after 3 hearings.",
-                    log_action="Mark Eligible for Certificate to File Action",
+                    complaint,
+                    "For 2nd Hearing",
+                    current_admin,
+                    remarks="No settlement reached during Hearing 1. Proceeding to Hearing 2.",
+                    log_action="Advance to Hearing 2",
                 )
-            else:
-                # Stay on current "For Nth Hearing" status until next hearing is scheduled
-                ComplaintUpdates.objects.create(
-                    complaint=complaint, updated_by=current_admin,
-                    status=complaint.status,
-                    remarks=f"{hearing.hearing_level.level_type} outcome recorded: {outcome}.",
-                    updated_at=timezone.now(),
+
+                sms_body = build_sms_for_status("For 2nd Hearing", case_number)
+
+            # Hearing 2 → Hearing 3
+            elif level == "2nd Hearing - Lupong Tagapamayapa (Same Lupons, Chairman Present)":
+
+                apply_status_change(
+                    complaint,
+                    "For 3rd Hearing",
+                    current_admin,
+                    remarks="No settlement reached during Hearing 2. Proceeding to Hearing 3.",
+                    log_action="Advance to Hearing 3",
                 )
+
+                sms_body = build_sms_for_status("For 3rd Hearing", case_number)
+
+            # Hearing 3 → Certificate
+            elif level == "3rd Hearing - Pangkat ng Tagapagkasundo (Lupon Chairman Appointed, No Chairman)":
+
+                apply_status_change(
+                    complaint,
+                    "Eligible for Certificate to File Action",
+                    current_admin,
+                    remarks="No settlement reached after the 3rd hearing.",
+                    log_action="Eligible for Certificate to File Action",
+                )
+
+                sms_body = build_sms_for_status(
+                    "Eligible for Certificate to File Action",
+                    case_number,
+                )
+
+            if sms_body:
+                for party_contact in _complaint_contact_numbers(complaint):
+                    queue_sms(
+                        party_contact,
+                        sms_body,
+                        sent_by=current_admin,
+                    )
 
             messages.success(request, "Hearing outcome recorded.")
 
@@ -4274,7 +4304,6 @@ def case_detail_view(request, complaint_id):
                 certificate_no="TEMP",
                 issued_by=current_admin,
                 issued_at=timezone.now(),
-                remarks=remarks or None,
             )
             cert.certificate_no = generate_certificate_number(cert.cfaid)
             cert.save(update_fields=["certificate_no"])
@@ -4332,67 +4361,6 @@ def case_detail_view(request, complaint_id):
             if sms_body and complaint.complainant_user and complaint.complainant_user.contactno:
                 queue_sms(complaint.complainant_user.contactno, sms_body, sent_by=current_admin)
             messages.success(request, "Case status updated successfully.")
-
-        # Existing hearing level / official management
-        elif action == "update_hearing":
-            hearing_level_id = request.POST.get("hearing_level_id", "").strip()
-            hearing_date_raw = request.POST.get("hearing_date", "").strip()
-            hearing_status_id = request.POST.get("hearing_status_id", "").strip()
-
-            if not hearing_level_id:
-                messages.error(request, "Please select a hearing level.")
-                return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-            try:
-                hearing_level = HearingLevel.objects.get(hearinglevelid=hearing_level_id)
-                hearing_status = HearingStatus.objects.get(statusid=hearing_status_id)
-            except (HearingLevel.DoesNotExist, HearingStatus.DoesNotExist):
-                messages.error(request, "Invalid hearing level or status.")
-                return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-            hearing_date = None
-            if hearing_date_raw:
-                hearing_date = parse_datetime(hearing_date_raw)
-                if hearing_date and timezone.is_naive(hearing_date):
-                    hearing_date = timezone.make_aware(hearing_date)
-                if not hearing_date:
-                    messages.error(request, "Invalid hearing date/time format.")
-                    return redirect("case_detail", complaint_id=complaint.complaintsid)
-
-            if existing_hearing:
-                existing_hearing.hearing_level = hearing_level
-                existing_hearing.status = hearing_status
-                if hearing_date:
-                    existing_hearing.hearing_date = hearing_date
-                existing_hearing.save()
-            else:
-                ComplaintHearing.objects.create(
-                    complaint=complaint, hearing_level=hearing_level,
-                    hearing_date=hearing_date or timezone.now(),
-                    status=hearing_status, created_at=timezone.now(),
-                )
-
-            AuditLogs.objects.create(
-                user=current_admin, action="Update Hearing Level",
-                module_name="Cases", table_name="ComplaintHearing",
-                record_id=complaint.complaintsid,
-                new_value=f"Hearing level set to '{hearing_level.level_type}'.",
-                created_at=timezone.now(),
-            )
-            sms_body = (
-                f"KaugnayPH: Hearing details for complaint "
-                f"{case_number} has been updated. "
-                "Please check your account for the latest schedule and status."
-            )
-
-            if complaint.complainant_user and complaint.complainant_user.contactno:
-                queue_sms(
-                    complaint.complainant_user.contactno,
-                    sms_body,
-                    sent_by=current_admin
-                )
-
-            messages.success(request, "Hearing level updated.")
 
         elif action == "assign_official":
             official_user_id = request.POST.get("official_user_id", "").strip()

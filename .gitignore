@@ -8,3 +8,10 @@ venv/
 *.pyo
 media/staticfiles/
 .env
+
+# Generated and local files
+media/
+staticfiles/
+code_export/
+*.bak
+*.log

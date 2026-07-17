@@ -133,7 +133,7 @@ window.addEventListener("click", function(e) {
                 </a>
             {% endif %}
 
-            {% if request.session.role == "Chairman" %}
+            {% if "create_users" in request.session.permissions %}
                 <a href="{% url 'admins_list' %}"
                 class="{% if request.resolver_match.url_name == 'admins_list' or request.resolver_match.url_name == 'admin_register' %}active{% endif %}">
                     <i class="fa-solid fa-user-shield"></i>

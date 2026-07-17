@@ -177,7 +177,6 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="Settled">Settled</option>
                 <option value="Not Settled">Not Settled</option>
             </select>
-            <input type="text" name="remarks" placeholder="Remarks">
             <button type="submit" class="btn-primary">Record Outcome</button>
         </form>
     {% endif %}
@@ -188,11 +187,19 @@ href="{% static 'css/admin_case_detail.css' %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="schedule_hearing">
             <label>Schedule Hearing:</label>
-            <select name="hearing_number" required>
-                <option value="1" {% if complaint.status == "For 1st Hearing" %}selected{% endif %}>Hearing 1</option>
-                <option value="2" {% if complaint.status == "For 2nd Hearing" %}selected{% endif %}>Hearing 2</option>
-                <option value="3" {% if complaint.status == "For 3rd Hearing" %}selected{% endif %}>Hearing 3</option>
-            </select>
+            {% if complaint.status == "For 1st Hearing" %}
+            <input type="hidden" name="hearing_number" value="1">
+            <p><strong>Next Hearing:</strong> Hearing 1</p>
+
+            {% elif complaint.status == "For 2nd Hearing" %}
+            <input type="hidden" name="hearing_number" value="2">
+            <p><strong>Next Hearing:</strong> Hearing 2</p>
+
+            {% elif complaint.status == "For 3rd Hearing" %}
+            <input type="hidden" name="hearing_number" value="3">
+            <p><strong>Next Hearing:</strong> Hearing 3</p>
+
+            {% endif %}
             <input type="datetime-local" name="hearing_date" id="hearing_date" required>
             <button type="submit" class="btn-primary">Schedule Hearing</button>
         </form>
@@ -222,7 +229,6 @@ href="{% static 'css/admin_case_detail.css' %}">
                 <option value="Excused">Excused</option>
                 <option value="Refused">Refused</option>
             </select>
-            <input type="text" name="remarks" placeholder="Remarks">
             <button type="submit" class="btn-primary">Record Outcome</button>
         </form>
         {% endif %}
@@ -232,7 +238,6 @@ href="{% static 'css/admin_case_detail.css' %}">
         <form method="POST" class="case-action-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="issue_certificate">
-            <input type="text" name="remarks" placeholder="Remarks (optional)">
             <button type="submit" class="btn-primary">Issue Certificate to File Action</button>
         </form>
     {% endif %}
@@ -252,33 +257,6 @@ href="{% static 'css/admin_case_detail.css' %}">
         </form>
     {% endif %}
 
-    {% if complaint.status != "For Chairman Review" %}
-    <details class="case-advanced-toggle">
-        <summary>Advanced: Manually set hearing level/status</summary>
-        <form method="POST" class="case-action-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update_hearing">
-            <select name="hearing_level_id" required>
-                <option value="">-- Select Hearing Level --</option>
-                {% for level in hearing_levels %}
-                    <option value="{{ level.hearinglevelid }}" {% if existing_hearing and existing_hearing.hearing_level.hearinglevelid == level.hearinglevelid %}selected{% endif %}>{{ level.level_type }}</option>
-                {% endfor %}
-            </select>
-            <select name="hearing_status_id" required>
-                <option value="">-- Select Hearing Status --</option>
-                {% for hearing_status in hearing_statuses %}
-                    <option value="{{ hearing_status.statusid }}" {% if existing_hearing and existing_hearing.status.statusid == hearing_status.statusid %}selected{% endif %}>{{ hearing_status.statustype }}</option>
-                {% endfor %}
-            </select>
-            <input
-                type="datetime-local"
-                id="advanced_hearing_date"
-                name="hearing_date"
-                value="{% if existing_hearing %}{{ existing_hearing.hearing_date|date:'Y-m-d\\TH:i' }}{% endif %}">
-            <button type="submit" class="btn-outline">Update Hearing Details</button>
-        </form>
-    </details>
-    {% endif %}
 </div>
 
 <!-- BOTTOM ROW: Notes / Hearing Summary / Officials -->
@@ -338,5 +316,91 @@ href="{% static 'css/admin_case_detail.css' %}">
 </div>
 
 </div>
+
+<!-- CONFIRMATION MODAL (applies to every POST form on this page) -->
+<div id="confirmModal" class="confirm-modal-overlay">
+    <div class="confirm-modal-card">
+        <div class="confirm-modal-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="confirm-modal-title">Are you sure?</h3>
+        <p id="confirmModalMessage" class="confirm-modal-message"></p>
+        <div class="confirm-modal-buttons">
+            <button type="button" id="confirmModalCancel" class="btn-outline">Cancel</button>
+            <button type="button" id="confirmModalConfirm" class="btn-primary">Yes, proceed</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('confirmModal');
+    const modalMessage = document.getElementById('confirmModalMessage');
+    const confirmBtn = document.getElementById('confirmModalConfirm');
+    const cancelBtn = document.getElementById('confirmModalCancel');
+
+    let pendingForm = null;
+    let pendingSubmitter = null;
+
+    function actionLabel(submitter) {
+        if (!submitter) return 'submit this';
+        const text = submitter.textContent.trim();
+        return text || 'submit this';
+    }
+
+    function openModal(form, submitter) {
+        pendingForm = form;
+        pendingSubmitter = submitter;
+        modalMessage.textContent =
+            'Are you sure you want to "' + actionLabel(submitter) + '"? This action will be recorded and cannot be undone.';
+        modal.classList.add('active');
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        pendingForm = null;
+        pendingSubmitter = null;
+    }
+
+    // Intercept every POST form inside the case page
+    document.querySelectorAll('.case-page form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            // Allow it through once we've already confirmed
+            if (form.dataset.confirmedSubmit === 'true') {
+                form.dataset.confirmedSubmit = 'false';
+                return;
+            }
+            e.preventDefault();
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            openModal(form, e.submitter);
+        });
+    });
+
+    confirmBtn.addEventListener('click', function () {
+        if (!pendingForm) return;
+        pendingForm.dataset.confirmedSubmit = 'true';
+        if (pendingSubmitter) {
+            pendingForm.requestSubmit(pendingSubmitter);
+        } else {
+            pendingForm.requestSubmit();
+        }
+        closeModal();
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+    });
+});
+</script>
 
 {% endblock %}
