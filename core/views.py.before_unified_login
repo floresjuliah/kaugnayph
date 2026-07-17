@@ -866,124 +866,61 @@ def send_sms_with_warning(request, contact_number, message, sent_by=None):
     return True
 
 
-# SHARED RESIDENT AND PERSONNEL LOGIN
+# RESIDENT LOGIN
 def login_view(request):
     if request.session.get("user_id"):
-        if request.session.get("user_type") == "Admin":
-            return redirect("admin_dashboard")
+        if request.session.get("user_type") == "Resident":
+            return redirect("resident_dashboard")
         return redirect("landing")
 
     if request.method != "POST":
         return render(request, "auth/login.html")
 
-    identifier = (
-        request.POST.get("identifier")
-        or request.POST.get("contact_no")
-        or ""
-    ).strip()
+    contact_no = request.POST.get("contact_no", "").strip()
+    password   = request.POST.get("password", "").strip()
 
-    password = request.POST.get("password", "").strip()
-
-    if not identifier or not password:
-        messages.error(request, "Please enter your username or mobile number and password.")
-        return render(request, "auth/login.html")
-
-    # Residents log in using their mobile number.
-    user = Users.objects.select_related(
-        "user_type", "role", "position"
-    ).filter(
-        contactno=identifier,
-        user_type__type_name="Resident",
-        is_active=True,
-    ).first()
-
-    # Barangay personnel log in using their username.
-    if user is None:
+    try:
         user = Users.objects.select_related(
             "user_type", "role", "position"
-        ).filter(
-            username=identifier,
-            user_type__type_name="Admin",
-            is_active=True,
-        ).first()
-
-    if user is None or not check_password(password, user.password):
+        ).get(contactno=contact_no, is_active=True)
+    except Users.DoesNotExist:
         messages.error(request, "Invalid credentials.")
         return render(request, "auth/login.html")
 
-    # RESIDENT LOGIN FLOW
-    if user.user_type.type_name == "Resident":
-        if not user.is_verified:
-            rv = ResidentVerification.objects.filter(user=user).first()
-
-            if rv and rv.status == "Rejected":
-                messages.error(
-                    request,
-                    "Your registration was rejected. Please contact the barangay office."
-                )
-            else:
-                messages.warning(
-                    request,
-                    "Your account is pending verification. You will be notified via SMS."
-                )
-
-            return render(request, "auth/login.html")
-
-        set_user_session(request, user)
-
-        AuditLogs.objects.create(
-            user=user,
-            action="Resident Login",
-            module_name="Authentication",
-            table_name="Users",
-            record_id=user.userid,
-            new_value=f"Resident '{user.username}' logged in.",
-            ip_address=request.META.get("REMOTE_ADDR"),
-            user_agent=request.META.get("HTTP_USER_AGENT"),
-            created_at=timezone.now(),
-        )
-
-        return redirect("landing")
-
-    # BARANGAY PERSONNEL LOGIN FLOW
-    request.session["pending_user_id"] = user.userid
-
-    if user.is_first_login:
-        return redirect("admin_first_login")
-
-    otp, cooldown = generate_otp(user, purpose="login")
-
-    if cooldown:
-        mins = cooldown // 60
-        secs = cooldown % 60
-
-        messages.error(
-            request,
-            f"Please wait {mins}m {secs}s before requesting another OTP."
-        )
-
+    if user.user_type.type_name == "Admin":
+        messages.error(request, "Invalid credentials.")
         return render(request, "auth/login.html")
 
-    sms_sent = send_sms(
-        user.contactno,
-        (
-            f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. "
-            "Do not share this OTP with anyone."
-        )
+    if not check_password(password, user.password):
+        messages.error(request, "Invalid credentials.")
+        return render(request, "auth/login.html")
+
+
+    if not user.is_verified:
+        rv = ResidentVerification.objects.filter(user=user).first()
+        if rv and rv.status == "Rejected":
+            messages.error(request,
+                "Your registration was rejected. Please contact the barangay office.")
+        else:
+            messages.warning(request,
+                "Your account is pending verification. You will be notified via SMS.")
+        return render(request, "auth/login.html")
+
+    set_user_session(request, user)
+
+    AuditLogs.objects.create(
+        user=user,
+        action="Resident Login",
+        module_name="Authentication",
+        table_name="Users",
+        record_id=user.userid,
+        new_value=f"Resident '{user.username}' logged in.",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
     )
 
-    if sms_sent:
-        request.session["otp_method"] = "sms"
-    else:
-        send_email_otp(user.email, otp.code)
-        request.session["otp_method"] = "email"
-
-        messages.warning(
-            request,
-            "SMS delivery failed. OTP has been sent to your registered email address instead."
-        )
-
-    return redirect("otp_verify")
+    return redirect("landing")
 
 # RESIDENT FORGOT PASSWORD
 def forgot_password_view(request):
