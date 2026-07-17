@@ -1093,69 +1093,9 @@ def reset_password_view(request):
     return redirect("login")
 
 
-# ADMIN LOGIN
-
+# OLD PERSONNEL LOGIN URL
 def admin_login_view(request):
-    if request.session.get("user_id"):
-        if request.session.get("user_type") == "Admin":
-            return redirect("admin_dashboard")
-        return redirect("landing")
-
-    if request.method != "POST":
-        return render(request, "auth/login_admin.html")
-
-    username = request.POST.get("username", "").strip()
-    password = request.POST.get("password", "").strip()
-
-    try:
-        user = Users.objects.select_related(
-            "user_type", "role", "position"
-        ).get(username=username, is_active=True)
-    except Users.DoesNotExist:
-        messages.error(request, "Invalid credentials.")
-        return render(request, "auth/login_admin.html")
-
-    if user.user_type.type_name != "Admin":
-        messages.error(request, "Invalid credentials.")
-        return render(request, "auth/login_admin.html")
-
-    if not check_password(password, user.password):
-        messages.error(request, "Invalid credentials.")
-        return render(request, "auth/login_admin.html")
-
-    request.session["pending_user_id"] = user.userid
-
-    if user.is_first_login:
-        return redirect("admin_first_login")
-
-    otp, cooldown = generate_otp(user, purpose="login")
-
-    if cooldown:
-        mins = cooldown // 60
-        secs = cooldown % 60
-        messages.error(
-            request,
-            f"Please wait {mins}m {secs}s before requesting another OTP."
-        )
-        return render(request, "auth/login_admin.html")
-
-    sms_sent = send_sms(
-        user.contactno,
-        f"KaugnayPH OTP: {otp.code}. Valid for 5 minutes. Do not share this OTP with anyone."
-    )
-
-    if sms_sent:
-        request.session["otp_method"] = "sms"
-    else:
-        send_email_otp(user.email, otp.code)
-        request.session["otp_method"] = "email"
-
-        messages.warning(
-            request,
-            "SMS delivery failed. OTP has been sent to your registered email address instead."
-        )
-
-    return redirect("otp_verify")
+    return redirect("login")
 
 #ADMIN FORGOT PASSWORD
 def admin_forgot_password_view(request):
