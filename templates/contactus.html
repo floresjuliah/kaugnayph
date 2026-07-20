@@ -59,7 +59,7 @@
             placeholder="First Name"
             data-placeholder-en="First Name"
             data-placeholder-tl="Pangalan"
-            value="{{ form_data.firstname|default:initial_data.firstname }}"
+            value="{% if form_data.firstname %}{{ form_data.firstname }}{% else %}{{ initial_data.firstname }}{% endif %}"
             required
           >
         </div>
@@ -76,7 +76,7 @@
             placeholder="Last Name"
             data-placeholder-en="Last Name"
             data-placeholder-tl="Apelyido"
-            value="{{ form_data.lastname|default:initial_data.lastname }}"
+            value="{% if form_data.lastname %}{{ form_data.lastname }}{% else %}{{ initial_data.lastname }}{% endif %}"
             required
           >
         </div>
@@ -95,7 +95,7 @@
             placeholder="Mobile Number"
             data-placeholder-en="Mobile Number"
             data-placeholder-tl="Mobile Number"
-            value="{{ form_data.contactno|default:initial_data.contactno }}"
+            value="{% if form_data.contactno %}{{ form_data.contactno }}{% else %}{{ initial_data.contactno }}{% endif %}"
             required
           >
         </div>
