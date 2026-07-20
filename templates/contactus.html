@@ -47,58 +47,98 @@
       {% csrf_token %}
 
       <div class="form-row">
-        <input
-          type="text"
-          name="firstname"
-          placeholder="First Name"
-          data-placeholder-en="First Name"
-          data-placeholder-tl="Pangalan"
-          value="{{ form_data.firstname|default:initial_data.firstname }}"
-          required
-        >
+        <div>
+          <label for="firstname">
+            <span data-en="First Name" data-tl="Pangalan">First Name</span>
+            <span class="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            id="firstname"
+            name="firstname"
+            placeholder="First Name"
+            data-placeholder-en="First Name"
+            data-placeholder-tl="Pangalan"
+            value="{{ form_data.firstname|default:initial_data.firstname }}"
+            required
+          >
+        </div>
 
-        <input
-          type="text"
-          name="lastname"
-          placeholder="Last Name"
-          data-placeholder-en="Last Name"
-          data-placeholder-tl="Apelyido"
-          value="{{ form_data.lastname|default:initial_data.lastname }}"
-          required
-        >
+        <div>
+          <label for="lastname">
+            <span data-en="Last Name" data-tl="Apelyido">Last Name</span>
+            <span class="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            id="lastname"
+            name="lastname"
+            placeholder="Last Name"
+            data-placeholder-en="Last Name"
+            data-placeholder-tl="Apelyido"
+            value="{{ form_data.lastname|default:initial_data.lastname }}"
+            required
+          >
+        </div>
       </div>
 
       <div class="form-row">
-        <input
-          type="text"
-          name="contactno"
-          placeholder="Mobile Number"
-          data-placeholder-en="Mobile Number"
-          data-placeholder-tl="Mobile Number"
-          value="{{ form_data.contactno|default:initial_data.contactno }}"
-          required
-        >
+        <div>
+          <label for="contactno">
+            <span data-en="Mobile Number" data-tl="Mobile Number">Mobile Number</span>
+            <span class="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            id="contactno"
+            name="contactno"
+            placeholder="Mobile Number"
+            data-placeholder-en="Mobile Number"
+            data-placeholder-tl="Mobile Number"
+            value="{{ form_data.contactno|default:initial_data.contactno }}"
+            required
+          >
+        </div>
 
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          data-placeholder-en="Address"
-          data-placeholder-tl="Address"
-          value="{{ form_data.address|default:'' }}"
-        >
+        <div>
+          <label for="address">
+            <span data-en="Address" data-tl="Address">Address</span>
+            <span class="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            placeholder="Address"
+            data-placeholder-en="Address"
+            data-placeholder-tl="Address"
+            value="{{ form_data.address|default:'' }}"
+            required
+          >
+        </div>
       </div>
 
+      <label for="messagesubject">
+        <span data-en="Subject" data-tl="Paksa">Subject</span>
+        <span class="required-mark">*</span>
+      </label>
       <input
         type="text"
+        id="messagesubject"
         name="messagesubject"
         placeholder="Subject"
         data-placeholder-en="Subject"
         data-placeholder-tl="Paksa"
         value="{{ form_data.messagesubject|default:'' }}"
+        required
       >
 
+      <label for="message">
+        <span data-en="Message" data-tl="Mensahe">Message</span>
+        <span class="required-mark">*</span>
+      </label>
       <textarea
+        id="message"
         name="message"
         placeholder="Write your message here"
         data-placeholder-en="Write your message here"
@@ -109,10 +149,9 @@
       <!-- CAPTCHA -->
       <div class="form-row">
         <div style="width:100%;">
-          <label style="display:block; margin-bottom:8px;"
-                 data-en="Security Verification"
-                 data-tl="Security Verification">
-            Security Verification
+          <label style="display:block; margin-bottom:8px;">
+            <span data-en="Security Verification" data-tl="Security Verification">Security Verification</span>
+            <span class="required-mark">*</span>
           </label>
 
           {{ captcha_form.captcha }}
@@ -264,5 +303,19 @@
 
   </div>
 </section>
+
+<style>
+  .contact-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #184072;
+    font-size: 0.92rem;
+  }
+
+  .required-mark {
+    color: #dc2626;
+  }
+</style>
 
 {% endblock %}

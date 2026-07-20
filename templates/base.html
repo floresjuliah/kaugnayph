@@ -51,14 +51,9 @@
     <ul class="nav-links">
       <li><a href="{% url 'landing' %}" {% if active_page == 'home' %}class="active"{% endif %} data-en="Home" data-tl="Home">Home</a></li>
       <li><a href="{% url 'aboutus' %}" {% if active_page == 'aboutus' %}class="active"{% endif %} data-en="About Us" data-tl="Tungkol Sa Amin">About Us</a></li>
-      <li class="nav-dropdown services-dropdown">
-        <a href="#" {% if active_page == 'services' %}class="active"{% endif %} data-en="Services ▾" data-tl="Serbisyo ▾">Services ▾</a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url 'filecomplaint' %}" data-en="File a Complaint" data-tl="Maghain ng Reklamo">File a Complaint</a></li>
-          <li><a href="{% url 'tracksub' %}" data-en="Track Submissions" data-tl="Subaybayan ang Isinumite">Track Submissions</a></li>
-          <li><a href="{% url 'documents' %}" data-en="Documents/Requirements" data-tl="Dokumento/Requirements">Documents/Requirements</a></li>
-        </ul>
-      </li>
+      <li><a href="{% url 'filecomplaint' %}" data-en="File a Complaint" data-tl="Maghain ng Reklamo">File a Complaint</a></li>
+      <li><a href="{% url 'tracksub' %}" data-en="Track Submissions" data-tl="Subaybayan ang Isinumite">Track Submissions</a></li>
+      <li><a href="{% url 'documents' %}" data-en="Documents/Requirements" data-tl="Dokumento/Requirements">Documents/Requirements</a></li>
       <li><a href="{% url 'faqs' %}" {% if active_page == 'faqs' %}class="active"{% endif %} data-en="FAQs" data-tl="FAQs">FAQs</a></li>
       <li><a href="{% url 'contactus' %}" {% if active_page == 'contactus' %}class="active"{% endif %} data-en="Contact Us" data-tl="Makipag-ugnayan">Contact Us</a></li>
     </ul>

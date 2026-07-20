@@ -127,13 +127,14 @@
 
     {% if rv and rv.status == "Pending" %}
 
-        <form method="POST">
+        <form method="POST" id="approveResidentForm">
             {% csrf_token %}
+            <input type="hidden" name="action" value="approve">
+
             <button
-                type="submit"
-                name="action"
-                value="approve"
-                class="btn-approve">
+                type="button"
+                class="btn-approve"
+                onclick="openApproveModal()">
                 Approve
             </button>
         </form>
@@ -162,12 +163,49 @@
 
 </div>
 
+<div id="approveModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        
+        <div class="modal-icon approve">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        
+        <h3>Approve Registration</h3>
+
+        <p>
+            This resident's verification status will be changed to Verified.
+            Do you want to continue?
+        </p>
+
+        <div class="modal-actions">
+            <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeApproveModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn-approve"
+                onclick="submitApproveForm()">
+                Approve Registration
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="rejectModal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
+        
+        <div class="modal-icon reject">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        
         <h3>Reject Registration</h3>
 
         <p>
-            This resident's verification status will be changed to Rejected.
+            This resident's verification status will be changed to <strong>Rejected</strong>.
             Do you want to continue?
         </p>
 
@@ -190,6 +228,20 @@
 </div>
 
 <script>
+// Approve Modal
+function openApproveModal() {
+    document.getElementById("approveModal").style.display = "flex";
+}
+
+function closeApproveModal() {
+    document.getElementById("approveModal").style.display = "none";
+}
+
+function submitApproveForm() {
+    document.getElementById("approveResidentForm").submit();
+}
+
+// Reject Modal
 function openRejectModal() {
     document.getElementById("rejectModal").style.display = "flex";
 }

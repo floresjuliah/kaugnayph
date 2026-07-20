@@ -3,6 +3,7 @@ import random
 import string as _string
 import requests
 import os
+import re
  
 from django.conf import settings
 from django.contrib import messages
@@ -12,11 +13,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from datetime import datetime
 from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
+from zoneinfo import ZoneInfo
 
 from .forms import CaptchaOnlyForm
 from core.complaint_workflow import apply_status_change, build_sms_for_status, _complaint_contact_numbers
@@ -864,6 +868,16 @@ def send_sms_with_warning(request, contact_number, message, sent_by=None):
     )
 
     return True
+
+def mask_sms_message(message):
+    if not message:
+        return message
+
+    return re.sub(
+        r'(?i)(OTP:\s*)\d{6}',
+        r'\1******',
+        message
+    )
 
 
 # SHARED RESIDENT AND PERSONNEL LOGIN
@@ -3626,6 +3640,7 @@ def tracksub(request):
         "document_requests": document_requests,
         "hearing_by_complaint": hearing_by_complaint,
         "hearings": hearings,
+        "status_choices": Complaints.STATUS_CHOICES,
     })
 
 @login_required
@@ -5027,24 +5042,96 @@ def admins_list_view(request):
 
     return render(request, "adminpanel/admins_list.html", context)
 
-
+#ADMIN SMS OUTBOX 
 @admin_login_required
 @permission_required("view_sms_outbox")
 def sms_outbox_view(request):
-    sms_list = SMSOutbox.objects.select_related('sent_by').order_by('-sent_at')
+
+    search_query = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "All")
+    date_filter = request.GET.get("date", "").strip()
+
+    sms_list = SMSOutbox.objects.select_related(
+        "sent_by"
+    ).order_by("-sent_at")
+
+    if search_query:
+        sms_list = sms_list.annotate(
+            sender_full_name=Concat(
+                "sent_by__firstname",
+                Value(" "),
+                "sent_by__lastname"
+            )
+        )
+
+        search_filter = (
+            Q(recipient_number__icontains=search_query) |
+            Q(message__icontains=search_query) |
+            Q(sent_by__firstname__icontains=search_query) |
+            Q(sent_by__lastname__icontains=search_query) |
+            Q(sent_by__username__icontains=search_query) |
+            Q(sender_full_name__icontains=search_query)
+        )
+
+        if "system" in search_query.lower():
+            search_filter |= Q(sent_by__isnull=True)
+
+        sms_list = sms_list.filter(search_filter)
+
+    if status_filter != "All":
+        sms_list = sms_list.filter(status__iexact=status_filter)
+
+    if date_filter:
+        try:
+            selected_date = datetime.strptime(
+                date_filter,
+                "%Y-%m-%d"
+            ).date()
+
+            manila_timezone = ZoneInfo("Asia/Manila")
+
+            start_of_day = datetime.combine(
+                selected_date,
+                time.min,
+                tzinfo=manila_timezone
+            )
+
+            end_of_day = start_of_day + timedelta(days=1)
+
+            sms_list = sms_list.filter(
+                sent_at__gte=start_of_day,
+                sent_at__lt=end_of_day
+            )
+
+        except ValueError:
+            pass
 
     paginator = Paginator(sms_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    
     for sms in page_obj:
         sms.masked_recipient = mask_contact(sms.recipient_number)
+        sms.masked_message = mask_sms_message(sms.message)
 
     return render(
         request,
         "adminpanel/SMS_outbox.html",
-        {"page_obj": page_obj}
+        {
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "status_filter": status_filter,
+            "date_filter": date_filter,
+            "statuses": [
+                "Pending",
+                "Processing",
+                "Sent",
+                "Failed",
+            ],
+        },
     )
+
 
 # ADMIN SETTINGS PAGE
 @admin_login_required

@@ -96,11 +96,16 @@
 
         <div class="resident-edit-actions">
 
-            <a href="{% url 'resident_record_view' resident.userid %}" class="edit-cancel-btn">
+            <a href="{% url 'resident_record_view' resident.userid %}" 
+                class="edit-cancel-btn">
                 Cancel
             </a>
 
-            <button type="submit" name="action" value="save" class="edit-save-btn">
+            <button
+                type="button"
+                class="edit-save-btn"
+                onclick="openSaveResidentModal()">
+                <i class="fa-solid fa-floppy-disk"></i>
                 Save Changes
             </button>
 
@@ -108,26 +113,72 @@
                 type="button"
                 class="edit-delete-btn"
                 onclick="openDeleteResidentModal()">
-                🗑 Delete Resident
+                <i class="fa-solid fa-trash"></i>
+                Delete Resident
             </button>
 
         </div>
 
-        <input type="hidden" name="action" id="residentEditAction" value="save">
+        <input 
+            type="hidden" 
+            name="action" 
+            id="residentEditAction" 
+            value="save">
 
     </form>
 
 </div>
 
+<div id="saveResidentModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+
+        <div class="edit-resident-save-icon">
+            <i class="fa-solid fa-floppy-disk"></i>
+        </div>
+
+        <h3>Save Changes</h3>
+
+        <p>
+            The changes made to this resident's information will be saved.
+            Do you want to continue?
+        </p>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeSaveResidentModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="edit-save-btn"
+                onclick="submitSaveResidentForm()">
+                Save Changes
+            </button>
+
+        </div>
+    </div>
+</div>
+
 <div id="deleteResidentModal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
+
+        <div class="edit-resident-delete-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
         <h3>Delete Resident Record</h3>
 
         <p>
             This resident record will be permanently deleted and cannot be recovered.
+            Do you want to continue?
         </p>
 
         <div class="modal-actions">
+
             <button
                 type="button"
                 class="btn-cancel"
@@ -141,11 +192,25 @@
                 onclick="submitDeleteResidentForm()">
                 Delete Record
             </button>
+
         </div>
     </div>
 </div>
 
 <script>
+function openSaveResidentModal() {
+    document.getElementById("saveResidentModal").style.display = "flex";
+}
+
+function closeSaveResidentModal() {
+    document.getElementById("saveResidentModal").style.display = "none";
+}
+
+function submitSaveResidentForm() {
+    document.getElementById("residentEditAction").value = "save";
+    document.getElementById("editResidentForm").submit();
+}
+
 function openDeleteResidentModal() {
     document.getElementById("deleteResidentModal").style.display = "flex";
 }
@@ -158,6 +223,19 @@ function submitDeleteResidentForm() {
     document.getElementById("residentEditAction").value = "delete";
     document.getElementById("editResidentForm").submit();
 }
+
+window.addEventListener("click", function(event) {
+    const saveModal = document.getElementById("saveResidentModal");
+    const deleteModal = document.getElementById("deleteResidentModal");
+
+    if (event.target === saveModal) {
+        closeSaveResidentModal();
+    }
+
+    if (event.target === deleteModal) {
+        closeDeleteResidentModal();
+    }
+});
 </script>
 
 {% endblock %}

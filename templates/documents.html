@@ -31,7 +31,7 @@
     </div>
   {% endfor %}
   {% endif %}
-  
+
   <div class="available-docs__container">
 
     <div class="available-docs__header">
@@ -40,46 +40,93 @@
         Available Documents
       </h2>
 
-      <p data-en="Select a document to view its requirements and submit a request"
-         data-tl="Pumili ng dokumento upang makita ang mga requirement at magsumite ng request.">
-        Select a document to view its requirements and submit a request
+      <p data-en="Choose how you'd like to proceed, then select the document you need"
+         data-tl="Piliin kung paano gustong magpatuloy, pagkatapos ay pumili ng dokumento">
+        Choose how you'd like to proceed, then select the document you need
       </p>
     </div>
 
-    <div class="available-docs__grid">
+    <div class="path-grid">
 
-      {% for document_type in document_types %}
-        <div class="doc-card">
-          <h3 class="doc-card__title">{{ document_type.name }}</h3>
-          <div class="doc-card__divider"></div>
+      <div class="path-card path-card--online">
+        <h3 class="path-card__title"
+            data-en="Online Application" data-tl="Online na Aplikasyon">
+          Online Application
+        </h3>
+        <div class="doc-card__divider"></div>
+        <p class="path-card__desc"
+           data-en="Fill out the form on this site and submit it with your requirements. Track its status anytime under Track Submissions."
+           data-tl="Punan ang form dito at isumite kasama ang mga requirement. Masusubaybayan ang status nito sa Track Submissions.">
+          Fill out the form on this site and submit it with your requirements. Track its
+          status anytime under Track Submissions.
+        </p>
 
-          <div class="doc-card__actions">
-            <button
-              type="button"
-              class="doc-card__btn doc-card__btn--primary"
-              onclick="openModal('{{ document_type.dtid }}', '{{ document_type.name|escapejs }}')"
-              data-en="Online Application"
-              data-tl="Online na Aplikasyon">
-              Online Application
-            </button>
-
-            <a href="{% static 'forms/' %}{{ document_type.name|slugify }}.pdf"
-              class="doc-card__btn doc-card__btn--primary"
-              download
-              data-en="Downloadable Form"
-              data-tl="Form na Maaaring I-download">
-              Downloadable Form
-            </a>
+        <div class="path-control" id="onlineControl">
+          <button type="button" class="path-btn" id="onlineBtn" aria-haspopup="true" aria-expanded="false">
+            <span data-en="Select a document" data-tl="Pumili ng dokumento">Select a document</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="path-menu" id="onlineMenu">
+            <div class="path-menu__search">
+              <input type="text"
+                     placeholder="Search documents..."
+                     data-placeholder-en="Search documents..."
+                     data-placeholder-tl="Maghanap ng dokumento...">
+            </div>
+            <ul class="path-menu__list"></ul>
           </div>
-
-          <p class="doc-card__eta"
-             data-en="Estimated Processing Time: 1–2 days"
-             data-tl="Tinatayang Processing Time: 1–2 araw">
-            Estimated Processing Time: 1–2 days
-          </p>
         </div>
-      {% endfor %}
+      </div>
 
+      <div class="path-card path-card--download">
+        <h3 class="path-card__title"
+            data-en="Downloadable Form" data-tl="Form na Maaaring I-download">
+          Downloadable Form
+        </h3>
+        <div class="doc-card__divider"></div>
+        <p class="path-card__desc"
+           data-en="Download and print the form, accomplish it by hand, then bring it to the barangay hall with your requirements."
+           data-tl="I-download at i-print ang form, punan ito, pagkatapos ay dalhin sa barangay hall kasama ang mga requirement.">
+          Download and print the form, accomplish it by hand, then bring it to the
+          barangay hall with your requirements.
+        </p>
+
+        <div class="path-control" id="downloadControl">
+          <button type="button" class="path-btn" id="downloadBtn" aria-haspopup="true" aria-expanded="false">
+            <span data-en="Select a document" data-tl="Pumili ng dokumento">Select a document</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="path-menu" id="downloadMenu">
+            <div class="path-menu__search">
+              <input type="text"
+                     placeholder="Search documents..."
+                     data-placeholder-en="Search documents..."
+                     data-placeholder-tl="Maghanap ng dokumento...">
+            </div>
+            <ul class="path-menu__list"></ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="reference">
+      <p class="reference__label"
+         data-en="All Documents & Processing Time" data-tl="Lahat ng Dokumento at Processing Time">
+        All Documents &amp; Processing Time
+      </p>
+      <div class="reference__grid">
+        {% for document_type in document_types %}
+          <div class="reference__row">
+            <span class="reference__name">{{ document_type.name }}</span>
+            <span class="reference__eta"
+                  data-en="Estimated Processing Time: 1–2 days"
+                  data-tl="Tinatayang Processing Time: 1–2 araw">
+              Estimated Processing Time: 1–2 days
+            </span>
+          </div>
+        {% endfor %}
+      </div>
     </div>
 
     <div class="available-docs__notice">
@@ -166,6 +213,7 @@
   </form>
 </div>
 
+
 <script>
   const sessionUser = {
     firstname: "{{ resident.firstname|default:''|escapejs }}",
@@ -203,6 +251,17 @@
     {% endfor %}
   };
 
+  // Document list for the two dropdowns, built from the real queryset
+  const documents = [
+    {% for document_type in document_types %}
+    {
+      dtid: "{{ document_type.dtid }}",
+      name: "{{ document_type.name|escapejs }}",
+      downloadUrl: "{% static 'forms/' %}{{ document_type.name|slugify }}.pdf"
+    },
+    {% endfor %}
+  ];
+
   function getCurrentLanguage() {
     return localStorage.getItem("kaugnay_lang") || "en";
   }
@@ -211,6 +270,77 @@
     return getCurrentLanguage() === "tl" ? tlText : enText;
   }
 
+  // ── Path dropdowns (Online Application / Downloadable Form) ──
+  function setupPathMenu(menuId, onSelect) {
+    const menu = document.getElementById(menuId);
+    const list = menu.querySelector(".path-menu__list");
+    const search = menu.querySelector("input");
+
+    function render(filter = "") {
+      list.innerHTML = "";
+      const matches = documents.filter(d => d.name.toLowerCase().includes(filter.toLowerCase()));
+
+      if (matches.length === 0) {
+        list.innerHTML = `<li class="path-menu__empty">${translateText('No matching documents', 'Walang nahanap na dokumento')}</li>`;
+        return;
+      }
+
+      matches.forEach((doc) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = doc.name;
+        btn.addEventListener("click", () => onSelect(doc));
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    render();
+    search.addEventListener("input", () => render(search.value));
+    search.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  setupPathMenu("onlineMenu", (doc) => {
+    closeAllPathMenus();
+    openModal(doc.dtid, doc.name);
+  });
+
+  setupPathMenu("downloadMenu", (doc) => {
+    closeAllPathMenus();
+    const link = document.createElement("a");
+    link.href = doc.downloadUrl;
+    link.download = "";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
+
+  function closeAllPathMenus() {
+    document.querySelectorAll(".path-control.open").forEach((el) => {
+      el.classList.remove("open");
+      el.querySelector(".path-btn").setAttribute("aria-expanded", "false");
+      el.querySelector(".path-menu__search input").value = "";
+    });
+  }
+
+  [document.getElementById("onlineBtn"), document.getElementById("downloadBtn")].forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const control = btn.closest(".path-control");
+      const willOpen = !control.classList.contains("open");
+      closeAllPathMenus();
+      if (willOpen) {
+        control.classList.add("open");
+        btn.setAttribute("aria-expanded", "true");
+        setTimeout(() => control.querySelector(".path-menu__search input").focus(), 50);
+      }
+    });
+  });
+
+  document.addEventListener("click", closeAllPathMenus);
+
+  // ── Application form modal (unchanged) ──
   async function openModal(documentTypeId, documentTitle) {
     document.getElementById('modal-title').textContent = documentTitle;
     document.getElementById('document_type_id').value = documentTypeId;
@@ -402,24 +532,26 @@
   });
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      closeAllPathMenus();
+      closeModal();
+    }
   });
 
   document.addEventListener('DOMContentLoaded', function() {
-  const messages = document.querySelectorAll('.form-notice');
+    const messages = document.querySelectorAll('.form-notice');
 
-  if (messages.length > 0) {
-    messages[0].scrollIntoView({ behavior: 'smooth' });
-  }
+    if (messages.length > 0) {
+      messages[0].scrollIntoView({ behavior: 'smooth' });
+    }
 
-  {% if selected_type %}
-    openModal(
-      "{{ selected_type.dtid }}",
-      "{{ selected_type.name|escapejs }}"
-    );
-  {% endif %}
-});
-
+    {% if selected_type %}
+      openModal(
+        "{{ selected_type.dtid }}",
+        "{{ selected_type.name|escapejs }}"
+      );
+    {% endif %}
+  });
 </script>
 
 {% endblock %}

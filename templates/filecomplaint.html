@@ -65,52 +65,82 @@
             {% csrf_token %}
 
             <div class="complaint-row">
-            <input
-                type="datetime-local"
-                name="incident_date"
-                min="{{ min_incident_date|date:'Y-m-d' }}T00:00"
-                max="{{ max_incident_date|date:'Y-m-d' }}T23:59"
-                value="{{ form_data.incident_date|default:'' }}"
-            >
+                <div style="width:100%;">
+                    <label for="incident_date">
+                        <span data-en="Date of Incident" data-tl="Petsa ng Insidente">Date of Incident</span>
+                        <span class="required-mark">*</span>
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        id="incident_date"
+                        name="incident_date"
+                        min="{{ min_incident_date|date:'Y-m-d' }}T00:00"
+                        max="{{ max_incident_date|date:'Y-m-d' }}T23:59"
+                        value="{{ form_data.incident_date|default:'' }}"
+                        required
+                    >
+                </div>
             </div>
 
             <div class="complaint-row">
-                <input
-                    type="text"
-                    name="complainee"
-                    placeholder="Name of Complainee (Accused Person)"
-                    data-placeholder-en="Name of Complainee (Accused Person)"
-                    data-placeholder-tl="Pangalan ng Inirereklamo"
-                    value="{{ form_data.complainee|default:'' }}"
-                    required
-                >
+                <div>
+                    <label for="complainee">
+                        <span data-en="Name of Complainee (Accused Person)" data-tl="Pangalan ng Inirereklamo">Name of Complainee (Accused Person)</span>
+                        <span class="required-mark">*</span>
+                    </label>
 
-                <input
-                    type="text"
-                    name="complainee_address"
-                    placeholder="Address (if known)"
-                    data-placeholder-en="Address (if known)"
-                    data-placeholder-tl="Address (kung mayroon)"
-                    value="{{ form_data.complainee_address|default:'' }}"
-                >
-            </div>
-
-            <div class="complaint-row">
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Title"
-                    data-placeholder-en="Title"
-                    data-placeholder-tl="Pamagat"
-                    value="{{ form_data.title|default:'' }}"
-                    required
-                >
+                    <input
+                        type="text"
+                        id="complainee"
+                        name="complainee"
+                        placeholder="Enter Name"
+                        data-placeholder-en="Enter Name"
+                        data-placeholder-tl="Ilagay ang pangalan"
+                        value="{{ form_data.complainee|default:'' }}"
+                        required
+                    >
+                </div>
 
                 <div>
-                    <label for="evidence"
-                           data-en="Evidence Attachment"
-                           data-tl="Kalakip na Ebidensya">
-                      Evidence Attachment
+                    <label for="complainee_address">
+                        <span data-en="Address (if known)" data-tl="Address (kung mayroon)">Address (if known)</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="complainee_address"
+                        name="complainee_address"
+                        placeholder="Enter Address (if known)"
+                        data-placeholder-en="Enter Address (if known)"
+                        data-placeholder-tl="Ilagay ang Address (kung mayroon)"
+                        value="{{ form_data.complainee_address|default:'' }}"
+                    >
+                </div>
+            </div>
+
+            <div class="complaint-row">
+                <div>
+                    <label for="title">
+                        <span data-en="Title" data-tl="Pamagat">Title</span>
+                        <span class="required-mark">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        placeholder="Title"
+                        data-placeholder-en="Title"
+                        data-placeholder-tl="Pamagat"
+                        value="{{ form_data.title|default:'' }}"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label for="evidence">
+                        <span data-en="Evidence Attachment" data-tl="Kalakip na Ebidensya">Evidence Attachment</span>
                     </label>
 
                     <input
@@ -122,21 +152,28 @@
                 </div>
             </div>
 
-            <textarea
-                name="description"
-                placeholder="Write your message here"
-                data-placeholder-en="Write your message here"
-                data-placeholder-tl="Isulat ang iyong mensahe rito"
-                required
-            >{{ form_data.description|default:'' }}</textarea>
+            <div>
+                <label for="description">
+                    <span data-en="Description" data-tl="Deskripsyon">Description</span>
+                    <span class="required-mark">*</span>
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Write your message here"
+                    data-placeholder-en="Write your message here"
+                    data-placeholder-tl="Isulat ang iyong mensahe rito"
+                    required
+                >{{ form_data.description|default:'' }}</textarea>
+            </div>
 
             <!-- CAPTCHA -->
             <div class="complaint-row">
                 <div style="width:100%;">
-                    <label style="display:block; margin-bottom:8px;"
-                           data-en="Security Check"
-                           data-tl="Security Check">
-                        Security Check
+                    <label style="display:block; margin-bottom:8px;">
+                        <span data-en="Security Check" data-tl="Security Check">Security Check</span>
+                        <span class="required-mark">*</span>
                     </label>
 
                     {{ captcha_form.captcha }}
@@ -166,5 +203,19 @@
     </div>
 
 </section>
+
+<style>
+  .complaint-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #184072;
+    font-size: 0.92rem;
+  }
+
+  .required-mark {
+    color: #dc2626;
+  }
+</style>
 
 {% endblock %}

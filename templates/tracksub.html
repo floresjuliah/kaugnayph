@@ -69,9 +69,30 @@
             Complaints
           </h3>
 
+          <div class="track-search-wrap">
+            <input type="text" id="complaintSearch" class="track-search" 
+                  placeholder="Search complaints..."
+                  data-placeholder-en="Search complaints..."
+                  data-placeholder-tl="Maghanap ng reklamo..."
+                  oninput="filterComplaints(this.value)">
+            
+                  <select id="statusFilter" class="track-search" onchange="filterComplaintsByStatus(this.value)">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                      <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                  </select>
+          </div>
+
           {% for complaint in complaints %}
             <div class="submission-card">
-              <h4>{{ complaint.case_number|default:complaint.title }}</h4>
+              <h4>{{ complaint.case_number }}</h4>
+              
+              {% if complaint.title %}
+                <p class="submission-title">
+                  <span data-en="Title:" data-tl="Pamagat:">Title:</span>
+                  {{ complaint.title }}</p>
+              {% endif %}
 
               <p>
                 <span data-en="Status:" data-tl="Status:">Status:</span>
@@ -142,6 +163,25 @@
               data-tl="Mga Dokumento / Requirements">
             Documents / Requirements
           </h3>
+
+          <div class="track-search-wrap">
+            <input type="text" id="documentSearch" class="track-search"
+                  placeholder="Search document requests..."
+                  data-placeholder-en="Search document requests..."
+                  data-placeholder-tl="Maghanap ng dokumento..."
+                  oninput="filterDocuments(this.value)">
+            
+            <select
+                id="documentStatusFilter"
+                class="track-search"
+                onchange="applyDocumentFilters()">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+          </div>
 
           <table class="track-table">
             <thead>
@@ -282,6 +322,51 @@
   document.addEventListener("DOMContentLoaded", function() {
     translateStatuses();
   });
+
+  function filterComplaints(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.submission-card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function filterDocuments(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.track-table tbody tr').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function filterComplaintsByStatus(status) {
+    document.querySelectorAll(".submission-card").forEach(card => {
+        const statusText = card.querySelector(".status-badge").textContent.trim();
+
+        if (status === "" || statusText === status) {
+            card.style.display = "";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+
+function applyDocumentFilters() {
+    const search = document.getElementById("documentSearch").value.toLowerCase();
+    const status = document.getElementById("documentStatusFilter").value;
+
+    document.querySelectorAll("#documents .track-table tbody tr").forEach(row => {
+        const text = row.textContent.toLowerCase();
+
+        const rowStatus = row.querySelector(".track-status").textContent.trim();
+
+        const matchesSearch = text.includes(search);
+        const matchesStatus = status === "" || rowStatus === status;
+
+        row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+    });
+}
+
 </script>
 
 {% endblock %}
