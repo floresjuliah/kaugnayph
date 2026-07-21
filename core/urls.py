@@ -97,6 +97,18 @@ urlpatterns = [
     # ADMIN: SMS OUTBOX
     path("admin/sms-outbox/", views.sms_outbox_view, name="sms_outbox"),
 
+    # ADMIN: ACCESS CONTROL
+    path(
+        "admin/access-control/",
+        views.access_control_view,
+        name="access_control"
+    ),
+    path(
+        "admin/access-control/<int:position_id>/",
+        views.manage_position_access_view,
+        name="manage_position_access"
+    ),
+
     #ADMIN: ADMIN REGISTER
     path("admin/<int:user_id>/deactivate/", views.admin_deactivate_view, name="admin_deactivate"),
     path("admin/<int:user_id>/edit/", views.admin_edit_view, name="admin_edit"),

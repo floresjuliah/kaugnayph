@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from zoneinfo import ZoneInfo
@@ -46,6 +47,7 @@ from core.sla_utils import (
  
 from .models import (
     Inquiry, Users, UserTypes, Settings, Roles, Positions,
+    Permissions, RolePermissions,
     Announcements, SMSOutbox, SMSSubscriptions,
     AuditLogs, ResidentVerification, TypeOfID,
     OTP, Complaints, ComplaintType,
@@ -88,6 +90,159 @@ from django.core.paginator import Paginator
 from .utils import format_full_name, mask_contact, mask_email
 
 from django.db.models import Sum, Avg, Count, F, ExpressionWrapper, fields, Max
+
+
+ACCESS_PERMISSION_GROUPS = (
+    (
+        "Dashboard",
+        (
+            "view_dashboard",
+        ),
+    ),
+    (
+        "Residents",
+        (
+            "view_residents",
+            "verify_residents",
+            "manage_residents",
+        ),
+    ),
+    (
+        "Announcements",
+        (
+            "view_announcements",
+            "create_announcements",
+            "edit_announcements",
+            "delete_announcements",
+        ),
+    ),
+    (
+        "Document Requests",
+        (
+            "view_document_requests",
+            "process_document_requests",
+        ),
+    ),
+    (
+        "Complaints",
+        (
+            "view_complaints",
+            "manage_complaints",
+        ),
+    ),
+    (
+        "Hearings",
+        (
+            "view_hearings",
+            "manage_hearings",
+        ),
+    ),
+    (
+        "Inquiries",
+        (
+            "view_inquiries",
+            "reply_inquiries",
+        ),
+    ),
+    (
+        "Audit Logs",
+        (
+            "view_audit_logs",
+        ),
+    ),
+    (
+        "SMS",
+        (
+            "view_sms_outbox",
+            "send_sms",
+        ),
+    ),
+    (
+        "Personnel",
+        (
+            "view_admin_panel",
+            "create_users",
+            "edit_users",
+            "deactivate_users",
+        ),
+    ),
+    (
+        "Settings",
+        (
+            "view_settings",
+        ),
+    ),
+)
+
+
+ACCESS_PERMISSION_LABELS = {
+    "view_dashboard": "View Dashboard",
+
+    "view_residents": "View Residents",
+    "verify_residents": "Verify Resident Registrations",
+    "manage_residents": "Manage Residents",
+
+    "view_announcements": "View Announcements",
+    "create_announcements": "Create Announcements",
+    "edit_announcements": "Edit Announcements",
+    "delete_announcements": "Delete Announcements",
+
+    "view_document_requests": "View Document Requests",
+    "process_document_requests": "Process Document Requests",
+
+    "view_complaints": "View Complaints",
+    "manage_complaints": "Manage Complaints",
+
+    "view_hearings": "View Hearings",
+    "manage_hearings": "Manage Hearings",
+
+    "view_inquiries": "View Inquiries",
+    "reply_inquiries": "Reply to Inquiries",
+
+    "view_audit_logs": "View Audit Logs",
+
+    "view_sms_outbox": "View SMS Outbox",
+    "send_sms": "Send SMS Notifications",
+
+    "view_admin_panel": "View Personnel Management",
+    "create_users": "Create Personnel Accounts",
+    "edit_users": "Edit Personnel Accounts",
+    "deactivate_users": "Deactivate Personnel Accounts",
+
+    "view_settings": "View Settings",
+}
+
+
+def build_access_permission_groups():
+    permissions_by_name = {
+        permission.name: permission
+        for permission in Permissions.objects.all().order_by("permissionid")
+    }
+
+    groups = []
+
+    for group_name, permission_names in ACCESS_PERMISSION_GROUPS:
+        group_permissions = []
+
+        for permission_name in permission_names:
+            permission = permissions_by_name.get(permission_name)
+
+            if not permission:
+                continue
+
+            permission.display_label = ACCESS_PERMISSION_LABELS.get(
+                permission.name,
+                permission.name.replace("_", " ").title()
+            )
+
+            group_permissions.append(permission)
+
+        groups.append({
+            "name": group_name,
+            "permissions": group_permissions,
+        })
+
+    return groups
 
 
 # PUBLIC PAGES
@@ -832,28 +987,41 @@ def _send_admin_login_otp(request, user, otp):
         request.session["otp_method"] = "email"
 
 def get_role_for_position(position):
-    if not position:
+    """
+    Return the access role associated with a personnel position.
+
+    New configurable positions use a role with the same name.
+    Legacy mappings are retained for existing position and role names
+    that do not exactly match.
+    """
+    if not position or not position.name:
         return None
 
-    mapping = {
-        "Barangay Chairman": "Barangay Chairman",
+    position_name = position.name.strip()
+
+    # Configurable positions normally use the same name for
+    # both the visible position and its internal access role.
+    exact_role = Roles.objects.filter(
+        rolename=position_name
+    ).first()
+
+    if exact_role:
+        return exact_role
+
+    # Backward compatibility for existing records whose names differ.
+    legacy_mapping = {
         "Kagawad": "Barangay Kagawad",
-        "Barangay Secretary": "Barangay Secretary",
-        "Barangay Treasurer": "Barangay Treasurer",
-        "Barangay Tanod": "Barangay Tanod",
         "Lupon Tagapamayapa": "Lupong Tagapamayapa",
-        "SK Chairman": "SK Chairman",
     }
 
-    role_name = mapping.get(position.name)
+    role_name = legacy_mapping.get(position_name)
 
     if not role_name:
         return None
 
-    try:
-        return Roles.objects.get(rolename=role_name)
-    except Roles.DoesNotExist:
-        return None
+    return Roles.objects.filter(
+        rolename=role_name
+    ).first()
 
 def send_sms_with_warning(request, contact_number, message, sent_by=None):
     queue_sms(
@@ -1459,20 +1627,16 @@ def otp_verify_view(request):
                     else:
                         user.position = position
 
-                        try:
-                            role_name = position.name.strip()
+                        role = get_role_for_position(position)
 
-                            # Special case only for Kagawad
-                            if role_name == "Kagawad":
-                                role_name = "Barangay Kagawad"
-
-                            role = Roles.objects.get(rolename=role_name)
+                        if role:
                             user.role = role
-
                             print(f"[ROLE DEBUG] Assigned role: {role.rolename}")
-
-                        except Roles.DoesNotExist:
-                            print(f"[ROLE DEBUG] Role '{position.name}' not found")
+                        else:
+                            print(
+                                f"[ROLE DEBUG] No access role found for "
+                                f"position '{position.name}'"
+                            )
 
                 user.save()
 
@@ -2114,6 +2278,8 @@ def admin_register(request):
         return redirect("admin_register")
 
     role = get_role_for_position(position)
+
+    current_user = get_current_user(request)
 
     if not role:
         messages.error(
@@ -4970,6 +5136,242 @@ def admin_toggle_faq(request, faq_id):
         messages.success(request, 'FAQ deactivated successfully.')
 
     return redirect('admin_faqs')
+
+# ACCESS CONTROL / POSITION MANAGEMENT
+@admin_login_required
+@chairman_required
+def access_control_view(request):
+    positions = Positions.objects.all().order_by("positionid")
+    position_rows = []
+
+    for position in positions:
+        role = get_role_for_position(position)
+
+        personnel_count = Users.objects.filter(
+            user_type__type_name="Admin",
+            position=position,
+            is_active=True,
+        ).count()
+
+        permission_count = 0
+
+        if role:
+            permission_count = RolePermissions.objects.filter(
+                role=role
+            ).count()
+
+        position_rows.append({
+            "position": position,
+            "role": role,
+            "personnel_count": personnel_count,
+            "permission_count": permission_count,
+        })
+
+    return render(request, "adminpanel/access_control.html", {
+        "position_rows": position_rows,
+        "total_positions": len(position_rows),
+        "total_permissions": Permissions.objects.count(),
+        "user": get_current_user(request),
+    })
+
+
+@admin_login_required
+@chairman_required
+def manage_position_access_view(request, position_id):
+    position = get_object_or_404(
+        Positions,
+        positionid=position_id
+    )
+
+    role = get_role_for_position(position)
+    current_user = get_current_user(request)
+
+    if not role:
+        messages.error(
+            request,
+            "This position does not have a corresponding access configuration."
+        )
+        return redirect("access_control")
+
+    is_protected_role = role.rolename == "Barangay Chairman"
+
+    if request.method == "POST":
+        if is_protected_role:
+            messages.error(
+                request,
+                "The Barangay Chairman's permissions cannot be modified."
+            )
+            return redirect(
+                "manage_position_access",
+                position_id=position.positionid
+            )
+
+        submitted_values = request.POST.getlist("permissions")
+
+        try:
+            submitted_permission_ids = {
+                int(value)
+                for value in submitted_values
+            }
+        except (TypeError, ValueError):
+            messages.error(
+                request,
+                "Invalid permission selection."
+            )
+            return redirect(
+                "manage_position_access",
+                position_id=position.positionid
+            )
+
+        configured_permission_names = {
+            permission_name
+            for _, permission_names in ACCESS_PERMISSION_GROUPS
+            for permission_name in permission_names
+        }
+
+        submitted_permissions = Permissions.objects.filter(
+            permissionid__in=submitted_permission_ids,
+            name__in=configured_permission_names,
+        )
+
+        validated_permission_ids = set(
+            submitted_permissions.values_list(
+                "permissionid",
+                flat=True
+            )
+        )
+
+        if validated_permission_ids != submitted_permission_ids:
+            messages.error(
+                request,
+                "One or more selected permissions are invalid."
+            )
+            return redirect(
+                "manage_position_access",
+                position_id=position.positionid
+            )
+
+        existing_permission_ids = set(
+            RolePermissions.objects.filter(
+                role=role
+            ).values_list(
+                "permission_id",
+                flat=True
+            )
+        )
+
+        permission_ids_to_add = (
+            submitted_permission_ids - existing_permission_ids
+        )
+        permission_ids_to_remove = (
+            existing_permission_ids - submitted_permission_ids
+        )
+
+        if not permission_ids_to_add and not permission_ids_to_remove:
+            messages.info(
+                request,
+                "No permission changes were made."
+            )
+            return redirect(
+                "manage_position_access",
+                position_id=position.positionid
+            )
+
+        added_names = list(
+            Permissions.objects.filter(
+                permissionid__in=permission_ids_to_add
+            ).values_list("name", flat=True).order_by("name")
+        )
+
+        removed_names = list(
+            Permissions.objects.filter(
+                permissionid__in=permission_ids_to_remove
+            ).values_list("name", flat=True).order_by("name")
+        )
+
+        with transaction.atomic():
+            if permission_ids_to_remove:
+                RolePermissions.objects.filter(
+                    role=role,
+                    permission_id__in=permission_ids_to_remove
+                ).delete()
+
+            if permission_ids_to_add:
+                RolePermissions.objects.bulk_create([
+                    RolePermissions(
+                        role=role,
+                        permission_id=permission_id
+                    )
+                    for permission_id in permission_ids_to_add
+                ])
+
+            AuditLogs.objects.create(
+                user=current_user,
+                action="Update Position Permissions",
+                module_name="AccessControl",
+                table_name="RolePermissions",
+                record_id=role.roleid,
+                old_value=(
+                    "Removed permissions: "
+                    + (", ".join(removed_names) if removed_names else "None")
+                ),
+                new_value=(
+                    "Added permissions: "
+                    + (", ".join(added_names) if added_names else "None")
+                ),
+                ip_address=request.META.get("REMOTE_ADDR"),
+                user_agent=request.META.get("HTTP_USER_AGENT"),
+                created_at=timezone.now(),
+            )
+
+        if (
+            current_user
+            and current_user.role
+            and current_user.role.roleid == role.roleid
+        ):
+            request.session["permissions"] = list(
+                RolePermissions.objects.filter(
+                    role=role
+                ).values_list(
+                    "permission__name",
+                    flat=True
+                )
+            )
+
+        messages.success(
+            request,
+            f"Permissions for {position.name} were updated successfully."
+        )
+
+        return redirect(
+            "manage_position_access",
+            position_id=position.positionid
+        )
+
+    assigned_permission_ids = set(
+        RolePermissions.objects.filter(
+            role=role
+        ).values_list(
+            "permission_id",
+            flat=True
+        )
+    )
+
+    permission_groups = build_access_permission_groups()
+
+    return render(
+        request,
+        "adminpanel/manage_position_access.html",
+        {
+            "position": position,
+            "role": role,
+            "permission_groups": permission_groups,
+            "assigned_permission_ids": assigned_permission_ids,
+            "is_protected_role": is_protected_role,
+            "user": get_current_user(request),
+        }
+    )
+
 
 # ADMIN REGISTER / ADMIN LIST
 @admin_login_required
