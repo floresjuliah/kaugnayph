@@ -1979,214 +1979,178 @@ def resident_register_view(request):
 
 
 # DASHBOARDS
-
 @admin_login_required
 @permission_required("view_dashboard")
 def admin_dashboard_view(request):
-    from django.db.models import Avg, Count, F, ExpressionWrapper, fields
-    from django.core.serializers.json import DjangoJSONEncoder
+    from django.db.models import Avg, Count, F, Sum, ExpressionWrapper, fields
     import json
 
     user = get_current_user(request)
-
     period = request.GET.get("period", "daily")
-
     today = timezone.now()
 
     if period == "daily":
         start_date = today - timedelta(days=1)
-
     elif period == "weekly":
         start_date = today - timedelta(days=7)
-
     else:
         start_date = today - timedelta(days=30)
 
-    #TOP STAT CARDS
-    total_residents = Users.objects.filter(
-        user_type__type_name="Resident"
-    ).count()
-
-    pending_verifications = ResidentVerification.objects.filter(
-        status="Pending"
-    ).count()
-
-    total_requests = DocumentRequests.objects.filter(
-        requested_at__gte=start_date
-    ).count()
-
-    total_cases = Complaints.objects.filter(
-        dateadded__gte=start_date
-    ).count()
-
-    total_inquiries = Inquiry.objects.filter(
-        created_at__gte=start_date
-    ).count()
+    # ---- TOP STAT CARDS ----
+    total_residents = Users.objects.filter(user_type__type_name="Resident").count()
+    total_requests = DocumentRequests.objects.filter(requested_at__gte=start_date).count()
+    total_cases = Complaints.objects.filter(dateadded__gte=start_date).count()
+    total_inquiries = Inquiry.objects.filter(created_at__gte=start_date).count()
     total_sms = SMSOutbox.objects.count()
 
-    #ANNOUNCEMENT ANALYTICS
-
+    # ---- ANNOUNCEMENT ANALYTICS ----
     total_announcements = Announcements.objects.count()
 
     announcement_stats = Announcements.objects.aggregate(
         total_views=Sum("view_count"),
         avg_views=Avg("view_count"),
     )
-
     total_views = announcement_stats["total_views"] or 0
     avg_views_per_post = round(announcement_stats["avg_views"] or 0, 1)
 
     most_viewed_announcement = (
-        Announcements.objects
-        .order_by("-view_count", "-created_at")
-        .first()
+        Announcements.objects.order_by("-view_count", "-created_at").first()
     )
 
-    #for Google Analyticss
-    unique_visitors = 0
+    # Proxy trend: Posts per day (Python grouping to avoid MariaDB CONVERT_TZ issue)
+    from collections import OrderedDict
 
+    announcements = (
+        Announcements.objects
+        .filter(
+            created_at__isnull=False,
+            created_at__gte=start_date,
+        )
+        .order_by("created_at")
+    )
 
-    #CASE ANALYTICS (in pie chart data)
+    trend = OrderedDict()
+
+    for announcement in announcements:
+        # Convert UTC to your project's local timezone
+        local_day = timezone.localtime(announcement.created_at).date()
+
+        if local_day not in trend:
+            trend[local_day] = 0
+
+        trend[local_day] += 1
+
+    posts_trend_data = json.dumps({
+        "labels": [day.strftime("%b %d") for day in trend.keys()],
+        "values": list(trend.values()),
+    })
+
+    # Views by Category
+    category_views_qs = (
+        Announcements.objects
+        .values(cat_name=F("category__name"))
+        .annotate(views=Sum("view_count"))
+        .order_by("-views")
+    )
+    category_views = [
+        {"name": row["cat_name"] or "Uncategorized", "views": row["views"] or 0}
+        for row in category_views_qs
+    ]
+    total_cat_views = sum(c["views"] for c in category_views) or 1
+    for c in category_views:
+        c["percent"] = round((c["views"] / total_cat_views) * 100)
+
+    category_views_chart = json.dumps({
+        "labels": [c["name"] for c in category_views],
+        "values": [c["views"] for c in category_views],
+    })
+
+    # ---- CASE ANALYTICS ----
     cases_pending = Complaints.objects.filter(
-        status="For Chairman Review",
-        dateadded__gte=start_date
+        status="For Chairman Review", dateadded__gte=start_date
     ).count()
     cases_ongoing = Complaints.objects.exclude(
         status__in=[
-            "For Chairman Review",
-            "Resolved",
-            "Dismissed",
-            "Settled",
-            "Certificate Issued",
-            "Resolved Outside Barangay",
-            "Settled in Court",
+            "For Chairman Review", "Resolved", "Dismissed", "Settled",
+            "Certificate Issued", "Resolved Outside Barangay", "Settled in Court",
         ],
-    ).filter(
-        dateadded__gte=start_date
-    ).count()
+    ).filter(dateadded__gte=start_date).count()
     cases_resolved = Complaints.objects.filter(
         status__in=[
-            "Resolved", "Dismissed", "Settled",
-            "Certificate Issued", "Resolved Outside Barangay",
-            "Settled in Court",
+            "Resolved", "Dismissed", "Settled", "Certificate Issued",
+            "Resolved Outside Barangay", "Settled in Court",
         ],
         dateadded__gte=start_date
     ).count()
 
-    #Average resolution time for cases that have a datefinish
+    total_cases_chart = (cases_pending + cases_ongoing + cases_resolved) or 1
+    cases_pending_pct = round((cases_pending / total_cases_chart) * 100)
+    cases_ongoing_pct = round((cases_ongoing / total_cases_chart) * 100)
+    cases_resolved_pct = round((cases_resolved / total_cases_chart) * 100)
+
     resolved_cases = Complaints.objects.filter(
         datefinish__isnull=False,
         dateadded__isnull=False,
         datefinish__gte=start_date
     ).annotate(
         resolution_duration=ExpressionWrapper(
-            F("datefinish") - F("dateadded"),
-            output_field=fields.DurationField(),
+            F("datefinish") - F("dateadded"), output_field=fields.DurationField(),
         )
     )
-    avg_case_resolution = resolved_cases.aggregate(
-        avg=Avg("resolution_duration")
-    )["avg"]
+    avg_case_resolution = resolved_cases.aggregate(avg=Avg("resolution_duration"))["avg"]
     avg_resolution_days = (
-        round(avg_case_resolution.total_seconds() / 86400, 1)
-        if avg_case_resolution else 0
+        round(avg_case_resolution.total_seconds() / 86400, 1) if avg_case_resolution else 0
     )
 
-    # ---- DOCUMENT REQUEST ANALYTICS (bar chart data) ----
-    docreq_pending = DocumentRequests.objects.filter(
-        status="Pending",
-        requested_at__gte=start_date
-    ).count()
-
-    docreq_processing = DocumentRequests.objects.filter(
-        status="Processing",
-        requested_at__gte=start_date
-    ).count()
-
-    docreq_completed = DocumentRequests.objects.filter(
-        status="Completed",
-        requested_at__gte=start_date
-    ).count()
-
-    docreq_rejected = DocumentRequests.objects.filter(
-        status="Rejected",
-        requested_at__gte=start_date
-    ).count()
+    # ---- DOCUMENT REQUEST ANALYTICS ----
+    docreq_completed = DocumentRequests.objects.filter(status="Completed", requested_at__gte=start_date).count()
 
     completed_requests = DocumentRequests.objects.filter(
-        processed_at__isnull=False,
-        requested_at__isnull=False,
-        processed_at__gte=start_date
+        processed_at__isnull=False, requested_at__isnull=False, processed_at__gte=start_date
     ).annotate(
         processing_duration=ExpressionWrapper(
-            F("processed_at") - F("requested_at"),
-            output_field=fields.DurationField(),
+            F("processed_at") - F("requested_at"), output_field=fields.DurationField(),
         )
     )
-
-    avg_docreq_duration = completed_requests.aggregate(
-        avg=Avg("processing_duration")
-    )["avg"]
-
+    avg_docreq_duration = completed_requests.aggregate(avg=Avg("processing_duration"))["avg"]
     avg_processing_days = (
-        round(avg_docreq_duration.total_seconds() / 86400, 1)
-        if avg_docreq_duration else 0
+        round(avg_docreq_duration.total_seconds() / 86400, 1) if avg_docreq_duration else 0
     )
 
-    completed_period = DocumentRequests.objects.filter(
-        status="Completed",
-        requested_at__gte=start_date
-    ).count()
+    total_period = DocumentRequests.objects.filter(requested_at__gte=start_date).count()
+    completion_rate = round((docreq_completed / total_period) * 100) if total_period else 0
 
-    total_period = DocumentRequests.objects.filter(
-        requested_at__gte=start_date
+    # SLA Compliance: % of completed requests processed within 72 hours
+    sla_total = completed_requests.count()
+    sla_met = completed_requests.filter(
+        processing_duration__lte=timedelta(hours=72)
     ).count()
+    sla_compliance = round((sla_met / sla_total) * 100) if sla_total else 0
 
-    completion_rate = (
-        round((completed_period / total_period) * 100)
-        if total_period else 0
+    # Requests by Document Type (horizontal bar)
+    doctype_qs = (
+        DocumentRequests.objects
+        .filter(requested_at__gte=start_date)
+        .values(dt_name=F("document_type__name"))
+        .annotate(count=Count("drid"))
+        .order_by("-count")
     )
-    
-    import json
-
-    case_chart_data = json.dumps({
-        "labels": [
-            "Pending",
-            "Ongoing",
-            "Resolved"
-        ],
-        "values": [
-            cases_pending,
-            cases_ongoing,
-            cases_resolved
-        ]
+    doctype_chart_data = json.dumps({
+        "labels": [row["dt_name"] or "Other" for row in doctype_qs],
+        "values": [row["count"] for row in doctype_qs],
     })
 
-    docreq_chart_data = json.dumps({
-        "labels": [
-            "Pending",
-            "Processing",
-            "Completed",
-            "Rejected"
-        ],
-        "values": [
-            docreq_pending,
-            docreq_processing,
-            docreq_completed,
-            docreq_rejected
-        ]
+    case_chart_data = json.dumps({
+        "labels": ["Pending", "Ongoing", "Resolved"],
+        "values": [cases_pending, cases_ongoing, cases_resolved]
     })
 
     return render(request, "adminpanel/dashboard.html", {
-
         "user": user,
-        "case_chart_data": case_chart_data,
-        "docreq_chart_data": docreq_chart_data,
         "period": period,
 
         # Top cards
         "total_residents": total_residents,
-        "pending_verifications": pending_verifications,
         "total_requests": total_requests,
         "total_cases": total_cases,
         "total_inquiries": total_inquiries,
@@ -2197,21 +2161,25 @@ def admin_dashboard_view(request):
         "total_views": total_views,
         "avg_views_per_post": avg_views_per_post,
         "most_viewed_announcement": most_viewed_announcement,
+        "posts_trend_data": posts_trend_data,
+        "category_views": category_views,
+        "category_views_chart": category_views_chart,
 
         # Case Analytics
+        "case_chart_data": case_chart_data,
         "cases_pending": cases_pending,
         "cases_ongoing": cases_ongoing,
         "cases_resolved": cases_resolved,
+        "cases_pending_pct": cases_pending_pct,
+        "cases_ongoing_pct": cases_ongoing_pct,
+        "cases_resolved_pct": cases_resolved_pct,
         "avg_resolution_time": avg_resolution_days,
 
         # Document Requests
-        "docreq_pending": docreq_pending,
-        "docreq_processing": docreq_processing,
-        "docreq_completed": docreq_completed,
-        "docreq_rejected": docreq_rejected,
+        "doctype_chart_data": doctype_chart_data,
         "avg_processing_time": avg_processing_days,
         "completion_rate": completion_rate,
-
+        "sla_compliance": sla_compliance,
     })
 
 
