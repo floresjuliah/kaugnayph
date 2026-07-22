@@ -9,28 +9,92 @@
 <section class="hero">
   <div class="hero-bg"></div>
 
-  <div class="hero-content">
-    <h1 data-en="Stay Connected with Barangay 761"
-        data-tl="Manatiling Konektado sa Barangay 761">
-      Stay Connected with<br>Barangay 761
-    </h1>
+  <div class="hero-track" id="heroTrack">
 
-    <p data-en="A faster, easier way to connect with Barangay 761 and access services."
-       data-tl="Mas mabilis at mas madaling paraan upang makipag-ugnayan sa Barangay 761 at magamit ang mga serbisyo nito.">
-      A faster, easier way to connect with Barangay 761
-      and access services.
-    </p>
+    <!-- SLIDE 1: Welcome -->
+    <div class="hero-slide active">
+      <div class="hero-content">
+        <h1 data-en="Stay Connected with Barangay 761"
+            data-tl="Manatiling Konektado sa Barangay 761">
+          Stay Connected with<br>Barangay 761
+        </h1>
 
-    <a href="{% url 'contactus' %}" class="btn-primary">
-      <span data-en="Contact Us" data-tl="Makipag-ugnayan">
-        Contact Us
-      </span>
+        <p class="hero-description" data-en="A faster, easier way to connect with Barangay 761 and access services."
+           data-tl="Mas mabilis at mas madaling paraan upang makipag-ugnayan sa Barangay 761 at magamit ang mga serbisyo nito.">
+          A faster, easier way to connect with Barangay 761
+          and access services.
+        </p>
 
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#ffffff" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
+        <a href="{% url 'contactus' %}" class="btn-primary">
+          <span data-en="Contact Us" data-tl="Makipag-ugnayan">Contact Us</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.90991 19.9201L15.4299 13.4001C16.1999 12.6301 16.1999 11.3701 15.4299 10.6001L8.90991 4.08008" stroke="#ffffff" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- SLIDES 2-4: Top 3 most-viewed announcements -->
+    {% for announcement in top_announcements %}
+    <div class="hero-slide">
+      <div class="hero-content">
+        <span class="hero-eyebrow" data-en="Most Viewed Announcement" data-tl="Pinaka-tinitingnang Anunsyo">Most Viewed Announcement</span>
+
+        <a href="{% url 'announcement_detail' announcement.announcement_id %}" class="hero-ann-card">
+
+          <div class="hero-ann-top">
+            <span class="ann-badge badge-{{ announcement.category.name|default:'general'|lower }}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4m0 4h.01"/>
+              </svg>
+              {{ announcement.category.name|default:"General Updates" }}
+            </span>
+
+            <div class="hero-ann-view">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5799 11.9999C15.5799 13.9799 13.9799 15.5799 11.9999 15.5799C10.0199 15.5799 8.41992 13.9799 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C13.9799 8.41992 15.5799 10.0199 15.5799 11.9999Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.0001 20.27C15.5301 20.27 18.8201 18.19 21.1101 14.59C22.0101 13.18 22.0101 10.81 21.1101 9.39997C18.8201 5.79997 15.5301 3.71997 12.0001 3.71997C8.47009 3.71997 5.18009 5.79997 2.89009 9.39997C1.99009 10.81 1.99009 13.18 2.89009 14.59C5.18009 18.19 8.47009 20.27 12.0001 20.27Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>{{ announcement.view_count }}</span>
+            </div>
+          </div>
+
+          <h2 class="hero-ann-title">{{ announcement.title }}</h2>
+
+          <p class="hero-ann-excerpt">{{ announcement.content|truncatewords:22 }}</p>
+
+          <div class="hero-ann-footer">
+            <span>
+              {% if announcement.posted_by %}
+                {{ announcement.posted_by.firstname }} {{ announcement.posted_by.lastname }}
+              {% else %}
+                Barangay Personnel
+              {% endif %}
+              · {{ announcement.created_at|date:"M d, Y" }}
+            </span>
+
+            <span class="hero-ann-readmore" data-en="Read More →" data-tl="Basahin Pa →">Read More →</span>
+          </div>
+
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="hero-slide">
+      <div class="hero-content">
+        <h1 data-en="No Announcements Yet" data-tl="Wala Pang Anunsyo">No Announcements Yet</h1>
+        <p data-en="Check back soon for updates from Barangay 761." data-tl="Bumalik-balik para sa mga update mula sa Barangay 761.">
+          Check back soon for updates from Barangay 761.
+        </p>
+      </div>
+    </div>
+    {% endfor %}
+
   </div>
+
+  <!-- DOTS -->
+  <div class="hero-dots" id="heroDots"></div>
 </section>
 
 <!-- ── ANNOUNCEMENTS ── -->
@@ -216,5 +280,54 @@
   </div>
 
 </section>
+
+<script>
+  (function () {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dotsContainer = document.getElementById('heroDots');
+  let current = 0;
+  let interval;
+
+  // build dots dynamically based on how many slides exist
+  slides.forEach((_, index) => {
+    const dot = document.createElement('button');
+    dot.classList.add('hero-dot');
+    if (index === 0) dot.classList.add('active');
+    dot.dataset.index = index;
+    dot.addEventListener('click', () => {
+      goToSlide(index);
+      resetAutoplay();
+    });
+    dotsContainer.appendChild(dot);
+  });
+
+  const dots = document.querySelectorAll('.hero-dot');
+
+  function goToSlide(index) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+  }
+
+  function nextSlide() {
+    goToSlide((current + 1) % slides.length);
+  }
+
+  function startAutoplay() {
+    if (slides.length > 1) {
+      interval = setInterval(nextSlide, 6000);
+    }
+  }
+
+  function resetAutoplay() {
+    clearInterval(interval);
+    startAutoplay();
+  }
+
+  startAutoplay();
+})();
+</script>
 
 {% endblock %}

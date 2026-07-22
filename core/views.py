@@ -265,8 +265,14 @@ def landing_page(request):
         "posted_by"
     ).order_by("-created_at")[:4]
 
+    top_announcements = Announcements.objects.select_related(
+        "category",
+        "posted_by"
+    ).order_by("-view_count")[:3]
+
     return render(request, "public/landing.html", {
-        "announcements": announcements
+        "announcements": announcements,
+        "top_announcements": top_announcements,
     })
 
 
