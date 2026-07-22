@@ -38,6 +38,10 @@ class RolePermissions(models.Model):
 class Positions(models.Model):
     positionid = models.AutoField(db_column='PositionID', primary_key=True)
     name = models.CharField(db_column='Name', max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(
+        db_column='is_active',
+        default=True
+    )
 
     class Meta:
         db_table = 'Positions'

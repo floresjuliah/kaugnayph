@@ -2240,7 +2240,9 @@ def logout_view(request):
 def admin_register(request):
     if request.method != "POST":
         return render(request, "auth/admin_register.html", {
-            "positions": Positions.objects.all(),
+            "positions": Positions.objects.filter(
+                is_active=True
+            ).order_by("name"),
         })
 
     firstname   = request.POST.get("firstname", "").strip()
@@ -2473,7 +2475,11 @@ def admin_edit_view(request, user_id):
         messages.error(request, "Personnel account not found.")
         return redirect("admins_list")
 
-    positions = Positions.objects.all()
+    positions = Positions.objects.filter(
+        Q(is_active=True) |
+        Q(positionid=admin_user.position_id)
+    ).distinct().order_by("name")
+
     current_admin = get_current_user(request)
 
     if request.method != "POST":
@@ -5140,6 +5146,105 @@ def admin_toggle_faq(request, faq_id):
 # ACCESS CONTROL / POSITION MANAGEMENT
 @admin_login_required
 @chairman_required
+def add_position_view(request):
+    current_user = get_current_user(request)
+
+    if request.method != "POST":
+        return render(request, "adminpanel/add_position.html", {
+            "user": current_user,
+        })
+
+    position_name = " ".join(
+        request.POST.get("position_name", "").strip().split()
+    )
+
+    if not position_name:
+        messages.error(request, "Position name is required.")
+        return render(request, "adminpanel/add_position.html", {
+            "position_name": position_name,
+            "user": current_user,
+        })
+
+    if len(position_name) < 3:
+        messages.error(
+            request,
+            "Position name must contain at least 3 characters."
+        )
+        return render(request, "adminpanel/add_position.html", {
+            "position_name": position_name,
+            "user": current_user,
+        })
+
+    if len(position_name) > 100:
+        messages.error(
+            request,
+            "Position name cannot exceed 100 characters."
+        )
+        return render(request, "adminpanel/add_position.html", {
+            "position_name": position_name,
+            "user": current_user,
+        })
+
+    if Positions.objects.filter(name__iexact=position_name).exists():
+        messages.error(
+            request,
+            "A position with this name already exists."
+        )
+        return render(request, "adminpanel/add_position.html", {
+            "position_name": position_name,
+            "user": current_user,
+        })
+
+    if Roles.objects.filter(rolename__iexact=position_name).exists():
+        messages.error(
+            request,
+            "An access configuration with this name already exists. "
+            "Please use another position name."
+        )
+        return render(request, "adminpanel/add_position.html", {
+            "position_name": position_name,
+            "user": current_user,
+        })
+
+    with transaction.atomic():
+        role = Roles.objects.create(
+            rolename=position_name
+        )
+
+        position = Positions.objects.create(
+            name=position_name,
+            is_active=True
+        )
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Create Position",
+            module_name="PositionManagement",
+            table_name="Positions",
+            record_id=position.positionid,
+            new_value=(
+                f"Created position '{position_name}' with matching "
+                f"access role ID {role.roleid}. Initial permissions: None."
+            ),
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            created_at=timezone.now(),
+        )
+
+    messages.success(
+        request,
+        f"Position '{position_name}' was created. "
+        "You may now configure its permissions."
+    )
+
+    return redirect(
+        "manage_position_access",
+        position_id=position.positionid
+    )
+
+
+@admin_login_required
+@chairman_required
 def access_control_view(request):
     positions = Positions.objects.all().order_by("positionid")
     position_rows = []
@@ -5165,6 +5270,7 @@ def access_control_view(request):
             "role": role,
             "personnel_count": personnel_count,
             "permission_count": permission_count,
+            "is_active": position.is_active,
         })
 
     return render(request, "adminpanel/access_control.html", {

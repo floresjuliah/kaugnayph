@@ -143,7 +143,7 @@ window.addEventListener("click", function(e) {
 
             {% if request.session.role == "Barangay Chairman" %}
                 <a href="{% url 'access_control' %}"
-                class="{% if request.resolver_match.url_name == 'access_control' or request.resolver_match.url_name == 'manage_position_access' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'access_control' or request.resolver_match.url_name == 'add_position' or request.resolver_match.url_name == 'manage_position_access' %}active{% endif %}">
                     <i class="fa-solid fa-user-lock"></i>
                     Access Control
                 </a>

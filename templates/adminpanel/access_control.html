@@ -11,11 +11,16 @@
 
     <div class="admin-page-header">
         <div>
-            <h1 class="admin-page-title">Access Control</h1>
+            <h1 class="admin-page-title">Position Management</h1>
             <p class="text-muted mb-0">
                 Manage personnel positions and their module permissions.
             </p>
         </div>
+
+        <a href="{% url 'add_position' %}" class="admin-primary-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add Position
+        </a>
     </div>
 
     <div class="admin-stats">
@@ -50,6 +55,7 @@
                         <th>Position</th>
                         <th>Active Personnel</th>
                         <th>Assigned Permissions</th>
+                        <th>Status</th>
                         <th class="actions-column">Actions</th>
                     </tr>
                 </thead>
@@ -75,6 +81,14 @@
                                 {% endif %}
                             </td>
 
+                            <td>
+                                {% if row.is_active %}
+                                    <span class="admin-badge green">Active</span>
+                                {% else %}
+                                    <span class="admin-badge red">Inactive</span>
+                                {% endif %}
+                            </td>
+
                             <td class="actions-column">
                                 <div class="admin-actions">
                                     <a
@@ -89,7 +103,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="empty-row">
+                            <td colspan="5" class="empty-row">
                                 No positions found.
                             </td>
                         </tr>

@@ -104,6 +104,11 @@ urlpatterns = [
         name="access_control"
     ),
     path(
+        "admin/access-control/add/",
+        views.add_position_view,
+        name="add_position"
+    ),
+    path(
         "admin/access-control/<int:position_id>/",
         views.manage_position_access_view,
         name="manage_position_access"
