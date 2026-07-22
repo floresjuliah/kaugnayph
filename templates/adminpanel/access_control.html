@@ -11,7 +11,7 @@
 
     <div class="admin-page-header">
         <div>
-            <h1 class="admin-page-title">Position Management</h1>
+            <h1 class="admin-page-title">Access Control</h1>
             <p class="text-muted mb-0">
                 Manage personnel positions and their module permissions.
             </p>
@@ -94,10 +94,66 @@
                                     <a
                                         href="{% url 'manage_position_access' row.position.positionid %}"
                                         class="admin-action-btn"
-                                        title="Manage Access"
+                                        title="Manage Permissions"
                                     >
                                         <i class="fa-solid fa-sliders"></i>
                                     </a>
+
+                                    {% if not row.is_protected %}
+                                        <a
+                                            href="{% url 'edit_position' row.position.positionid %}"
+                                            class="admin-action-btn"
+                                            title="Edit Position"
+                                        >
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        {% if row.is_active %}
+                                            <form
+                                                method="POST"
+                                                action="{% url 'deactivate_position' row.position.positionid %}"
+                                                data-position-confirm
+                                                data-confirm-title="Deactivate Position"
+                                                data-confirm-message="Existing personnel assigned to this position will remain unaffected. However, this position can no longer be assigned to new personnel."
+                                                data-confirm-button="Deactivate"
+                                                data-confirm-variant="danger"
+                                                data-confirm-icon="fa-solid fa-triangle-exclamation"
+                                                class="d-inline"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="admin-action-btn danger border-0"
+                                                    title="Deactivate Position"
+                                                >
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form
+                                                method="POST"
+                                                action="{% url 'reactivate_position' row.position.positionid %}"
+                                                data-position-confirm
+                                                data-confirm-title="Reactivate Position"
+                                                data-confirm-message="This position will once again be available for personnel assignment."
+                                                data-confirm-button="Reactivate"
+                                                data-confirm-variant="success"
+                                                data-confirm-icon="fa-solid fa-rotate-right"
+                                                class="d-inline"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="admin-action-btn border-0"
+                                                    title="Reactivate Position"
+                                                >
+                                                    <i class="fa-solid fa-rotate-right"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -120,5 +176,9 @@
     </div>
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

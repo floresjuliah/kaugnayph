@@ -1,0 +1,80 @@
+.position-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.position-confirm-overlay.active {
+    display: flex;
+}
+
+.position-confirm-card {
+    width: min(440px, 100%);
+    padding: 28px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+    text-align: center;
+}
+
+.position-confirm-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #eaf2ff;
+    color: #1769e0;
+    font-size: 22px;
+}
+
+.position-confirm-overlay.danger .position-confirm-icon {
+    background: #feecec;
+    color: #dc3545;
+}
+
+.position-confirm-title {
+    margin: 0 0 10px;
+    color: #1d2a3f;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.position-confirm-message {
+    margin: 0;
+    color: #65738a;
+    line-height: 1.6;
+}
+
+.position-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.position-confirm-actions button {
+    min-width: 120px;
+}
+
+@media (max-width: 520px) {
+    .position-confirm-actions {
+        flex-direction: column-reverse;
+    }
+
+    .position-confirm-actions button {
+        width: 100%;
+    }
+}
+
+.position-confirm-overlay.success .position-confirm-icon {
+    background: #e8f8ee;
+    color: #198754;
+}

@@ -220,7 +220,15 @@
         </div>
     {% endif %}
 
-    <form method="POST">
+    <form
+        method="POST"
+        data-position-confirm
+        data-confirm-title="Save Permission Changes"
+        data-confirm-message="Are you sure you want to save the updated permissions for {{ position.name|escapejs }}?"
+        data-confirm-button="Update Permissions"
+        data-confirm-variant="primary"
+        data-confirm-icon="fa-solid fa-floppy-disk"
+    >
         {% csrf_token %}
 
         <div class="permission-card-grid">
@@ -276,5 +284,9 @@
     </form>
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

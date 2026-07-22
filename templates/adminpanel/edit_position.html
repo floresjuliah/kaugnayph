@@ -1,7 +1,7 @@
 {% extends "admin_base.html" %}
 {% load static %}
 
-{% block admin_title %}Add Position{% endblock %}
+{% block admin_title %}Edit Position{% endblock %}
 
 {% block admin_content %}
 
@@ -11,24 +11,23 @@
 
     <div class="admin-page-header">
         <div>
-            <h1 class="admin-page-title">Add Position</h1>
+            <h1 class="admin-page-title">Edit Position</h1>
             <p class="text-muted mb-0">
-                Create a personnel position, then configure its module permissions.
+                Rename this position while preserving its assigned permissions.
             </p>
         </div>
     </div>
 
     <div class="admin-table-card">
         <div class="p-4">
-
             <form
                 method="POST"
                 data-position-confirm
-                data-confirm-title="Create New Position"
-                data-confirm-message="This position will be created without any assigned module permissions. You can configure them afterwards."
-                data-confirm-button="Create Position"
+                data-confirm-title="Rename Position"
+                data-confirm-message="Renaming this position will not affect its assigned permissions or existing personnel."
+                data-confirm-button="Rename Position"
                 data-confirm-variant="primary"
-                data-confirm-icon="fa-solid fa-plus"
+                data-confirm-icon="fa-solid fa-pen"
             >
                 {% csrf_token %}
 
@@ -43,15 +42,9 @@
                         name="position_name"
                         class="form-control"
                         maxlength="100"
-                        value="{{ position_name|default:'' }}"
-                        placeholder="e.g., Barangay Health Worker"
+                        value="{{ position_name|default:position.name }}"
                         required
                     >
-
-                    <small class="text-muted">
-                        New positions start without permissions. Access can be
-                        configured after creation.
-                    </small>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4">
@@ -63,12 +56,11 @@
                     </a>
 
                     <button type="submit" class="admin-primary-btn border-0">
-                        <i class="fa-solid fa-plus"></i>
-                        Create Position
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save Changes
                     </button>
                 </div>
             </form>
-
         </div>
     </div>
 

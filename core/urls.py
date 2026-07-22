@@ -113,6 +113,21 @@ urlpatterns = [
         views.manage_position_access_view,
         name="manage_position_access"
     ),
+    path(
+        "admin/access-control/<int:position_id>/edit/",
+        views.edit_position_view,
+        name="edit_position"
+    ),
+    path(
+        "admin/access-control/<int:position_id>/deactivate/",
+        views.deactivate_position_view,
+        name="deactivate_position"
+    ),
+    path(
+        "admin/access-control/<int:position_id>/reactivate/",
+        views.reactivate_position_view,
+        name="reactivate_position"
+    ),
 
     #ADMIN: ADMIN REGISTER
     path("admin/<int:user_id>/deactivate/", views.admin_deactivate_view, name="admin_deactivate"),

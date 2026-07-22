@@ -92,6 +92,18 @@ from .utils import format_full_name, mask_contact, mask_email
 from django.db.models import Sum, Avg, Count, F, ExpressionWrapper, fields, Max
 
 
+PROTECTED_POSITION_NAMES = {
+    "Barangay Chairman",
+    "Kagawad",
+    "Barangay Secretary",
+    "Barangay Treasurer",
+    "SK Chairman",
+    "Lupon Tagapamayapa",
+    "Barangay Tanod",
+    "System Administrator",
+}
+
+
 ACCESS_PERMISSION_GROUPS = (
     (
         "Dashboard",
@@ -5245,6 +5257,247 @@ def add_position_view(request):
 
 @admin_login_required
 @chairman_required
+def edit_position_view(request, position_id):
+    position = get_object_or_404(
+        Positions,
+        positionid=position_id
+    )
+    current_user = get_current_user(request)
+
+    if position.name in PROTECTED_POSITION_NAMES:
+        messages.error(
+            request,
+            "This system position cannot be renamed."
+        )
+        return redirect("access_control")
+
+    role = get_role_for_position(position)
+
+    if not role:
+        messages.error(
+            request,
+            "This position does not have a corresponding access role."
+        )
+        return redirect("access_control")
+
+    if request.method != "POST":
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "user": current_user,
+        })
+
+    new_name = " ".join(
+        request.POST.get("position_name", "").strip().split()
+    )
+
+    if not new_name:
+        messages.error(request, "Position name is required.")
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    if len(new_name) < 3:
+        messages.error(
+            request,
+            "Position name must contain at least 3 characters."
+        )
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    if len(new_name) > 100:
+        messages.error(
+            request,
+            "Position name cannot exceed 100 characters."
+        )
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    if new_name in PROTECTED_POSITION_NAMES:
+        messages.error(
+            request,
+            "That name is reserved for a system position."
+        )
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    if Positions.objects.filter(
+        name__iexact=new_name
+    ).exclude(
+        positionid=position.positionid
+    ).exists():
+        messages.error(
+            request,
+            "A position with this name already exists."
+        )
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    if Roles.objects.filter(
+        rolename__iexact=new_name
+    ).exclude(
+        roleid=role.roleid
+    ).exists():
+        messages.error(
+            request,
+            "An access role with this name already exists."
+        )
+        return render(request, "adminpanel/edit_position.html", {
+            "position": position,
+            "position_name": new_name,
+            "user": current_user,
+        })
+
+    old_name = position.name
+
+    if old_name == new_name:
+        messages.info(request, "No position changes were made.")
+        return redirect(
+            "edit_position",
+            position_id=position.positionid
+        )
+
+    with transaction.atomic():
+        position.name = new_name
+        position.save(update_fields=["name"])
+
+        role.rolename = new_name
+        role.save(update_fields=["rolename"])
+
+        AuditLogs.objects.create(
+            user=current_user,
+            action="Rename Position",
+            module_name="PositionManagement",
+            table_name="Positions",
+            record_id=position.positionid,
+            old_value=f"Position name: {old_name}",
+            new_value=f"Position name: {new_name}",
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            created_at=timezone.now(),
+        )
+
+    messages.success(
+        request,
+        f"Position '{old_name}' was renamed to '{new_name}'."
+    )
+    return redirect("access_control")
+
+
+@admin_login_required
+@chairman_required
+def deactivate_position_view(request, position_id):
+    position = get_object_or_404(
+        Positions,
+        positionid=position_id
+    )
+    current_user = get_current_user(request)
+
+    if position.name in PROTECTED_POSITION_NAMES:
+        messages.error(
+            request,
+            "This system position cannot be deactivated."
+        )
+        return redirect("access_control")
+
+    if not position.is_active:
+        messages.info(request, "This position is already inactive.")
+        return redirect("access_control")
+
+    active_personnel_count = Users.objects.filter(
+        user_type__type_name="Admin",
+        position=position,
+        is_active=True,
+    ).count()
+
+    if active_personnel_count:
+        messages.error(
+            request,
+            "This position cannot be deactivated while active personnel "
+            "are assigned to it."
+        )
+        return redirect("access_control")
+
+    if request.method != "POST":
+        return redirect("access_control")
+
+    position.is_active = False
+    position.save(update_fields=["is_active"])
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Deactivate Position",
+        module_name="PositionManagement",
+        table_name="Positions",
+        record_id=position.positionid,
+        old_value="is_active=True",
+        new_value="is_active=False",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    messages.success(
+        request,
+        f"Position '{position.name}' was deactivated."
+    )
+    return redirect("access_control")
+
+
+@admin_login_required
+@chairman_required
+def reactivate_position_view(request, position_id):
+    position = get_object_or_404(
+        Positions,
+        positionid=position_id
+    )
+    current_user = get_current_user(request)
+
+    if position.is_active:
+        messages.info(request, "This position is already active.")
+        return redirect("access_control")
+
+    if request.method != "POST":
+        return redirect("access_control")
+
+    position.is_active = True
+    position.save(update_fields=["is_active"])
+
+    AuditLogs.objects.create(
+        user=current_user,
+        action="Reactivate Position",
+        module_name="PositionManagement",
+        table_name="Positions",
+        record_id=position.positionid,
+        old_value="is_active=False",
+        new_value="is_active=True",
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT"),
+        created_at=timezone.now(),
+    )
+
+    messages.success(
+        request,
+        f"Position '{position.name}' was reactivated."
+    )
+    return redirect("access_control")
+
+
+@admin_login_required
+@chairman_required
 def access_control_view(request):
     positions = Positions.objects.all().order_by("positionid")
     position_rows = []
@@ -5271,6 +5524,7 @@ def access_control_view(request):
             "personnel_count": personnel_count,
             "permission_count": permission_count,
             "is_active": position.is_active,
+            "is_protected": position.name in PROTECTED_POSITION_NAMES,
         })
 
     return render(request, "adminpanel/access_control.html", {
