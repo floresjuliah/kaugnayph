@@ -15,7 +15,7 @@
 
     <div class="ann-hero-divider"></div>
 
-    <p data-en="For concerns or issues, please do not hesitate to submit a complaint through the form below so we can assist and address them promptly."
+    <p class="hero-description" data-en="For concerns or issues, please do not hesitate to submit a complaint through the form below so we can assist and address them promptly."
        data-tl="Para sa mga alalahanin o problema, maaari kang magsumite ng reklamo gamit ang form sa ibaba upang matulungan ka namin agad.">
       For concerns or issues, please do not hesitate to submit a complaint through the form
       below so we can assist and address them promptly.
@@ -147,8 +147,14 @@
                         type="file"
                         id="evidence"
                         name="evidence"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        accept=".jpg,.jpeg,.png"
                     >
+
+                    <small class="file-note"
+                        data-en="Accepted files: JPG or PNG only. Max size: 10MB."
+                        data-tl="Tinatanggap na file: JPG o PNG lamang. Max na sukat: 10MB.">
+                        Accepted files: JPG or PNG only. Max size: 10MB.
+                    </small>
                 </div>
             </div>
 
@@ -217,5 +223,25 @@
     color: #dc2626;
   }
 </style>
+
+<script>
+document.getElementById('evidence').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (!allowedTypes.includes(file.type)) {
+        alert('Only JPG or PNG files are allowed.');
+        this.value = '';
+        return;
+    }
+    if (file.size > maxSize) {
+        alert('File must be 10MB or smaller.');
+        this.value = '';
+    }
+});
+</script>
 
 {% endblock %}
