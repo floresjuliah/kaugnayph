@@ -149,6 +149,14 @@ window.addEventListener("click", function(e) {
                 </a>
             {% endif %}
 
+            {% if request.session.role == "Barangay Chairman" %}
+                <a href="{% url 'admin_aboutus_edit' %}"
+                class="{% if request.resolver_match.url_name == 'admin_aboutus_edit' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-info"></i>
+                    About Us
+                </a>
+            {% endif %}
+
         </nav>
 
     </aside>

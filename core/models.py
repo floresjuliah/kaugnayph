@@ -702,6 +702,23 @@ class AvatarOptions(models.Model):
     class Meta:
         db_table = 'AvatarOptions'
 
+class AboutUs(models.Model):
+    what_we_do_en = models.TextField()
+    what_we_do_tl = models.TextField()
+    mission_en = models.TextField()
+    mission_tl = models.TextField()
+    vision_en = models.TextField()
+    vision_tl = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "About Us Content"
+
+
 #STATUS_CHOICES = [
 #    ("Pending",  "Pending"),
 #    ("Approved", "Approved"),

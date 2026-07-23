@@ -149,4 +149,7 @@ urlpatterns = [
     #ADMIN: FORGOT PASSWORD
     path('admin/forgot-password/', views.admin_forgot_password_view, name='admin_forgot_password'),
     path('admin/reset-password/', views.admin_reset_password_view, name='admin_reset_password'),
+
+    #ADMIN: ABOUT US EDIT PAGE
+    path('admin-panel/aboutus/', views.admin_aboutus_edit, name='admin_aboutus_edit'),
 ]

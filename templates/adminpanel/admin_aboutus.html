@@ -1,0 +1,73 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block admin_title %}About Us Content{% endblock %}
+
+{% block admin_content %}
+
+<link rel="stylesheet" href="{% static 'css/admin_aboutus.css' %}">
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="form-notice">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="page">
+  <h1>About us content</h1>
+  <p class="subtitle">Edit the What we do, mission, and vision text shown on the resident-facing about page.</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card">
+      <h2>What we do</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="what_we_do_en">English</label>
+          <textarea id="what_we_do_en" name="what_we_do_en">{{ about.what_we_do_en }}</textarea>
+        </div>
+        <div class="field">
+          <label for="what_we_do_tl">Filipino</label>
+          <textarea id="what_we_do_tl" name="what_we_do_tl">{{ about.what_we_do_tl }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Mission</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="mission_en">English</label>
+          <textarea id="mission_en" name="mission_en">{{ about.mission_en }}</textarea>
+        </div>
+        <div class="field">
+          <label for="mission_tl">Filipino</label>
+          <textarea id="mission_tl" name="mission_tl">{{ about.mission_tl }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Vision</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="vision_en">English</label>
+          <textarea id="vision_en" name="vision_en">{{ about.vision_en }}</textarea>
+        </div>
+        <div class="field">
+          <label for="vision_tl">Filipino</label>
+          <textarea id="vision_tl" name="vision_tl">{{ about.vision_tl }}</textarea>
+        </div>
+      </div>
+      <p class="last-updated">Last updated: {{ about.updated_at }}</p>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

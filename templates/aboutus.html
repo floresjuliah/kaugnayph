@@ -12,7 +12,7 @@
 
     <div class="ann-hero-divider"></div>
 
-    <p data-en="Promoting unity, service, and good governance."
+    <p class="hero-description" data-en="Promoting unity, service, and good governance."
        data-tl="Nagtataguyod ng pagkakaisa, serbisyo, at mabuting pamamahala.">
       Promoting unity, service, and good governance.
     </p>
@@ -33,17 +33,9 @@
       </div>
 
       <div class="about-whatwedo__text">
-        <p data-en="KaugnayPH is a web-based platform designed to improve communication between Barangay 761 and its residents. It allows users to stay updated with announcements, submit concerns, and access barangay services."
-           data-tl="Ang KaugnayPH ay isang web-based na plataporma na dinisenyo upang mapabuti ang komunikasyon sa pagitan ng Barangay 761 at ng mga residente nito. Pinapayagan nito ang mga gumagamit na manatiling updated sa mga anunsyo, magsumite ng mga alalahanin, at ma-access ang mga serbisyo ng barangay.">
-          KaugnayPH is a web-based platform designed to improve communication between Barangay 761 and its residents. It allows users to stay updated with announcements, submit concerns, and access barangay services.
-        </p>
-        <p data-en="Barangay 761 serves its community by delivering important news and updates and by making local services easy to access."
-           data-tl="Ang Barangay 761 ay naglilingkod sa komunidad sa pamamagitan ng paghahatid ng mahahalagang balita at mga anunsyo, at pagpapadali ng pag-access sa mga serbisyong iniaalok ng barangay.">
-            Barangay 761 serves its community by delivering important news and updates and by making local services easy to access.        </p>
-        <p data-en="These announcements keep residents informed about programs, events, and other matters relevant to the barangay"
-           data-tl="Ang mga anunsyong ito ay nagbibigay ng mahahalagang impormasyon sa mga residente tungkol sa mga programa, aktibidad, at iba pang mga usaping may kinalaman sa barangay.">
-          These announcements keep residents informed about programs, events, and other matters relevant to the barangay
-        </p>
+        <p style="white-space: pre-line;"
+           data-en="{{ about.what_we_do_en }}"
+           data-tl="{{ about.what_we_do_tl }}">{{ about.what_we_do_en }}</p>
       </div>
 
     </div>
@@ -63,27 +55,17 @@
       <div class="about-mv__card">
         <h3 data-en="Mission" data-tl="Misyon">Mission</h3>
         <div class="about-mv__card-divider"></div>
-        <p data-en="&quot;To promote a community based on transparency, trust, and active involvement by offering easily available, effective, and responsive barangay services that protect the welfare, security, and dignity of each and every Barangay 761 resident.&quot;"
-           data-tl="&quot;Ang magtaguyod ng isang komunidad batay sa transparency, tiwala, at aktibong pakikilahok sa pamamagitan ng pag-aalok ng madaling ma-access, epektibo, at matutugunang mga serbisyo ng barangay na nagpoprotekta sa kapakanan, seguridad, at dignidad ng bawat residente ng Barangay 761.&quot;">
-          "To promote a community based on transparency, trust, and active involvement by offering easily available, effective, and responsive barangay services that protect the welfare, security, and dignity of each and every Barangay 761 resident."
-        </p>
-        <p data-en="&quot;We are committed to delivering fair and timely assistance to all, ensuring no resident is left behind.&quot;"
-           data-tl="&quot;Kami ay nakatuon sa pagbibigay ng pantay at napapanahong tulong sa lahat, tinitiyak na walang residente ang maiiwanan.&quot;">
-          "We are committed to delivering fair and timely assistance to all, ensuring no resident is left behind."
-        </p>
+        <p style="white-space: pre-line;"
+           data-en="{{ about.mission_en }}"
+           data-tl="{{ about.mission_tl }}">{{ about.mission_en }}</p>
       </div>
 
       <div class="about-mv__card">
         <h3 data-en="Vision" data-tl="Bisyon">Vision</h3>
         <div class="about-mv__card-divider"></div>
-        <p data-en="&quot;A forward-thinking, unified Barangay 761 where all residents have access to a secure, healthy, and empowered community, supported by responsible governance and inclusive development for all.&quot;"
-           data-tl="&quot;Isang progresibo at nagkakaisang Barangay 761 kung saan ang lahat ng residente ay may access sa isang ligtas, malusog, at empowered na komunidad, sinusuportahan ng responsableng pamamahala at inklusibong pag-unlad para sa lahat.&quot;">
-          "A forward-thinking, unified Barangay 761 where all residents have access to a secure, healthy, and empowered community, supported by responsible governance and inclusive development for all."
-        </p>
-        <p data-en="&quot;We envision a barangay where every voice is heard and every need is met with compassion and integrity.&quot;"
-           data-tl="&quot;Nananaginip kami ng isang barangay kung saan ang bawat tinig ay naririnig at ang bawat pangangailangan ay natutugunan nang may pagmamalasakit at integridad.&quot;">
-          "We envision a barangay where every voice is heard and every need is met with compassion and integrity."
-        </p>
+        <p style="white-space: pre-line;"
+           data-en="{{ about.vision_en }}"
+           data-tl="{{ about.vision_tl }}">{{ about.vision_en }}</p>
       </div>
 
     </div>
@@ -92,3 +74,4 @@
 </section>
 
 {% endblock %}
+
