@@ -118,7 +118,11 @@
                     <tr>
                         <td>{{ record.doc_id }}</td>
                         <td>{{ record.obj.user.firstname }} {{ record.obj.user.lastname }}</td>
-                        <td>{{ record.obj.document_type.name }}</td>
+                        <td>
+                            <span class="admin-badge admin-badge-{{ record.obj.document_type.name|slugify }}">
+                                {{ record.obj.document_type.name }}
+                            </span>
+                        </td>
                         <td>{{ record.obj.requested_at|date:"M d, Y" }}</td>
 
                        <td>

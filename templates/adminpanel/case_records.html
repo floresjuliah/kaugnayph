@@ -135,7 +135,9 @@
                         <td>{{ case.complainee_name }}</td>
 
                         <td>
-                            <span class="admin-badge gray">{{ case.case_type }}</span>
+                            <span class="admin-badge admin-badge-{{ case.case_type|slugify }}">
+                                {{ case.case_type }}
+                            </span>
                         </td>
 
                         <td>{{ case.title }}</td>

@@ -4173,3 +4173,278 @@ EDIT RESIDENT PROFILE PAGE
     background: #e3f0ff !important;
     color: #0066d9 !important;
 }
+
+
+/* ======================================================
+   SHARED TABLE ACTIONS AND BADGES FIX
+   Restores actions and badge styling across admin modules
+====================================================== */
+
+.admin-table th.actions-column,
+.admin-table td.actions-column {
+    display: table-cell !important;
+    width: 150px;
+    min-width: 150px;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.admin-table .admin-actions {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.admin-table .admin-action-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #0066ff !important;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    visibility: visible !important;
+    opacity: 1;
+}
+
+.admin-table .admin-action-btn:hover {
+    color: #004ecc !important;
+    opacity: 0.75;
+}
+
+.admin-table .admin-action-btn.danger {
+    color: #dc2626 !important;
+}
+
+/* Default badge appearance.
+   Also serves as fallback for dynamic FAQ/inquiry categories. */
+.admin-table .admin-badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    background: #e3f0ff;
+    color: #0066d9;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.admin-table .admin-badge.green {
+    background: #d7f8df !important;
+    color: #15803d !important;
+}
+
+.admin-table .admin-badge.red {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.admin-table .admin-badge.yellow {
+    background: #fef3c7 !important;
+    color: #b45309 !important;
+}
+
+.admin-table .admin-badge.gray {
+    background: #e5e7eb !important;
+    color: #475569 !important;
+}
+
+.admin-table .admin-badge.blue {
+    background: #e3f0ff !important;
+    color: #0066d9 !important;
+}
+
+
+/* ======================================================
+   CATEGORY / DOCUMENT TYPE BADGE COLORS
+====================================================== */
+
+/* FAQ / Inquiry Categories */
+
+.admin-table .admin-badge-general {
+    background:#dcfce7!important;
+    color:#166534!important;
+}
+
+.admin-table .admin-badge-documents {
+    background:#dbeafe!important;
+    color:#1d4ed8!important;
+}
+
+.admin-table .admin-badge-account {
+    background:#ede9fe!important;
+    color:#7c3aed!important;
+}
+
+.admin-table .admin-badge-inquiries {
+    background:#ffedd5!important;
+    color:#ea580c!important;
+}
+
+.admin-table .admin-badge-uncategorized {
+    background:#e5e7eb!important;
+    color:#475569!important;
+}
+
+/* Document Types */
+
+.admin-table .admin-badge-barangay-clearance {
+    background:#dcfce7!important;
+    color:#166534!important;
+}
+
+.admin-table .admin-badge-barangay-id {
+    background:#dbeafe!important;
+    color:#1d4ed8!important;
+}
+
+.admin-table .admin-badge-certificate-of-indigency {
+    background:#ede9fe!important;
+    color:#7c3aed!important;
+}
+
+.admin-table .admin-badge-certificate-of-first-time-job-seeker {
+    background:#ffedd5!important;
+    color:#ea580c!important;
+}
+
+.admin-table .admin-badge-certificate-of-solo-parent {
+    background:#fce7f3!important;
+    color:#be185d!important;
+}
+
+.admin-table .admin-badge-business-clearance {
+    background:#fef3c7!important;
+    color:#92400e!important;
+}
+
+/* Case Types */
+
+.admin-table .admin-badge-unclassified {
+    background:#e5e7eb!important;
+    color:#475569!important;
+}
+
+.admin-table .admin-badge-blotter-report {
+    background:#dbeafe!important;
+    color:#1d4ed8!important;
+}
+
+.admin-table .admin-badge-incident-report {
+    background:#ffedd5!important;
+    color:#ea580c!important;
+}
+
+/* First Time Job Seeker possible database-name variants */
+.admin-table .admin-badge-first-time-job-seeker,
+.admin-table .admin-badge-first-time-jobseeker,
+.admin-table .admin-badge-certificate-of-first-time-job-seeker,
+.admin-table .admin-badge-certificate-of-first-time-jobseeker,
+.admin-table .admin-badge-first-time-job-seeker-certificate,
+.admin-table .admin-badge-first-time-jobseeker-certificate,
+.admin-table .admin-badge-certificate-of-first-time-job-seeker-assistance {
+    background: #ffedd5 !important;
+    color: #c2410c !important;
+}
+
+
+/* EXACT BADGE CLASSES FROM DATABASE */
+
+/* Document Requests */
+.admin-table .admin-badge-barangay-clearance {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.admin-table .admin-badge-barangay-id {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+
+.admin-table .admin-badge-business-clearance {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.admin-table .admin-badge-certificate-for-first-time-job-seeker {
+    background: #ffedd5 !important;
+    color: #c2410c !important;
+}
+
+.admin-table .admin-badge-certificate-of-indigency {
+    background: #ede9fe !important;
+    color: #7c3aed !important;
+}
+
+.admin-table .admin-badge-certificate-of-solo-parent {
+    background: #fce7f3 !important;
+    color: #be185d !important;
+}
+
+/* FAQ and Inquiry Categories */
+.admin-table .admin-badge-general {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.admin-table .admin-badge-documents {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+
+.admin-table .admin-badge-complaints {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+}
+
+.admin-table .admin-badge-announcements {
+    background: #fef3c7 !important;
+    color: #a16207 !important;
+}
+
+.admin-table .admin-badge-account {
+    background: #ede9fe !important;
+    color: #7c3aed !important;
+}
+
+.admin-table .admin-badge-inquiries {
+    background: #ffedd5 !important;
+    color: #c2410c !important;
+}
+
+.admin-table .admin-badge-uncategorized {
+    background: #e5e7eb !important;
+    color: #475569 !important;
+}
+
+/* Case Types */
+.admin-table .admin-badge-unclassified {
+    background: #e5e7eb !important;
+    color: #475569 !important;
+}
+
+.admin-table .admin-badge-blotter-report {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+
+.admin-table .admin-badge-incident-report {
+    background: #ffedd5 !important;
+    color: #c2410c !important;
+}
