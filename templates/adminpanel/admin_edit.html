@@ -1,4 +1,5 @@
 {% extends "admin_base.html" %}
+{% load static %}
 {% block admin_title %}Edit Personnel{% endblock %}
 
 {% block admin_content %}
@@ -16,7 +17,15 @@
 
 <div class="admins-card" style="padding: 28px;">
 
-    <form method="POST">
+    <form
+        method="POST"
+        data-position-confirm
+        data-confirm-title="Save Personnel Changes"
+        data-confirm-message="The changes made to this personnel account will be saved."
+        data-confirm-button="Save Changes"
+        data-confirm-variant="primary"
+        data-confirm-icon="fa-solid fa-pen"
+    >
         {% csrf_token %}
 
         <div class="mb-3">
@@ -102,5 +111,9 @@
 
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

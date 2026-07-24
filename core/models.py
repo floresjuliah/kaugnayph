@@ -217,6 +217,7 @@ class DocumentTypes(models.Model):
     dtid = models.AutoField(db_column='DTID', primary_key=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(blank=True, null=True)
+    processing_time = models.CharField(max_length=50, default="1-2 days")
 
     class Meta:
         db_table = 'DocumentTypes'
@@ -702,22 +703,20 @@ class AvatarOptions(models.Model):
     class Meta:
         db_table = 'AvatarOptions'
 
-class AboutUs(models.Model):
-    what_we_do_en = models.TextField()
-    what_we_do_tl = models.TextField()
-    mission_en = models.TextField()
-    mission_tl = models.TextField()
-    vision_en = models.TextField()
-    vision_tl = models.TextField()
+#ADMIN ABOUT US EDIT
+class AboutUsStatement(models.Model):
+    SECTION_CHOICES = [
+        ('what_we_do', 'What We Do'),
+        ('mission', 'Our Mission'),
+        ('vision', 'Our Vision'),
+    ]
+
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES, unique=True)
+    content_en = models.TextField(max_length=800)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        return "About Us Content"
-
+        return self.get_section_display()
 
 #STATUS_CHOICES = [
 #    ("Pending",  "Pending"),

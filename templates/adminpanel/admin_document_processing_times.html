@@ -1,0 +1,143 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block admin_title %}Document Processing Times{% endblock %}
+
+{% block admin_content %}
+
+<link rel="stylesheet" href="{% static 'css/admin_aboutus.css' %}">
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Document Processing Times</h1>
+      <p class="subtitle">Set the estimated processing time shown to residents for each document type.</p>
+    </div>
+    <button type="submit" form="processing-time-form" class="btn btn-primary">
+      <i class="fa-solid fa-floppy-disk"></i> Save Changes
+    </button>
+  </div>
+
+  <div class="card" style="padding: 0;">
+
+    <div class="aboutus-toolbar" style="display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid #e5e7eb;">
+      <input
+        type="text"
+        id="document-search"
+        class="form-control"
+        placeholder="Search document type..."
+        style="flex: 1;"
+      >
+      <div class="select-wrapper" style="position: relative; width: 220px;">
+        <select id="processing-time-filter" class="form-control" style="width: 100%; appearance: none; -webkit-appearance: none; -moz-appearance: none; padding-right: 32px;">
+          <option value="">All Processing Times</option>
+          <option value="Same day">Same day</option>
+          <option value="1-2 days">1-2 days</option>
+          <option value="3-5 days">3-5 days</option>
+          <option value="1 week">1 week</option>
+          <option value="2 weeks">2 weeks</option>
+          <option value="3-4 weeks">3-4 weeks</option>
+        </select>
+        <i class="fa-solid fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: #6b7280;"></i>
+      </div>
+    </div>
+
+    <form
+        id="processing-time-form"
+        method="post"
+        data-position-confirm
+        data-confirm-title="Save Changes"
+        data-confirm-message="This will update the processing times shown to residents. Continue?"
+        data-confirm-button="Save"
+        data-confirm-variant="primary"
+        data-confirm-icon="fa-solid fa-circle-check"
+    >
+      {% csrf_token %}
+
+      {% for document_type in document_types %}
+      <div class="aboutus-section" style="grid-template-columns: 1fr 220px;" data-document-row data-document-name="{{ document_type.name|lower }}">
+        <div class="aboutus-section__meta">
+          <h2>{{ document_type.name }}</h2>
+        </div>
+
+        <div class="aboutus-section__field">
+          <label for="processing_time_{{ document_type.dtid }}">Estimated Processing Time</label>
+          <div class="select-wrapper" style="position: relative;">
+            <select
+              id="processing_time_{{ document_type.dtid }}"
+              name="processing_time_{{ document_type.dtid }}"
+              data-processing-time-select
+              style="width: 100%; appearance: none; -webkit-appearance: none; -moz-appearance: none; padding-right: 32px;"
+              >
+              <option value="Same day" {% if document_type.processing_time == "Same day" %}selected{% endif %}>Same day</option>
+              <option value="1-2 days" {% if document_type.processing_time == "1-2 days" %}selected{% endif %}>1-2 days</option>
+              <option value="3-5 days" {% if document_type.processing_time == "3-5 days" %}selected{% endif %}>3-5 days</option>
+              <option value="1 week" {% if document_type.processing_time == "1 week" %}selected{% endif %}>1 week</option>
+              <option value="2 weeks" {% if document_type.processing_time == "2 weeks" %}selected{% endif %}>2 weeks</option>
+              <option value="3-4 weeks" {% if document_type.processing_time == "3-4 weeks" %}selected{% endif %}>3-4 weeks</option>
+          </select>
+          <i class="fa-solid fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: #6b7280;"></i>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="empty-row">No active document types found.</p>
+      {% endfor %}
+
+      <p class="empty-row" id="no-results-row" style="display: none;">No document types match your search.</p>
+
+    </form>
+  </div>
+
+</div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
+
+<script>
+(function () {
+  const searchInput = document.getElementById('document-search');
+  const timeFilter = document.getElementById('processing-time-filter');
+  const rows = document.querySelectorAll('[data-document-row]');
+  const noResultsRow = document.getElementById('no-results-row');
+
+  function applyFilters() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const selectedTime = timeFilter.value;
+    let visibleCount = 0;
+
+    rows.forEach(function (row) {
+      const name = row.getAttribute('data-document-name') || '';
+      const select = row.querySelector('[data-processing-time-select]');
+      const currentTime = select ? select.value : '';
+
+      const matchesSearch = name.includes(searchTerm);
+      const matchesTime = !selectedTime || currentTime === selectedTime;
+
+      const isVisible = matchesSearch && matchesTime;
+      row.style.display = isVisible ? '' : 'none';
+      if (isVisible) visibleCount++;
+    });
+
+    if (noResultsRow) {
+      noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
+    }
+  }
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (timeFilter) timeFilter.addEventListener('change', applyFilters);
+
+  // Re-check filter matches when a user changes a row's processing time,
+  // in case the row no longer matches the active dropdown filter.
+  rows.forEach(function (row) {
+    const select = row.querySelector('[data-processing-time-select]');
+    if (select) {
+      select.addEventListener('change', applyFilters);
+    }
+  });
+})();
+</script>
+
+{% endblock %}

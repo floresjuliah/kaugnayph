@@ -131,17 +131,47 @@
                                 </a>
 
                                 {% if admin.is_active %}
-                                    <a href="{% url 'admin_deactivate' admin.userid %}"
-                                       class="admin-action-btn danger"
-                                       title="Deactivate">
-                                        <i class="fa-regular fa-trash-can"></i>
-                                    </a>
+                                    <form
+                                        method="POST"
+                                        action="{% url 'admin_deactivate' admin.userid %}"
+                                        data-position-confirm
+                                        data-confirm-title="Deactivate Personnel"
+                                        data-confirm-message="This personnel account will lose access to the system until it is reactivated."
+                                        data-confirm-button="Deactivate"
+                                        data-confirm-variant="danger"
+                                        data-confirm-icon="fa-solid fa-triangle-exclamation"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="admin-action-btn danger border-0"
+                                            title="Deactivate"
+                                        >
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
                                 {% else %}
-                                    <a href="{% url 'admin_reactivate' admin.userid %}"
-                                       class="admin-action-btn"
-                                       title="Reactivate">
-                                        <i class="fa-solid fa-rotate-right"></i>
-                                    </a>
+                                    <form
+                                        method="POST"
+                                        action="{% url 'admin_reactivate' admin.userid %}"
+                                        data-position-confirm
+                                        data-confirm-title="Reactivate Personnel"
+                                        data-confirm-message="This personnel account will regain access to the system."
+                                        data-confirm-button="Reactivate"
+                                        data-confirm-variant="success"
+                                        data-confirm-icon="fa-solid fa-rotate-right"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="admin-action-btn border-0"
+                                            title="Reactivate"
+                                        >
+                                            <i class="fa-solid fa-rotate-right"></i>
+                                        </button>
+                                    </form>
                                 {% endif %}
 
                             </div>
@@ -197,5 +227,9 @@
     </div>
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

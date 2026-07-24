@@ -7,67 +7,66 @@
 
 <link rel="stylesheet" href="{% static 'css/admin_aboutus.css' %}">
 
-{% if messages %}
-  {% for message in messages %}
-    <div class="form-notice">{{ message }}</div>
-  {% endfor %}
-{% endif %}
-
 <div class="page">
-  <h1>About us content</h1>
-  <p class="subtitle">Edit the What we do, mission, and vision text shown on the resident-facing about page.</p>
 
-  <form method="post">
-    {% csrf_token %}
+  <div class="page-header">
+    <div>
+      <h1>About Us Content</h1>
+      <p class="subtitle">Customize the information displayed on your public About Us page.</p>
+    </div>
+  </div>
 
-    <div class="card">
-      <h2>What we do</h2>
-      <div class="field-row">
-        <div class="field">
-          <label for="what_we_do_en">English</label>
-          <textarea id="what_we_do_en" name="what_we_do_en">{{ about.what_we_do_en }}</textarea>
+  <div class="card" style="padding: 0;">
+    <form
+        id="aboutus-form"
+        method="post"
+        data-position-confirm
+        data-confirm-title="Save Changes"
+        data-confirm-message="This will update what residents see on the About Us page. Continue?"
+        data-confirm-button="Save"
+        data-confirm-variant="primary"
+        data-confirm-icon="fa-solid fa-circle-check"
+    >
+      {% csrf_token %}
+
+      {% for section in sections %}
+      <div class="aboutus-section">
+        <div class="aboutus-section__icon aboutus-section__icon--{{ section.color }}">
+          <i class="fa-solid {{ section.icon }}"></i>
         </div>
-        <div class="field">
-          <label for="what_we_do_tl">Filipino</label>
-          <textarea id="what_we_do_tl" name="what_we_do_tl">{{ about.what_we_do_tl }}</textarea>
+
+        <div class="aboutus-section__meta">
+          <h2>{{ section.title }}</h2>
+          <p>{{ section.description }}</p>
+        </div>
+
+        <div class="aboutus-section__field">
+          <label for="content_{{ section.key }}">Content</label>
+          <textarea
+            id="content_{{ section.key }}"
+            name="content_{{ section.key }}"
+            maxlength="800"
+            oninput="document.getElementById('count_{{ section.key }}').textContent = this.value.length"
+          >{{ section.content }}</textarea>
+          <p class="char-count"><span id="count_{{ section.key }}">{{ section.content|length }}</span> / 800 characters</p>
         </div>
       </div>
-    </div>
+      {% endfor %}
 
-    <div class="card">
-      <h2>Mission</h2>
-      <div class="field-row">
-        <div class="field">
-          <label for="mission_en">English</label>
-          <textarea id="mission_en" name="mission_en">{{ about.mission_en }}</textarea>
-        </div>
-        <div class="field">
-          <label for="mission_tl">Filipino</label>
-          <textarea id="mission_tl" name="mission_tl">{{ about.mission_tl }}</textarea>
-        </div>
-      </div>
-    </div>
+    </form>
+  </div>
 
-    <div class="card">
-      <h2>Vision</h2>
-      <div class="field-row">
-        <div class="field">
-          <label for="vision_en">English</label>
-          <textarea id="vision_en" name="vision_en">{{ about.vision_en }}</textarea>
-        </div>
-        <div class="field">
-          <label for="vision_tl">Filipino</label>
-          <textarea id="vision_tl" name="vision_tl">{{ about.vision_tl }}</textarea>
-        </div>
-      </div>
-      <p class="last-updated">Last updated: {{ about.updated_at }}</p>
-    </div>
+  <div class="aboutus-footer-actions">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    <button type="submit" form="aboutus-form" class="btn btn-primary">
+      <i class="fa-solid fa-floppy-disk"></i> Save Changes
+    </button>
+  </div>
 
-    <div class="actions">
-      <button type="submit" class="btn btn-primary">Save changes</button>
-    </div>
-
-  </form>
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

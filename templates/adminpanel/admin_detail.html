@@ -21,6 +21,18 @@
         <p><strong>Contact No.:</strong> {{ admin_user.contactno }}</p>
         <p><strong>Position:</strong> {{ admin_user.position.name|default:"—" }}</p>
         <p><strong>Status:</strong> {% if admin_user.is_active %}Active{% else %}Inactive{% endif %}</p>
+
+        {% if not admin_user.is_active %}
+            <p>
+                <strong>Deactivated On:</strong>
+                {% if deactivation_log %}
+                    {{ deactivation_log.created_at|date:"M d, Y, g:i A" }}
+                {% else %}
+                    —
+                {% endif %}
+            </p>
+        {% endif %}
+
         <p><strong>Account Setup:</strong> {% if admin_user.is_first_login %}Pending First Login{% else %}Completed{% endif %}</p>
 
     </div>

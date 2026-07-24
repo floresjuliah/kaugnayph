@@ -78,3 +78,24 @@
     background: #e8f8ee;
     color: #198754;
 }
+
+/* Primary confirmation button fallback */
+.position-confirm-overlay:not(.danger) #positionConfirmButton {
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 8px;
+    background: #0d6efd;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(13, 110, 253, 0.18);
+}
+
+.position-confirm-overlay:not(.danger) #positionConfirmButton:hover {
+    background: #0b5ed7;
+}
+
+.position-confirm-overlay #positionConfirmButton:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}

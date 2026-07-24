@@ -22,11 +22,16 @@
 
     <div class="ann-form-card">
 
-        <form method="POST" enctype="multipart/form-data" onsubmit="return confirmSmsSend();">
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            id="announcementForm"
+        >
             {% csrf_token %}
 
             <div class="ann-form-group">
                 <label>Announcement Title</label>
+
                 <input
                     type="text"
                     name="title"
@@ -38,6 +43,7 @@
 
             <div class="ann-form-group">
                 <label>Category</label>
+
                 <select name="category_id" class="form-control">
                     <option value="1">General</option>
                     <option value="2">Emergency</option>
@@ -48,6 +54,7 @@
 
             <div class="ann-form-group">
                 <label>Description</label>
+
                 <textarea
                     name="content"
                     class="form-control ann-textarea"
@@ -60,9 +67,11 @@
                 <label>Upload/Attach</label>
 
                 <div class="ann-upload-box">
+
                     <div class="ann-upload-icon">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
+
                     <p>Upload/Attach Images or Files Here</p>
 
                     <input
@@ -74,7 +83,11 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="openPublishModal()"
+            >
                 Publish
             </button>
 
@@ -84,8 +97,14 @@
                 <h2>Broadcast Settings</h2>
 
                 <label class="ann-toggle-row">
-                    <input type="checkbox" name="send_sms">
+                    <input
+                        type="checkbox"
+                        name="send_sms"
+                        id="sendSmsCheckbox"
+                    >
+
                     <span class="ann-toggle-slider"></span>
+
                     <span>Send this announcement via SMS</span>
                 </label>
             </div>
@@ -95,50 +114,129 @@
     </div>
 
 </div>
-<div id="smsConfirmModal" class="delete-modal-overlay">
+
+
+<!-- Publish Confirmation Modal -->
+<div id="publishConfirmModal" class="delete-modal-overlay">
+
     <div class="delete-modal">
-        <h3>Send SMS Notification</h3>
-        <p>
-            This announcement will be sent via SMS to all subscribed residents.
+
+        <div class="delete-modal-icon">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+
+        <h3 id="publishModalTitle">
+            Publish Announcement?
+        </h3>
+
+        <p id="publishModalMessage">
+            This announcement will be published and become visible to residents.
             Do you want to continue?
         </p>
 
         <div class="delete-modal-actions">
-            <button type="button" class="btn btn-secondary" onclick="closeSmsModal()">
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closePublishModal()"
+            >
                 Cancel
             </button>
 
-            <button type="button" class="btn btn-primary" onclick="submitAnnouncementForm()">
-                Send SMS
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="confirmPublishButton"
+                onclick="submitAnnouncementForm()"
+            >
+                Publish
             </button>
+
         </div>
+
     </div>
+
 </div>
 
+
 <script>
-let pendingAnnouncementForm = null;
+const announcementForm = document.getElementById("announcementForm");
+const publishModal = document.getElementById("publishConfirmModal");
+const smsCheckbox = document.getElementById("sendSmsCheckbox");
 
-function confirmSmsSend() {
-    const smsCheckbox = document.querySelector('input[name="send_sms"]');
+const modalTitle = document.getElementById("publishModalTitle");
+const modalMessage = document.getElementById("publishModalMessage");
+const confirmPublishButton = document.getElementById(
+    "confirmPublishButton"
+);
 
-    if (smsCheckbox && smsCheckbox.checked) {
-        pendingAnnouncementForm = smsCheckbox.closest("form");
-        document.getElementById("smsConfirmModal").classList.add("show");
-        return false;
+
+function openPublishModal() {
+
+    if (!announcementForm.checkValidity()) {
+        announcementForm.reportValidity();
+        return;
     }
 
-    return true;
+    if (smsCheckbox.checked) {
+
+        modalTitle.textContent = "Publish and Send SMS?";
+
+        modalMessage.textContent =
+            "This announcement will be published and sent via SMS " +
+            "to all subscribed residents. Do you want to continue?";
+
+        confirmPublishButton.textContent = "Publish and Send SMS";
+
+    } else {
+
+        modalTitle.textContent = "Publish Announcement?";
+
+        modalMessage.textContent =
+            "This announcement will be published and become visible " +
+            "to residents. Do you want to continue?";
+
+        confirmPublishButton.textContent = "Publish";
+    }
+
+    publishModal.classList.add("show");
 }
 
-function closeSmsModal() {
-    pendingAnnouncementForm = null;
-    document.getElementById("smsConfirmModal").classList.remove("show");
+
+function closePublishModal() {
+    publishModal.classList.remove("show");
 }
+
 
 function submitAnnouncementForm() {
-    if (pendingAnnouncementForm) {
-        pendingAnnouncementForm.submit();
-    }
+
+    confirmPublishButton.disabled = true;
+
+    confirmPublishButton.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...';
+
+    announcementForm.submit();
 }
+
+publishModal.addEventListener("click", function(event) {
+
+    if (event.target === publishModal) {
+        closePublishModal();
+    }
+
+});
+
+document.addEventListener("keydown", function(event) {
+
+    if (
+        event.key === "Escape" &&
+        publishModal.classList.contains("show")
+    ) {
+        closePublishModal();
+    }
+
+});
 </script>
+
 {% endblock %}

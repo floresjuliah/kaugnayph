@@ -150,6 +150,10 @@ urlpatterns = [
     path('admin/forgot-password/', views.admin_forgot_password_view, name='admin_forgot_password'),
     path('admin/reset-password/', views.admin_reset_password_view, name='admin_reset_password'),
 
-    #ADMIN: ABOUT US EDIT PAGE
+
+    # ADMIN PROCESSING TIME DOCUMENTS
+    path('admin-panel/document-types/processing-time/', views.admin_document_processing_times, name='admin_document_processing_times'),
+
+    #ADMIN ABOUT US EDIT
     path('admin-panel/aboutus/', views.admin_aboutus_edit, name='admin_aboutus_edit'),
 ]

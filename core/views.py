@@ -1,3 +1,7 @@
+import os
+
+from .ocr import verify_registration
+
 import json
 import random
 import string as _string
@@ -60,7 +64,7 @@ from .models import (
     FAQs,
     FAQCategories,
     AvatarOptions,
-    AboutUs, 
+    AboutUsStatement,
 )
 
 from django.utils.dateparse import parse_datetime 
@@ -180,6 +184,18 @@ ACCESS_PERMISSION_GROUPS = (
         ),
     ),
     (
+        "Processing Times",
+        (
+            "edit_processing_times",
+        ),
+    ),
+    (
+        "About Us",
+        (
+            "edit_about_us",
+        ),
+    ),
+    (
         "Settings",
         (
             "view_settings",
@@ -193,7 +209,7 @@ ACCESS_PERMISSION_LABELS = {
 
     "view_residents": "View Residents",
     "verify_residents": "Verify Resident Registrations",
-    "manage_residents": "Manage Residents",
+    "manage_residents": "Edit Residents",
 
     "view_announcements": "View Announcements",
     "create_announcements": "Create Announcements",
@@ -204,10 +220,10 @@ ACCESS_PERMISSION_LABELS = {
     "process_document_requests": "Process Document Requests",
 
     "view_complaints": "View Complaints",
-    "manage_complaints": "Manage Complaints",
+    "manage_complaints": "Process Complaints",
 
     "view_hearings": "View Hearings",
-    "manage_hearings": "Manage Hearings",
+    "manage_hearings": "Process Hearings",
 
     "view_inquiries": "View Inquiries",
     "reply_inquiries": "Reply to Inquiries",
@@ -217,10 +233,13 @@ ACCESS_PERMISSION_LABELS = {
     "view_sms_outbox": "View SMS Outbox",
     "send_sms": "Send SMS Notifications",
 
-    "view_admin_panel": "View Personnel Management",
+    "view_admin_panel": "View Personnel",
     "create_users": "Create Personnel Accounts",
     "edit_users": "Edit Personnel Accounts",
     "deactivate_users": "Deactivate Personnel Accounts",
+
+    "edit_processing_times": "Edit Processing Times",
+    "edit_about_us": "Edit About Us",
 
     "view_settings": "View Settings",
 }
@@ -476,9 +495,17 @@ def filecomplaint(request):
     return render(request, "filecomplaint.html", complaint_context())
 
 
+#RESIDENT SIDE - ABOUT US
 def aboutus(request):
-    about = AboutUs.objects.first()
-    return render(request, 'aboutus.html', {'about': about})
+    what_we_do = AboutUsStatement.objects.filter(section='what_we_do').first()
+    mission = AboutUsStatement.objects.filter(section='mission').first()
+    vision = AboutUsStatement.objects.filter(section='vision').first()
+
+    return render(request, 'aboutus.html', {
+        'what_we_do': what_we_do,
+        'mission': mission,
+        'vision': vision,
+    })
 
 def privacypolicy(request):
     return render(request, 'privacypolicy.html')
@@ -1949,6 +1976,49 @@ def resident_register_view(request):
     except TypeOfID.DoesNotExist:
         id_type = None
 
+    full_image_path = os.path.join(
+        settings.MEDIA_ROOT,
+        id_path
+    )
+
+    verification = verify_registration(
+        image_path=full_image_path,
+        firstname=data["firstname"],
+        lastname=data["lastname"],
+        address=data["address"],
+        id_name=id_type.name if id_type else ""
+    )
+
+    print("=" * 50)
+    print("OCR VERIFICATION RESULT")
+    print(verification)
+    print("=" * 50)
+
+    if not verification["matched"]:
+        # Delete uploaded files
+        if default_storage.exists(id_path):
+            default_storage.delete(id_path)
+
+        if default_storage.exists(selfie_path):
+            default_storage.delete(selfie_path)
+
+        # Delete user
+        new_user.delete()
+
+        messages.error(
+            request,
+            verification["reason"]
+        )
+
+        return render(
+            request,
+            "auth/register.html",
+            {
+                "id_types": TypeOfID.objects.all()
+            }
+        )
+            
+
     ResidentVerification.objects.create(
         user=new_user,
         toid=id_type,
@@ -1980,11 +2050,10 @@ def resident_register_view(request):
     return redirect("login")
 
 
-# DASHBOARDS
 @admin_login_required
 @permission_required("view_dashboard")
 def admin_dashboard_view(request):
-    from django.db.models import Avg, Count, F, Sum, ExpressionWrapper, fields
+    from django.db.models import Avg, Count, F, Sum, ExpressionWrapper, fields, Min, Max #FOR PYCHART and other calculations
     import json
 
     user = get_current_user(request)
@@ -1998,56 +2067,64 @@ def admin_dashboard_view(request):
     else:
         start_date = today - timedelta(days=30)
 
-    # ---- TOP STAT CARDS ----
+    # TOP STAT CARDS
     total_residents = Users.objects.filter(user_type__type_name="Resident").count()
     total_requests = DocumentRequests.objects.filter(requested_at__gte=start_date).count()
     total_cases = Complaints.objects.filter(dateadded__gte=start_date).count()
     total_inquiries = Inquiry.objects.filter(created_at__gte=start_date).count()
     total_sms = SMSOutbox.objects.count()
 
-    # ---- ANNOUNCEMENT ANALYTICS ----
-    total_announcements = Announcements.objects.count()
+    # ACTION REQUIRED CARD
+    # Assumptions (adjust the hour thresholds if your actual SLA differs):
+    #   - Document Requests SLA = 72 hrs (matches your existing sla_compliance calc)
+    #   - Inquiries SLA = 24 hrs (matches the comment in contactus(): "start the 24-hour clock")
+    #   - "Cases waiting for Chairman Review" = status == "For Chairman Review" (no SLA needed)
+    # "Exceeded SLA" = still OPEN (not completed/resolved) and past the deadline.
+    docreq_sla_hours = 72
+    inquiry_sla_hours = 24
 
+    docreq_exceeded_sla = DocumentRequests.objects.filter(
+        status__in=["Pending", "Processing"],
+        requested_at__lte=today - timedelta(hours=docreq_sla_hours),
+    ).count()
+
+    inquiries_exceeded_sla = Inquiry.objects.filter(
+        status__in=["New", "Pending"],
+        created_at__lte=today - timedelta(hours=inquiry_sla_hours),
+    ).count()
+
+    cases_awaiting_chairman = Complaints.objects.filter(
+        status="For Chairman Review"
+    ).count()
+
+    # ANNOUNCEMENT ANALYTICS
+    total_announcements = Announcements.objects.count()
     announcement_stats = Announcements.objects.aggregate(
         total_views=Sum("view_count"),
         avg_views=Avg("view_count"),
     )
     total_views = announcement_stats["total_views"] or 0
     avg_views_per_post = round(announcement_stats["avg_views"] or 0, 1)
-
     most_viewed_announcement = (
         Announcements.objects.order_by("-view_count", "-created_at").first()
     )
 
-    # Proxy trend: Posts per day (Python grouping to avoid MariaDB CONVERT_TZ issue)
     from collections import OrderedDict
-
     announcements = (
         Announcements.objects
-        .filter(
-            created_at__isnull=False,
-            created_at__gte=start_date,
-        )
+        .filter(created_at__isnull=False, created_at__gte=start_date)
         .order_by("created_at")
     )
-
     trend = OrderedDict()
-
     for announcement in announcements:
-        # Convert UTC to your project's local timezone
         local_day = timezone.localtime(announcement.created_at).date()
-
-        if local_day not in trend:
-            trend[local_day] = 0
-
+        trend.setdefault(local_day, 0)
         trend[local_day] += 1
-
     posts_trend_data = json.dumps({
         "labels": [day.strftime("%b %d") for day in trend.keys()],
         "values": list(trend.values()),
     })
 
-    # Views by Category
     category_views_qs = (
         Announcements.objects
         .values(cat_name=F("category__name"))
@@ -2067,7 +2144,7 @@ def admin_dashboard_view(request):
         "values": [c["views"] for c in category_views],
     })
 
-    # ---- CASE ANALYTICS ----
+    # CASE ANALYTICS
     cases_pending = Complaints.objects.filter(
         status="For Chairman Review", dateadded__gte=start_date
     ).count()
@@ -2099,14 +2176,54 @@ def admin_dashboard_view(request):
             F("datefinish") - F("dateadded"), output_field=fields.DurationField(),
         )
     )
-    avg_case_resolution = resolved_cases.aggregate(avg=Avg("resolution_duration"))["avg"]
+
+    # avg / fastest / longest resolution
+    resolution_stats = resolved_cases.aggregate(
+        avg=Avg("resolution_duration"),
+        fastest=Min("resolution_duration"),
+        longest=Max("resolution_duration"),
+    )
     avg_resolution_days = (
-        round(avg_case_resolution.total_seconds() / 86400, 1) if avg_case_resolution else 0
+        round(resolution_stats["avg"].total_seconds() / 86400, 1)
+        if resolution_stats["avg"] else 0
+    )
+    fastest_resolution_days = (
+        round(resolution_stats["fastest"].total_seconds() / 86400, 1)
+        if resolution_stats["fastest"] else 0
+    )
+    longest_resolution_days = (
+        round(resolution_stats["longest"].total_seconds() / 86400, 1)
+        if resolution_stats["longest"] else 0
     )
 
-    # ---- DOCUMENT REQUEST ANALYTICS ----
-    docreq_completed = DocumentRequests.objects.filter(status="Completed", requested_at__gte=start_date).count()
+    # Avg "processing time" = review to first action.
+    # Uses the first ComplaintUpdates entry AFTER submission (i.e. the first
+    # time staff moved it out of "For Chairman Review").
+    first_actions = (
+        ComplaintUpdates.objects
+        .filter(complaint__dateadded__gte=start_date)
+        .exclude(status="For Chairman Review")
+        .values("complaint")
+        .annotate(first_action_at=Min("updated_at"))
+    )
+    action_durations = []
+    complaints_by_id = {
+        c.complaintsid: c.dateadded
+        for c in Complaints.objects.filter(dateadded__gte=start_date)
+    }
+    for row in first_actions:
+        submitted_at = complaints_by_id.get(row["complaint"])
+        if submitted_at and row["first_action_at"]:
+            action_durations.append(
+                (row["first_action_at"] - submitted_at).total_seconds()
+            )
+    avg_case_processing_days = (
+        round((sum(action_durations) / len(action_durations)) / 86400, 1)
+        if action_durations else 0
+    )
 
+    # DOCUMENT REQUEST ANALYTICS
+    docreq_completed = DocumentRequests.objects.filter(status="Completed", requested_at__gte=start_date).count()
     completed_requests = DocumentRequests.objects.filter(
         processed_at__isnull=False, requested_at__isnull=False, processed_at__gte=start_date
     ).annotate(
@@ -2118,18 +2235,18 @@ def admin_dashboard_view(request):
     avg_processing_days = (
         round(avg_docreq_duration.total_seconds() / 86400, 1) if avg_docreq_duration else 0
     )
-
     total_period = DocumentRequests.objects.filter(requested_at__gte=start_date).count()
     completion_rate = round((docreq_completed / total_period) * 100) if total_period else 0
 
-    # SLA Compliance: % of completed requests processed within 72 hours
     sla_total = completed_requests.count()
     sla_met = completed_requests.filter(
-        processing_duration__lte=timedelta(hours=72)
+        processing_duration__lte=timedelta(hours=docreq_sla_hours)
     ).count()
     sla_compliance = round((sla_met / sla_total) * 100) if sla_total else 0
 
-    # Requests by Document Type (horizontal bar)
+    # "Past SLA Requests" card — completed requests that STILL breached SLA
+    past_sla_docreq_count = sla_total - sla_met if sla_total else 0
+
     doctype_qs = (
         DocumentRequests.objects
         .filter(requested_at__gte=start_date)
@@ -2141,10 +2258,57 @@ def admin_dashboard_view(request):
         "labels": [row["dt_name"] or "Other" for row in doctype_qs],
         "values": [row["count"] for row in doctype_qs],
     })
+    doctype_list = list(doctype_qs)  # NEW: raw list, handy if the template loops it directly
 
     case_chart_data = json.dumps({
         "labels": ["Pending", "Ongoing", "Resolved"],
         "values": [cases_pending, cases_ongoing, cases_resolved]
+    })
+
+    #INQUIRY ANALYTICS
+    period_inquiries = Inquiry.objects.filter(created_at__gte=start_date)
+
+    inquiries_with_reply = period_inquiries.filter(
+        replied_at__isnull=False, created_at__isnull=False
+    ).annotate(
+        response_duration=ExpressionWrapper(
+            F("replied_at") - F("created_at"), output_field=fields.DurationField(),
+        )
+    )
+
+    inquiry_sla_total = inquiries_with_reply.count()
+    inquiry_sla_met = inquiries_with_reply.filter(
+        response_duration__lte=timedelta(hours=inquiry_sla_hours)
+    ).count()
+    inquiry_sla_compliance = (
+        round((inquiry_sla_met / inquiry_sla_total) * 100) if inquiry_sla_total else 0
+    )
+    past_sla_inquiries_count = inquiry_sla_total - inquiry_sla_met if inquiry_sla_total else 0
+
+    avg_inquiry_response = inquiries_with_reply.aggregate(avg=Avg("response_duration"))["avg"]
+    avg_response_hours = (
+        round(avg_inquiry_response.total_seconds() / 3600, 1) if avg_inquiry_response else 0
+    )
+
+    inquiry_category_qs = (
+        period_inquiries
+        .values(cat_name=F("faq_category__category_name"))
+        .annotate(count=Count("cuid"))
+        .order_by("-count")
+    )
+    inquiry_categories = [
+        {"name": row["cat_name"] or "Uncategorized", "count": row["count"]}
+        for row in inquiry_category_qs
+    ]
+    total_inquiry_cat = sum(c["count"] for c in inquiry_categories) or 1
+    for c in inquiry_categories:
+        c["percent"] = round((c["count"] / total_inquiry_cat) * 100)
+
+    most_inquired_about = inquiry_categories[0] if inquiry_categories else None
+
+    inquiry_categories_chart = json.dumps({
+        "labels": [c["name"] for c in inquiry_categories],
+        "values": [c["count"] for c in inquiry_categories],
     })
 
     return render(request, "adminpanel/dashboard.html", {
@@ -2157,6 +2321,11 @@ def admin_dashboard_view(request):
         "total_cases": total_cases,
         "total_inquiries": total_inquiries,
         "total_sms_sent": total_sms,
+
+        # NEW: Action Required
+        "docreq_exceeded_sla": docreq_exceeded_sla,
+        "inquiries_exceeded_sla": inquiries_exceeded_sla,
+        "cases_awaiting_chairman": cases_awaiting_chairman,
 
         # Announcement Analytics
         "total_announcements": total_announcements,
@@ -2176,12 +2345,25 @@ def admin_dashboard_view(request):
         "cases_ongoing_pct": cases_ongoing_pct,
         "cases_resolved_pct": cases_resolved_pct,
         "avg_resolution_time": avg_resolution_days,
+        "fastest_resolution_time": fastest_resolution_days,  
+        "longest_resolution_time": longest_resolution_days,  
+        "avg_case_processing_time": avg_case_processing_days,  
 
         # Document Requests
         "doctype_chart_data": doctype_chart_data,
+        "doctype_list": doctype_list, 
         "avg_processing_time": avg_processing_days,
         "completion_rate": completion_rate,
         "sla_compliance": sla_compliance,
+        "past_sla_docreq_count": past_sla_docreq_count,  
+
+        # Inquiry Analytics
+        "inquiry_sla_compliance": inquiry_sla_compliance,
+        "past_sla_inquiries_count": past_sla_inquiries_count,
+        "avg_inquiry_response_hours": avg_response_hours,
+        "inquiry_categories": inquiry_categories,
+        "inquiry_categories_chart": inquiry_categories_chart,
+        "most_inquired_about": most_inquired_about,
     })
 
 
@@ -2364,8 +2546,18 @@ def admin_detail_view(request, user_id):
         messages.error(request, "Personnel account not found.")
         return redirect("admins_list")
 
+    deactivation_log = None
+
+    if not admin_user.is_active:
+        deactivation_log = AuditLogs.objects.filter(
+            action="Deactivate Admin Account",
+            table_name="Users",
+            record_id=admin_user.userid
+        ).order_by("-created_at").first()
+
     return render(request, "adminpanel/admin_detail.html", {
         "admin_user": admin_user,
+        "deactivation_log": deactivation_log,
         "user": get_current_user(request),
     })
 
@@ -2580,24 +2772,25 @@ def admin_reactivate_view(request, user_id):
         messages.error(request, "Inactive admin account not found.")
         return redirect("admins_list")
 
-    admin_user.is_active = True
-    admin_user.save(update_fields=["is_active"])
+    if request.method == "POST":
+        admin_user.is_active = True
+        admin_user.save(update_fields=["is_active"])
 
-    AuditLogs.objects.create(
-        user=current_admin,
-        action="Reactivate Admin Account",
-        module_name="UserManagement",
-        table_name="Users",
-        record_id=admin_user.userid,
-        old_value="is_active=False",
-        new_value="is_active=True",
-        created_at=timezone.now()
-    )
+        AuditLogs.objects.create(
+            user=current_admin,
+            action="Reactivate Admin Account",
+            module_name="UserManagement",
+            table_name="Users",
+            record_id=admin_user.userid,
+            old_value="is_active=False",
+            new_value="is_active=True",
+            created_at=timezone.now()
+        )
 
-    messages.success(
-        request,
-        f"Personnel account for {admin_user.firstname} {admin_user.lastname} has been reactivated."
-    )
+        messages.success(
+            request,
+            f"Personnel account for {admin_user.firstname} {admin_user.lastname} has been reactivated."
+        )
 
     return redirect("admins_list")
 
@@ -3183,6 +3376,10 @@ def admin_announcement_edit_view(request, announcement_id):
 
         announcement.title = request.POST.get("title", "").strip()
         announcement.content = request.POST.get("content", "").strip()
+        announcement.category_id = request.POST.get(
+            "category_id",
+            announcement.category_id
+        )
         announcement.send_sms = (request.POST.get("send_sms") == "on")
 
         if not announcement.title:
@@ -6428,26 +6625,76 @@ def admin_change_username(request):
     messages.success(request, "Username updated successfully.")
     return redirect("settings_page")
 
-
-# ADMIN ABOUT US EDIT PAGE
+#ADMIN DOCUMENT TYPES - PROCESSING TIME
 
 @admin_login_required
-def admin_aboutus_edit(request):
-    about = AboutUs.objects.first()
-
+@permission_required("edit_processing_times")
+def admin_document_processing_times(request):
     if request.method == 'POST':
-        about.what_we_do_en = request.POST.get('what_we_do_en')
-        about.what_we_do_tl = request.POST.get('what_we_do_tl')
-        about.mission_en = request.POST.get('mission_en')
-        about.mission_tl = request.POST.get('mission_tl')
-        about.vision_en = request.POST.get('vision_en')
-        about.vision_tl = request.POST.get('vision_tl')
-        about.save()
-        messages.success(request, 'About us content updated.')
+        for document_type in DocumentTypes.objects.all():
+            field_name = f'processing_time_{document_type.dtid}'
+            new_value = request.POST.get(field_name, '').strip()
+            if new_value:
+                document_type.processing_time = new_value
+                document_type.save(update_fields=['processing_time'])
+
+        messages.success(request, 'Processing times updated.')
+        return redirect('admin_document_processing_times')
+
+    document_types = DocumentTypes.objects.filter(is_active=True).order_by('name')
+
+    return render(request, 'adminpanel/admin_document_processing_times.html', {
+        'document_types': document_types,
+    })
+
+#ADMIN ABOUT US EDIT
+
+ABOUTUS_SECTIONS_META = {
+    'what_we_do': {
+        'title': 'What We Do',
+        'description': 'Describe the services and support you provide to the community.',
+        'icon': 'fa-users',
+        'color': 'green',
+    },
+    'mission': {
+        'title': 'Our Mission',
+        'description': "Your organization's purpose and commitment to the community.",
+        'icon': 'fa-bullseye',
+        'color': 'purple',
+    },
+    'vision': {
+        'title': 'Our Vision',
+        'description': "Your organization's long-term aspiration for the community.",
+        'icon': 'fa-eye',
+        'color': 'orange',
+    },
+}
+
+@admin_login_required
+@permission_required("edit_about_us")
+def admin_aboutus_edit(request):
+    if request.method == 'POST':
+        for key in ABOUTUS_SECTIONS_META:
+            content = request.POST.get(f'content_{key}', '').strip()
+            AboutUsStatement.objects.update_or_create(
+                section=key,
+                defaults={'content_en': content},
+            )
+
+        messages.success(request, 'About Us content updated.')
         return redirect('admin_aboutus_edit')
 
-    return render(request, 'adminpanel/admin_aboutus.html', {'about': about})
+    sections = []
+    for key, meta in ABOUTUS_SECTIONS_META.items():
+        statement = AboutUsStatement.objects.filter(section=key).first()
+        sections.append({
+            'key': key,
+            'title': meta['title'],
+            'description': meta['description'],
+            'icon': meta['icon'],
+            'color': meta['color'],
+            'content': statement.content_en if statement else '',
+        })
 
-def aboutus_view(request):
-    about = AboutUs.objects.first()
-    return render(request, 'aboutus.html', {'about': about})
+    return render(request, 'adminpanel/admin_aboutus.html', {'sections': sections})
+

@@ -39,8 +39,14 @@
                 <form
                     method="POST"
                     action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
-                    style="display:inline;"
-                    onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                    data-position-confirm
+                                    data-confirm-title="Delete Announcement"
+                                    data-confirm-message="This announcement will be permanently deleted. This action cannot be undone."
+                                    data-confirm-button="Delete"
+                                    data-confirm-variant="danger"
+                                    data-confirm-icon="fa-solid fa-triangle-exclamation"
+                                    class="d-inline"
+                                >
 
                     {% csrf_token %}
 
@@ -154,5 +160,9 @@
     </div>
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

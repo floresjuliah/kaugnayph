@@ -149,14 +149,21 @@ window.addEventListener("click", function(e) {
                 </a>
             {% endif %}
 
-            {% if request.session.role == "Barangay Chairman" %}
+            {% if "edit_processing_times" in request.session.permissions %}
+                <a href="{% url 'admin_document_processing_times' %}"
+                class="{% if request.resolver_match.url_name == 'admin_document_processing_times' %}active{% endif %}">
+                    <i class="fa-regular fa-clock"></i>
+                    Processing Times
+                </a>
+            {% endif %}
+
+            {% if "edit_about_us" in request.session.permissions %}
                 <a href="{% url 'admin_aboutus_edit' %}"
                 class="{% if request.resolver_match.url_name == 'admin_aboutus_edit' %}active{% endif %}">
                     <i class="fa-solid fa-circle-info"></i>
                     About Us
                 </a>
             {% endif %}
-
         </nav>
 
     </aside>

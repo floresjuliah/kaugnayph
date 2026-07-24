@@ -119,10 +119,7 @@
         {% for document_type in document_types %}
           <div class="reference__row">
             <span class="reference__name">{{ document_type.name }}</span>
-            <span class="reference__eta"
-                  data-en="Estimated Processing Time: 1–2 days"
-                  data-tl="Tinatayang Processing Time: 1–2 araw">
-              Estimated Processing Time: 1–2 days
+                {{ document_type.processing_time }}
             </span>
           </div>
         {% endfor %}
@@ -191,6 +188,7 @@
         <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
           {{ captcha_form.captcha }}
         </div>
+        <span class="field-error" id="captcha-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
 
         {% if captcha_form.captcha.errors and captcha_form.data %}
           <div class="contact-alert" style="margin-top:10px;">
@@ -213,6 +211,25 @@
   </form>
 </div>
 
+<style>
+  .field-error {
+    display: none;
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .field-error.show {
+    display: block;
+  }
+
+  #doc-modal input:invalid:focus,
+  #doc-modal select:invalid:focus,
+  #doc-modal textarea:invalid:focus {
+    outline: 2px solid #dc2626;
+    outline-offset: 1px;
+  }
+</style>
 
 <script>
   const sessionUser = {
@@ -245,6 +262,20 @@
     ]
   };
 
+  // Options for the Purpose dropdown
+  const purposeOptions = [
+    "Medical Assistance",
+    "Financial Assistance",
+    "DSWD Requirement",
+    "PWD ID Requirement",
+    "Senior Citizen ID Requirement",
+    "Legal Requirement",
+    "Local Employment",
+    "School Requirement",
+    "Bank Requirement",
+    "Others (please specify)"
+  ];
+
   const restoredFormData = {
     {% for key, value in form_data.items %}
       "{{ key|escapejs }}": "{{ value|escapejs }}",
@@ -269,6 +300,47 @@
   function translateText(enText, tlText) {
     return getCurrentLanguage() === "tl" ? tlText : enText;
   }
+
+  // ── Red border + "This field is required." message for a required field ──
+  function createFieldError() {
+    const span = document.createElement('span');
+    span.className = 'field-error';
+    span.setAttribute('data-en', 'This field is required.');
+    span.setAttribute('data-tl', 'Kailangan punan ang field na ito.');
+    span.textContent = translateText('This field is required.', 'Kailangan punan ang field na ito.');
+    return span;
+  }
+
+  function attachValidation(field, errorEl) {
+    field.addEventListener('invalid', function() {
+      // Deferred so it doesn't interfere with the native validation tooltip
+      setTimeout(function() {
+        field.style.setProperty('border-color', '#dc2626', 'important');
+        if (errorEl) errorEl.classList.add('show');
+      }, 0);
+    });
+
+    field.addEventListener('input', function() {
+      if (field.checkValidity()) {
+        field.style.removeProperty('border-color');
+        if (errorEl) errorEl.classList.remove('show');
+      }
+    });
+
+    field.addEventListener('change', function() {
+      if (field.checkValidity()) {
+        field.style.removeProperty('border-color');
+        if (errorEl) errorEl.classList.remove('show');
+      }
+    });
+  }
+
+  // Captcha field is static in the HTML, so wire it up once on load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('#doc-modal .modal__footer input[required]').forEach(function(field) {
+      attachValidation(field, document.getElementById('captcha-error'));
+    });
+  });
 
   // ── Path dropdowns (Online Application / Downloadable Form) ──
   function setupPathMenu(menuId, onSelect) {
@@ -340,7 +412,7 @@
 
   document.addEventListener("click", closeAllPathMenus);
 
-  // ── Application form modal (unchanged) ──
+  // ── Application form modal ──
   async function openModal(documentTypeId, documentTitle) {
     document.getElementById('modal-title').textContent = documentTitle;
     document.getElementById('document_type_id').value = documentTypeId;
@@ -378,6 +450,87 @@
 
         group.appendChild(label);
 
+        const lowerLabel = field.field_label.toLowerCase();
+
+        // ── Purpose dropdown (special case) ──
+        if (lowerLabel.includes('purpose') || lowerLabel.includes('layunin')) {
+          const select = document.createElement('select');
+          select.name = `field_${field.dfid}`;
+          select.id = `field_${field.dfid}`;
+          if (field.is_required) select.required = true;
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = translateText('Select a purpose', 'Pumili ng layunin');
+          select.appendChild(defaultOption);
+
+          purposeOptions.forEach(optionText => {
+            const option = document.createElement('option');
+            option.value = optionText;
+            option.textContent = optionText;
+            select.appendChild(option);
+          });
+
+          group.appendChild(select);
+
+          const selectError = createFieldError();
+          group.appendChild(selectError);
+          if (field.is_required) attachValidation(select, selectError);
+
+          body.appendChild(group);
+
+          // "Others (please specify)" text field
+          const othersGroup = document.createElement('div');
+          othersGroup.className = 'form-group form-group--full';
+          othersGroup.id = 'purpose-others-group';
+          othersGroup.style.display = 'none';
+
+          const othersLabel = document.createElement('label');
+          othersLabel.textContent = translateText('Please specify', 'Pakilagay ang detalye');
+          othersGroup.appendChild(othersLabel);
+
+          const othersInput = document.createElement('input');
+          othersInput.type = 'text';
+          othersInput.id = 'purpose-others-input';
+          othersGroup.appendChild(othersInput);
+
+          const othersError = createFieldError();
+          othersGroup.appendChild(othersError);
+          attachValidation(othersInput, othersError);
+
+          body.appendChild(othersGroup);
+
+          const savedValue = restoredFormData[select.name];
+          if (savedValue) {
+            if (purposeOptions.includes(savedValue)) {
+              select.value = savedValue;
+            } else {
+              select.value = 'Others (please specify)';
+              othersGroup.style.display = 'block';
+              othersInput.required = true;
+              othersInput.value = savedValue;
+            }
+          }
+
+          function syncPurposeHidden() {
+            const hidden = document.getElementById('purpose-hidden');
+            hidden.value = select.value === 'Others (please specify)'
+              ? othersInput.value
+              : select.value;
+          }
+
+          select.addEventListener('change', function () {
+            const isOthers = this.value === 'Others (please specify)';
+            othersGroup.style.display = isOthers ? 'block' : 'none';
+            othersInput.required = isOthers;
+            syncPurposeHidden();
+          });
+
+          othersInput.addEventListener('input', syncPurposeHidden);
+
+          return; // done with this field
+        }
+
         let input;
 
         if (field.field_type === 'select') {
@@ -401,13 +554,17 @@
           input = document.createElement('input');
           input.type = field.field_type || 'text';
 
+          if (field.field_type === 'number') {
+            input.min = '0';
+          }
+
           if (field.field_type === 'file') {
             input.accept = '.jpg,.jpeg,.png';
             input.name = `field_${field.dfid}`;
             input.id = `field_${field.dfid}`;
 
             const note = document.createElement('small');
-            note.textContent = 'Only JPG or PNG files are accepted.';
+            note.textContent = 'Only JPG or PNG files are accepted. Maximum file size: 10MB.';
             note.style.color = '#888';
             note.style.fontSize = '0.78rem';
             note.style.display = 'block';
@@ -415,6 +572,11 @@
 
             group.appendChild(input);
             group.appendChild(note);
+
+            const fileError = createFieldError();
+            group.appendChild(fileError);
+            if (field.is_required) attachValidation(input, fileError);
+
             body.appendChild(group);
             return;
           }
@@ -436,8 +598,6 @@
           input.required = true;
         }
 
-        const lowerLabel = field.field_label.toLowerCase();
-
         if (lowerLabel.includes('first name')) input.value = sessionUser.firstname;
         if (lowerLabel.includes('middle name')) input.value = sessionUser.middlename;
         if (lowerLabel.includes('last name')) input.value = sessionUser.lastname;
@@ -445,16 +605,12 @@
         if (lowerLabel.includes('email')) input.value = sessionUser.email;
         if (lowerLabel.includes('address') || lowerLabel.includes('tirahan')) input.value = sessionUser.address;
 
-        if (lowerLabel === 'purpose' || lowerLabel.includes('purpose')) {
-          input.addEventListener('input', function () {
-            document.getElementById('purpose-hidden').value = this.value;
-          });
-          input.addEventListener('change', function () {
-            document.getElementById('purpose-hidden').value = this.value;
-          });
-        }
-
         group.appendChild(input);
+
+        const fieldError = createFieldError();
+        group.appendChild(fieldError);
+        if (input.required) attachValidation(input, fieldError);
+
         body.appendChild(group);
       });
 
@@ -494,18 +650,42 @@
   }
 
   document.getElementById('document-request-form').addEventListener('submit', function(e) {
+    // Negative number validation (e.g. Years of Stay)
+    const numberInputs = this.querySelectorAll('input[type="number"]');
+    for (const input of numberInputs) {
+      if (input.value !== '' && Number(input.value) < 0) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const existing = document.getElementById('file-type-error');
+        if (existing) existing.remove();
+
+        const err = document.createElement('div');
+        err.id = 'file-type-error';
+        err.className = 'form-notice form-notice--error';
+        err.style.margin = '12px 0';
+        err.textContent = 'Please enter a valid number (cannot be negative).';
+
+        const modalBody = document.getElementById('modal-body');
+        modalBody.insertBefore(err, modalBody.firstChild);
+        return false;
+      }
+    }
+
     // File validation
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     const fileInputs = this.querySelectorAll('input[type="file"]');
     for (const input of fileInputs) {
       if (input.files.length > 0) {
         const file = input.files[0];
         const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+
+        const existing = document.getElementById('file-type-error');
+        if (existing) existing.remove();
+
         if (!allowed.includes(file.type)) {
           e.preventDefault();
           e.stopPropagation();
-
-          const existing = document.getElementById('file-type-error');
-          if (existing) existing.remove();
 
           const err = document.createElement('div');
           err.id = 'file-type-error';
@@ -517,17 +697,22 @@
           modalBody.insertBefore(err, modalBody.firstChild);
           return false;
         }
+
+        if (file.size > MAX_FILE_SIZE) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const err = document.createElement('div');
+          err.id = 'file-type-error';
+          err.className = 'form-notice form-notice--error';
+          err.style.margin = '12px 0';
+          err.textContent = 'File is too large. Maximum file size is 10MB.';
+
+          const modalBody = document.getElementById('modal-body');
+          modalBody.insertBefore(err, modalBody.firstChild);
+          return false;
+        }
       }
-    }
-
-    // Purpose hidden field
-    const purposeInput = Array.from(this.elements).find(element => {
-      const label = document.querySelector(`label[for="${element.id}"]`);
-      return label && label.textContent.toLowerCase().includes('purpose');
-    });
-
-    if (purposeInput) {
-      document.getElementById('purpose-hidden').value = purposeInput.value;
     }
   });
 

@@ -62,6 +62,7 @@
             value="{% if form_data.firstname %}{{ form_data.firstname }}{% else %}{{ initial_data.firstname }}{% endif %}"
             required
           >
+          <span class="field-error" id="firstname-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
         </div>
 
         <div>
@@ -79,6 +80,7 @@
             value="{% if form_data.lastname %}{{ form_data.lastname }}{% else %}{{ initial_data.lastname }}{% endif %}"
             required
           >
+          <span class="field-error" id="lastname-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
         </div>
       </div>
 
@@ -98,6 +100,7 @@
             value="{% if form_data.contactno %}{{ form_data.contactno }}{% else %}{{ initial_data.contactno }}{% endif %}"
             required
           >
+          <span class="field-error" id="contactno-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
         </div>
 
         <div>
@@ -115,6 +118,7 @@
             value="{{ form_data.address|default:'' }}"
             required
           >
+          <span class="field-error" id="address-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
         </div>
       </div>
 
@@ -132,6 +136,7 @@
         value="{{ form_data.messagesubject|default:'' }}"
         required
       >
+      <span class="field-error" id="messagesubject-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
 
       <label for="message">
         <span data-en="Message" data-tl="Mensahe">Message</span>
@@ -145,6 +150,7 @@
         data-placeholder-tl="Isulat ang iyong mensahe rito"
         required
       >{{ form_data.message|default:'' }}</textarea>
+      <span class="field-error" id="message-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
 
       <!-- CAPTCHA -->
       <div class="form-row">
@@ -155,6 +161,7 @@
           </label>
 
           {{ captcha_form.captcha }}
+          <span class="field-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
 
           {% if captcha_form.captcha.errors %}
             <div class="contact-alert" style="margin-top:10px;">
@@ -316,6 +323,74 @@
   .required-mark {
     color: #dc2626;
   }
+
+  .contact-form input:invalid:focus,
+  .contact-form textarea:invalid:focus {
+    outline: 2px solid #dc2626;
+    outline-offset: 1px;
+  }
+
+  .field-error {
+    display: none;
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .field-error.show {
+    display: block;
+  }
 </style>
+
+<script>
+// ── Highlight required fields with a red border + "this field is required" message ──
+(function() {
+    const form = document.querySelector('.contact-form');
+    const requiredFields = form.querySelectorAll('[required]');
+
+    function getErrorEl(field) {
+        return document.getElementById(field.id + '-error')
+            || field.parentElement.querySelector('.field-error');
+    }
+
+    requiredFields.forEach(function(field) {
+        const errorEl = getErrorEl(field);
+
+        field.addEventListener('invalid', function() {
+            // Deferred so it doesn't interfere with the native validation tooltip
+            setTimeout(function() {
+                field.style.setProperty('border-color', '#dc2626', 'important');
+                if (errorEl) errorEl.classList.add('show');
+            }, 0);
+        });
+
+        field.addEventListener('input', function() {
+            if (field.checkValidity()) {
+                field.style.removeProperty('border-color');
+                if (errorEl) errorEl.classList.remove('show');
+            }
+        });
+
+        field.addEventListener('change', function() {
+            if (field.checkValidity()) {
+                field.style.removeProperty('border-color');
+                if (errorEl) errorEl.classList.remove('show');
+            }
+        });
+    });
+
+    form.addEventListener('submit', function() {
+        requiredFields.forEach(function(field) {
+            if (!field.checkValidity()) {
+                const errorEl = getErrorEl(field);
+                setTimeout(function() {
+                    field.style.setProperty('border-color', '#dc2626', 'important');
+                    if (errorEl) errorEl.classList.add('show');
+                }, 0);
+            }
+        });
+    });
+})();
+</script>
 
 {% endblock %}

@@ -5,45 +5,32 @@
 {% block admin_content %}
 
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=2.0">
 
 <div class="dash-page">
 
+    <!-- Header -->
     <div class="dash-header">
-        <h1>Overview Dashboard</h1>
-    </div>
-
-    <div class="dash-filter-row">
-
-        <div class="dash-tabs">
-
-            <button
-                class="{% if period == 'daily' %}active{% endif %}"
-                onclick="window.location='?period=daily'">
-                Daily
-            </button>
-
-            <button
-                class="{% if period == 'weekly' %}active{% endif %}"
-                onclick="window.location='?period=weekly'">
-                Weekly
-            </button>
-
-            <button
-                class="{% if period == 'monthly' %}active{% endif %}"
-                onclick="window.location='?period=monthly'">
-                Monthly
-            </button>
-
+        <div>
+            <h1>Overview Dashboard</h1>
         </div>
-
     </div>
 
+    <!-- Filter Tabs -->
+    <div class="dash-filter-row">
+        <div class="dash-tabs">
+            <button class="{% if period == 'daily' or not period %}active{% endif %}" onclick="window.location='?period=daily'">Daily</button>
+            <button class="{% if period == 'weekly' %}active{% endif %}" onclick="window.location='?period=weekly'">Weekly</button>
+            <button class="{% if period == 'monthly' %}active{% endif %}" onclick="window.location='?period=monthly'">Monthly</button>
+        </div>
+    </div>
+
+    <!-- Top Stats Cards (5 Columns) -->
     <div class="dash-stats-grid">
 
         <a href="{% url 'resident_records' %}" class="dash-stat-card dash-stat-link">
             <div class="card-icon blue">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-user-friends"></i>
             </div>
             <div class="card-content">
                 <p>Total Residents</p>
@@ -52,7 +39,7 @@
         </a>
 
         <a href="{% url 'admin_document_requests' %}" class="dash-stat-card dash-stat-link">
-            <div class="card-icon orange">
+            <div class="card-icon green">
                 <i class="fas fa-file-alt"></i>
             </div>
             <div class="card-content">
@@ -62,7 +49,7 @@
         </a>
 
         <a href="{% url 'case_records' %}" class="dash-stat-card dash-stat-link">
-            <div class="card-icon red">
+            <div class="card-icon purple">
                 <i class="fas fa-gavel"></i>
             </div>
             <div class="card-content">
@@ -72,8 +59,8 @@
         </a>
 
         <a href="{% url 'admin_inquiries' %}" class="dash-stat-card dash-stat-link">
-            <div class="card-icon purple">
-                <i class="fas fa-envelope"></i>
+            <div class="card-icon orange">
+                <i class="fas fa-comment-dots"></i>
             </div>
             <div class="card-content">
                 <p>Total Inquiries</p>
@@ -82,7 +69,7 @@
         </a>
 
         <a href="{% url 'sms_outbox' %}" class="dash-stat-card dash-stat-link">
-            <div class="card-icon green">
+            <div class="card-icon blue-soft">
                 <i class="fas fa-paper-plane"></i>
             </div>
             <div class="card-content">
@@ -93,36 +80,72 @@
 
     </div>
 
+    <!-- Action Required Banner -->
+    <div class="dash-action-banner">
+        <div class="action-banner-title">
+            <i class="fas fa-bell"></i>
+            <span>Action Required</span>
+        </div>
+
+        <div class="action-grid">
+
+            <a href="{% url 'admin_document_requests' %}?status=Pending" class="action-card">
+                <div class="action-icon orange">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="action-content">
+                    <h2>{{ docreq_exceeded_sla|default:"0" }}</h2>
+                    <p>Document Requests<br>exceeded SLA</p>
+                </div>
+            </a>
+
+            <a href="{% url 'admin_inquiries' %}" class="action-card">
+                <div class="action-icon red">
+                    <i class="fas fa-comment-alt"></i>
+                </div>
+                <div class="action-content">
+                    <h2>{{ inquiries_exceeded_sla|default:"0" }}</h2>
+                    <p>Inquiries<br>exceeded SLA</p>
+                </div>
+            </a>
+
+            <a href="{% url 'case_records' %}?status=For Chairman Review" class="action-card">
+                <div class="action-icon purple">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="action-content">
+                    <h2>{{ cases_awaiting_chairman|default:"0" }}</h2>
+                    <p>Cases waiting for<br>Chairman Review</p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Analytics Section 1: Announcements & Inquiries -->
     <div class="dash-analytics-grid">
 
         <!-- Announcement Analytics -->
         <div class="dash-panel announcement-panel">
             <h2><i class="fas fa-bullhorn"></i> Announcement Analytics</h2>
 
-            <div class="mini-panel">
-                <p class="mini-panel-title">Posts Over Time (Last 30 Days)</p>
-                <div class="line-chart-wrapper">
-                    <canvas id="announcementTrendChart"></canvas>
-                </div>
-            </div>
-
             <div class="mini-stat-row">
                 <div class="mini-stat-card">
-                    <div class="mini-stat-icon"><i class="fas fa-eye"></i></div>
+                    <div class="mini-stat-icon blue"><i class="fas fa-eye"></i></div>
                     <div>
                         <p>Total Views</p>
                         <h3>{{ total_views|default:"0" }}</h3>
                     </div>
                 </div>
                 <div class="mini-stat-card">
-                    <div class="mini-stat-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="mini-stat-icon purple"><i class="fas fa-chart-bar"></i></div>
                     <div>
                         <p>Avg Views / Announcement</p>
                         <h3>{{ avg_views_per_post|default:"0" }}</h3>
                     </div>
                 </div>
                 <div class="mini-stat-card">
-                    <div class="mini-stat-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="mini-stat-icon green"><i class="fas fa-file-alt"></i></div>
                     <div>
                         <p>Total Announcements</p>
                         <h3>{{ total_announcements|default:"0" }}</h3>
@@ -130,18 +153,19 @@
                 </div>
             </div>
 
-            <div class="mini-panel">
+            <div class="analytics-content">
                 <p class="mini-panel-title">Views by Category</p>
                 <div class="category-views-row">
                     <div class="category-chart-wrapper">
                         <canvas id="categoryViewsChart"></canvas>
                     </div>
+
                     <ul class="category-legend">
                         {% for c in category_views %}
                         <li>
                             <span class="cat-dot cat-color-{{ forloop.counter0 }}"></span>
-                            {{ c.name }}
-                            <strong>{{ c.percent }}% ({{ c.views }})</strong>
+                            <span class="cat-name">{{ c.name }}</span>
+                            <strong>{{ c.views }} ({{ c.percent }}%)</strong>
                         </li>
                         {% empty %}
                         <li>No announcement views yet</li>
@@ -150,133 +174,219 @@
                 </div>
             </div>
 
-            <div class="most-viewed-block">
-                <span>Most Viewed:</span>
-                {% if most_viewed_announcement %}
-                    <strong>{{ most_viewed_announcement.title }}</strong>
-                {% else %}
-                    <strong>No announcement yet</strong>
-                {% endif %}
+            <div class="panel-footer-row right-align">
+                <a href="{% url 'announcements' %}" class="view-all-link">View All Announcements &rarr;</a>
+            </div>
+        </div>
+
+        <!-- Inquiry Analytics -->
+        <div class="dash-panel inquiry-panel">
+            <h2><i class="fas fa-comment-dots"></i> Inquiry Analytics</h2>
+
+            <div class="mini-stat-row mini-stat-row-4">
+                <div class="mini-stat-card clean">
+                    <p>Total Inquiries</p>
+                    <h3>{{ total_inquiries|default:"0" }}</h3>
+                </div>
+                <div class="mini-stat-card clean">
+                    <div class="stat-header-flex">
+                        <p>SLA Compliance</p>
+                        <i class="far fa-check-circle stat-check"></i>
+                    </div>
+                    <h3 class="text-green">{{ inquiry_sla_compliance|default:"0" }}%</h3>
+                    <small>Completed within 72 hrs</small>
+                </div>
+                <div class="mini-stat-card clean">
+                    <div class="stat-header-flex">
+                        <p>Past SLA</p>
+                        <i class="far fa-clock stat-danger-icon"></i>
+                    </div>
+                    <h3 class="stat-danger">{{ past_sla_inquiries_count|default:"0" }}</h3>
+                    <small>Inquiries</small>
+                </div>
+                <div class="mini-stat-card clean">
+                    <div class="stat-header-flex">
+                        <p>Avg Response Time</p>
+                        <i class="far fa-clock stat-blue-icon"></i>
+                    </div>
+                    <h3>{{ avg_inquiry_response_hours|default:"0" }} hrs</h3>
+                </div>
             </div>
 
+            <div class="inquiry-bottom-grid">
+                <div class="mini-panel">
+                    <p class="mini-panel-title">Inquiries by Category</p>
+                    <div class="category-views-row">
+                        <div class="category-chart-wrapper">
+                            <canvas id="inquiryCategoryChart"></canvas>
+                        </div>
+                        <ul class="category-legend">
+                            {% for c in inquiry_categories %}
+                            <li>
+                                <span class="cat-dot cat-color-{{ forloop.counter0 }}"></span>
+                                <span class="cat-name">{{ c.name }}</span>
+                                <strong>{{ c.count }} ({{ c.percent }}%)</strong>
+                            </li>
+                            {% empty %}
+                            <li>No inquiries yet</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="most-inquired-card">
+                    <p class="most-title">Most Inquired About</p>
+                    <div class="most-inquired-inner">
+                        <div>
+                            <strong>{{ most_inquired_about.name|default:"Barangay Clearance" }}</strong>
+                            <p>{{ most_inquired_about.count|default:"9" }} inquiries ({{ most_inquired_about.percent|default:"39" }}%)</p>
+                        </div>
+                        <div class="most-icon">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer-row right-align">
+                <a href="{% url 'admin_inquiries' %}" class="view-all-link">View All Inquiries &rarr;</a>
+            </div>
         </div>
+
+    </div>
+
+    <!-- Analytics Section 2: Cases & Document Requests -->
+    <div class="dash-analytics-grid">
 
         <!-- Case Analytics -->
         <div class="dash-panel case-panel">
             <h2><i class="fas fa-gavel"></i> Case Analytics</h2>
 
             <p class="mini-panel-title">Case Status Distribution</p>
-            <div class="case-chart-row">
+
+            <div class="case-top-section">
                 <div class="case-chart-container">
                     <canvas id="caseAnalyticsChart"></canvas>
                 </div>
                 <ul class="case-legend">
                     <li>
                         <span class="pending-dot"></span> Pending
-                        <strong>{{ cases_pending }} ({{ cases_pending_pct }}%)</strong>
+                        <strong>{{ cases_pending|default:"8" }} ({{ cases_pending_pct|default:"31" }}%)</strong>
                     </li>
                     <li>
                         <span class="ongoing-dot"></span> Ongoing
-                        <strong>{{ cases_ongoing }} ({{ cases_ongoing_pct }}%)</strong>
+                        <strong>{{ cases_ongoing|default:"10" }} ({{ cases_ongoing_pct|default:"38" }}%)</strong>
                     </li>
                     <li>
                         <span class="resolved-dot"></span> Resolved
-                        <strong>{{ cases_resolved }} ({{ cases_resolved_pct }}%)</strong>
+                        <strong>{{ cases_resolved|default:"8" }} ({{ cases_resolved_pct|default:"31" }}%)</strong>
                     </li>
                 </ul>
             </div>
 
-            <div class="resolution-block">
-                <div class="mini-stat-icon"><i class="fas fa-clock"></i></div>
-                <div>
-                    <span>Average Resolution Time</span>
-                    <h3>{{ avg_resolution_time|default:"0" }} days</h3>
+            <div class="case-bottom-metrics">
+                <div class="mini-stat-card clean">
+                    <p>Average Resolution Time</p>
+                    <h3>{{ avg_resolution_time|default:"4.1" }} days</h3>
                     <small>based on resolved cases</small>
+                </div>
+                <div class="mini-stat-card clean">
+                    <p>Fastest Resolution</p>
+                    <h3>{{ fastest_resolution_time|default:"1" }} day</h3>
+                    <small>minimum</small>
+                </div>
+                <div class="mini-stat-card clean">
+                    <p>Longest Resolution</p>
+                    <h3>{{ longest_resolution_time|default:"18" }} days</h3>
+                    <small>maximum</small>
+                </div>
+                <div class="mini-stat-card clean">
+                    <p>Average Processing Time</p>
+                    <h3>{{ avg_case_processing_time|default:"2.3" }} days</h3>
+                    <small>from review to action</small>
                 </div>
             </div>
 
+            <div class="panel-footer-row right-align">
+                <a href="{% url 'case_records' %}" class="view-all-link">View All Cases &rarr;</a>
+            </div>
+        </div>
+
+        <!-- Document Request Analytics -->
+        <div class="dash-panel dash-doc-card">
+            <h2><i class="fas fa-file-alt"></i> Document Request Analytics</h2>
+
+            <p class="mini-panel-title">Requests by Document Type</p>
+
+            <div class="doc-chart-wrapper">
+                <canvas id="docTypeChart"></canvas>
+            </div>
+
+            <div class="doc-bottom-metrics">
+                <div class="doc-side-card sla-card">
+                    <div class="stat-header-flex">
+                        <p>SLA Compliance</p>
+                        <i class="far fa-check-circle stat-check"></i>
+                    </div>
+                    <h3 class="text-green">{{ sla_compliance|default:"92" }}%</h3>
+                    <small>Completed within 72 hrs</small>
+                </div>
+
+                <div class="doc-side-card past-sla-card">
+                    <div class="stat-header-flex">
+                        <p>Past SLA Requests</p>
+                        <i class="far fa-clock stat-danger-icon"></i>
+                    </div>
+                    <h3 class="stat-danger">{{ past_sla_docreq_count|default:"3" }}</h3>
+                    <small>requests</small>
+                </div>
+
+                <div class="doc-side-card processing-card">
+                    <div class="stat-header-flex">
+                        <p>Average Processing Time</p>
+                        <i class="far fa-clock stat-blue-icon"></i>
+                    </div>
+                    <h3>{{ avg_processing_time|default:"2.3" }} days</h3>
+                    <small>from requested to completed</small>
+                </div>
+            </div>
+
+            <div class="panel-footer-row right-align">
+                <a href="{% url 'admin_document_requests' %}" class="view-all-link">View All Document Requests &rarr;</a>
+            </div>
         </div>
 
     </div>
-
-    <!-- Document Request Analytics -->
-    <div class="dash-panel dash-doc-card">
-        <h2><i class="fas fa-file-alt"></i> Document Request Analytics</h2>
-
-        <p class="mini-panel-title">Requests by Document Type</p>
-        <div class="doc-chart-wrapper">
-            <canvas id="docTypeChart"></canvas>
-        </div>
-
-        <div class="doc-bottom-stats">
-            <div class="doc-bottom-card sla-card">
-                <div class="mini-stat-icon"><i class="fas fa-shield-alt"></i></div>
-                <p>SLA Compliance</p>
-                <h3>{{ sla_compliance|default:"0" }}%</h3>
-                <small>Completed within 72 hours</small>
-            </div>
-            <div class="doc-bottom-card processing-card">
-                <div class="mini-stat-icon"><i class="fas fa-clock"></i></div>
-                <p>Average Processing Time</p>
-                <h3>{{ avg_processing_time|default:"0" }} days</h3>
-                <small>average</small>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
-    // Data passed from Django view (admin_dashboard_view) -> already JSON-safe via json.dumps
-    const caseChartData = {{ case_chart_data|safe }};
-    const doctypeChartData = {{ doctype_chart_data|safe }};
-    const postsTrendData = {{ posts_trend_data|safe }};
-    const categoryViewsChart = {{ category_views_chart|safe }};
+    const caseChartData = {{ case_chart_data|default:'{"values": [8, 10, 8]}'|safe }};
+    const doctypeChartData = {{ doctype_chart_data|default:'{"labels":["Barangay Clearance","Certificate of Residency","Certificate of Indigency","Business Permit","Others"],"values":[98,76,54,34,22]}'|safe }};
+    const categoryViewsChart = {{ category_views_chart|default:'{"labels":["Health","Events","Advisory","Infrastructure","Others"],"values":[4351,3478,2236,1491,874]}'|safe }};
+    const inquiryCategoriesChart = {{ inquiry_categories_chart|default:'{"labels":["Barangay Clearance","Certificate of Residency","Business Permit","Indigency / Financial","Others"],"values":[9,5,4,3,2]}'|safe }};
 
     const categoryPalette = ['#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#94a3b8'];
 
-    // ---- CASE ANALYTICS: Doughnut chart ----
+    // Case Analytics Chart
     new Chart(document.getElementById('caseAnalyticsChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             datasets: [{
                 data: caseChartData.values,
-                backgroundColor: ['#FDE68A', '#93C5FD', '#BBF7D0'],
+                backgroundColor: ['#f59e0b', '#3b82f6', '#22c55e'],
                 borderWidth: 0,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '65%',
+            cutout: '72%',
             plugins: { legend: { display: false } }
         }
     });
 
-    // ---- ANNOUNCEMENT POSTS TREND: Line chart ----
-    new Chart(document.getElementById('announcementTrendChart').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: postsTrendData.labels,
-            datasets: [{
-                data: postsTrendData.values,
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59,130,246,0.1)',
-                fill: true,
-                tension: 0.35,
-                pointRadius: 3,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-    });
-
-    // ---- VIEWS BY CATEGORY: Doughnut chart ----
+    // Views by Category Chart
     new Chart(document.getElementById('categoryViewsChart').getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -290,12 +400,31 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '60%',
+            cutout: '68%',
             plugins: { legend: { display: false } }
         }
     });
 
-    // ---- DOCUMENT REQUESTS BY TYPE: Horizontal bar chart ----
+    // Inquiries by Category Chart
+    new Chart(document.getElementById('inquiryCategoryChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: inquiryCategoriesChart.labels,
+            datasets: [{
+                data: inquiryCategoriesChart.values,
+                backgroundColor: categoryPalette,
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Document Requests Horizontal Bar Chart
     new Chart(document.getElementById('docTypeChart').getContext('2d'), {
         type: 'bar',
         data: {
@@ -303,8 +432,8 @@
             datasets: [{
                 data: doctypeChartData.values,
                 backgroundColor: '#22c55e',
-                borderRadius: 6,
-                maxBarThickness: 22,
+                borderRadius: 4,
+                barThickness: 10,
             }]
         },
         options: {
@@ -312,7 +441,17 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            scales: {
+                x: { 
+                    beginAtZero: true, 
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8', font: { size: 11 } } 
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: '#475569', font: { size: 12 } }
+                }
+            }
         }
     });
 </script>

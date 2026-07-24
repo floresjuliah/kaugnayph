@@ -20,7 +20,14 @@
 
     <div class="ann-form-card">
 
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data"
+                                    data-position-confirm
+                                    data-confirm-title="Save Announcement Changes"
+                                    data-confirm-message="The changes made to this announcement will be saved."
+                                    data-confirm-button="Save Changes"
+                                    data-confirm-variant="primary"
+                                    data-confirm-icon="fa-solid fa-pen"
+                                >
             {% csrf_token %}
 
             <div class="ann-form-group">
@@ -38,11 +45,19 @@
             <div class="ann-form-group">
                 <label>Category</label>
 
-                <select name="category_id" class="form-control">
-                    <option value="1">General</option>
-                    <option value="2">Emergency</option>
-                    <option value="3">Events</option>
-                    <option value="4">Sports</option>
+                <select name="category_id" class="form-control" required>
+                    <option value="1" {% if announcement.category_id == 1 %}selected{% endif %}>
+                        General
+                    </option>
+                    <option value="2" {% if announcement.category_id == 2 %}selected{% endif %}>
+                        Emergency
+                    </option>
+                    <option value="3" {% if announcement.category_id == 3 %}selected{% endif %}>
+                        Events
+                    </option>
+                    <option value="4" {% if announcement.category_id == 4 %}selected{% endif %}>
+                        Sports
+                    </option>
                 </select>
             </div>
 
@@ -101,39 +116,49 @@
                 </label>
             </div>
 
-            <div class="ann-form-actions">
+                        <div class="ann-form-actions">
 
-                <a
-                    href="{% url 'admin_announcement_detail' announcement.announcement_id %}"
-                    class="btn btn-secondary"
-                >
-                    Cancel
-                </a>
+                            <a
+                                href="{% url 'admin_announcement_detail' announcement.announcement_id %}"
+                                class="btn btn-secondary"
+                            >
+                                Cancel
+                            </a>
 
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    Save Changes
-                </button>
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Save Changes
+                            </button>
 
-                <form
-                    method="POST"
-                    action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
-                    style="display:inline;"
-                    onsubmit="return confirm('Are you sure you want to delete this announcement?');"
-                >
-                    {% csrf_token %}
+                        </div>
 
-                    <button
-                        type="submit"
-                        class="btn btn-outline-danger"
-                    >
-                        <i class="fa-solid fa-trash"></i>
-                        Delete Announcement
-                    </button>
+                    </form>
 
-                </form>
+                    <form
+                        method="POST"
+                        action="{% url 'admin_announcement_delete' announcement.announcement_id %}"
+                        class="ann-delete-form d-inline"
+                    
+                                    data-position-confirm
+                                    data-confirm-title="Delete Announcement"
+                                    data-confirm-message="This announcement will be permanently deleted. This action cannot be undone."
+                                    data-confirm-button="Delete"
+                                    data-confirm-variant="danger"
+                                    data-confirm-icon="fa-solid fa-triangle-exclamation"
+                                >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                            Delete Announcement
+                        </button>
+
+                    </form>
 
             </div>
 
@@ -142,5 +167,9 @@
     </div>
 
 </div>
+
+<link rel="stylesheet" href="{% static 'css/position_confirm.css' %}">
+{% include "adminpanel/position_confirm_modal.html" %}
+<script src="{% static 'js/position_confirm.js' %}"></script>
 
 {% endblock %}

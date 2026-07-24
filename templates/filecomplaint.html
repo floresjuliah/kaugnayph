@@ -80,6 +80,7 @@
                         value="{{ form_data.incident_date|default:'' }}"
                         required
                     >
+                    <span class="field-error" id="incident_date-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
                 </div>
             </div>
 
@@ -100,6 +101,7 @@
                         value="{{ form_data.complainee|default:'' }}"
                         required
                     >
+                    <span class="field-error" id="complainee-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
                 </div>
 
                 <div>
@@ -136,6 +138,7 @@
                         value="{{ form_data.title|default:'' }}"
                         required
                     >
+                    <span class="field-error" id="title-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
                 </div>
 
                 <div>
@@ -172,6 +175,7 @@
                     data-placeholder-tl="Isulat ang iyong mensahe rito"
                     required
                 >{{ form_data.description|default:'' }}</textarea>
+                <span class="field-error" id="description-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
             </div>
 
             <!-- CAPTCHA -->
@@ -183,6 +187,7 @@
                     </label>
 
                     {{ captcha_form.captcha }}
+                    <span class="field-error" data-en="This field is required." data-tl="Kailangan punan ang field na ito.">This field is required.</span>
 
                     {% if captcha_form.captcha.errors %}
                         <div class="complaint-alert" style="margin-top:10px;">
@@ -222,6 +227,23 @@
   .required-mark {
     color: #dc2626;
   }
+
+  .complaint-form input:invalid:focus,
+  .complaint-form textarea:invalid:focus {
+    outline: 2px solid #dc2626;
+    outline-offset: 1px;
+  }
+
+  .field-error {
+    display: none;
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .field-error.show {
+    display: block;
+  }
 </style>
 
 <script>
@@ -242,6 +264,55 @@ document.getElementById('evidence').addEventListener('change', function() {
         this.value = '';
     }
 });
+
+// ── Highlight required fields with a red border + "this field is required" message ──
+(function() {
+    const form = document.querySelector('.complaint-form');
+    const requiredFields = form.querySelectorAll('[required]');
+
+    function getErrorEl(field) {
+        return document.getElementById(field.id + '-error')
+            || field.parentElement.querySelector('.field-error');
+    }
+
+    requiredFields.forEach(function(field) {
+        const errorEl = getErrorEl(field);
+
+        field.addEventListener('invalid', function() {
+            // Deferred so it doesn't interfere with the native validation tooltip
+            setTimeout(function() {
+                field.style.setProperty('border-color', '#dc2626', 'important');
+                if (errorEl) errorEl.classList.add('show');
+            }, 0);
+        });
+
+        field.addEventListener('input', function() {
+            if (field.checkValidity()) {
+                field.style.removeProperty('border-color');
+                if (errorEl) errorEl.classList.remove('show');
+            }
+        });
+
+        field.addEventListener('change', function() {
+            if (field.checkValidity()) {
+                field.style.removeProperty('border-color');
+                if (errorEl) errorEl.classList.remove('show');
+            }
+        });
+    });
+
+    form.addEventListener('submit', function() {
+        requiredFields.forEach(function(field) {
+            if (!field.checkValidity()) {
+                const errorEl = getErrorEl(field);
+                setTimeout(function() {
+                    field.style.setProperty('border-color', '#dc2626', 'important');
+                    if (errorEl) errorEl.classList.add('show');
+                }, 0);
+            }
+        });
+    });
+})();
 </script>
 
 {% endblock %}

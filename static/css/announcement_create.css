@@ -189,3 +189,162 @@
         font-size: 18px;
     }
 }
+
+/* =========================================
+   PUBLISH ANNOUNCEMENT CONFIRMATION MODAL
+========================================= */
+
+#publishConfirmModal.delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.5);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+}
+
+#publishConfirmModal.delete-modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+#publishConfirmModal .delete-modal {
+    width: 100%;
+    max-width: 440px;
+
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 45px rgba(15, 23, 42, 0.18);
+
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.2s ease;
+}
+
+#publishConfirmModal.show .delete-modal {
+    transform: translateY(0) scale(1);
+}
+
+#publishConfirmModal .delete-modal-icon {
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 18px;
+
+    border-radius: 50%;
+    background: #fff4e5;
+    color: #e67e22;
+
+    font-size: 24px;
+}
+
+#publishConfirmModal .delete-modal-icon i {
+    display: block;
+    line-height: 1;
+}
+
+#publishConfirmModal .delete-modal h3 {
+    margin: 0 0 10px;
+
+    color: #1e293b;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+#publishConfirmModal .delete-modal p {
+    margin: 0 auto;
+
+    max-width: 360px;
+
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#publishConfirmModal .delete-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 24px;
+}
+
+#publishConfirmModal .delete-modal-actions .btn {
+    min-width: 120px;
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+    padding: 0 20px;
+
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#publishConfirmModal .delete-modal-actions .btn-secondary {
+    border: 1px solid #d9e4ef;
+    background: #ffffff;
+    color: #1e293b;
+}
+
+#publishConfirmModal .delete-modal-actions .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+#publishConfirmModal .delete-modal-actions .btn-primary {
+    border: 1px solid #0066ff;
+    background: #0066ff;
+    color: #ffffff;
+}
+
+#publishConfirmModal .delete-modal-actions .btn-primary:hover {
+    background: #0057d9;
+    border-color: #0057d9;
+}
+
+#publishConfirmModal .delete-modal-actions .btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+    #publishConfirmModal .delete-modal {
+        padding: 24px 20px;
+    }
+
+    #publishConfirmModal .delete-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    #publishConfirmModal .delete-modal-actions .btn {
+        width: 100%;
+    }
+}
